@@ -1,7 +1,7 @@
 # data-science-keras
 Data science projects with Keras
 
-This repo contains several notebooks solving data science projets with artificial netural networks 
+This repo contains several notebooks solving data science projetcs with artificial neural networks 
 implemented in Keras.
 
 ## Instructions
