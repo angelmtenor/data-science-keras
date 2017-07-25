@@ -21,7 +21,9 @@ def show_training(history):
     if 'acc' in hist:
         print("Training accuracy: {:.2f}".format(hist['acc'][-1]))
 
-    print("Validation loss: {:.4f}".format(hist['val_loss'][-1]))
+    if 'val_loss' in hist:    
+        print("Validation loss: {:.4f}".format(hist['val_loss'][-1]))
+
     if 'val_acc' in hist:
         print("Validation accuracy: {:.2f}".format(hist['val_acc'][-1]))
 
