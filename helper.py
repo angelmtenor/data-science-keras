@@ -1,3 +1,6 @@
+"""
+Helper module for Data-Science-Keras repository
+"""
 import matplotlib.pyplot as plt
 
 
