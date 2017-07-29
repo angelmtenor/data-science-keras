@@ -55,9 +55,9 @@ def show_training(history):
 def expand_date(timeseries):
     """
     Expand a pandas datetime series returning a dataframe with these columns:
+	- hour : 0 - 23
 	- year: 
 	- month: 1 - 12
-	- hour : 0 - 23
   	- weekday : 0 Monday - 6 Sunday
 	- holiday : 0 - 1 holiday
     - workingday : 0 weekend or holiday - 1 workingday ,
@@ -68,9 +68,11 @@ def expand_date(timeseries):
         timeseries) == pd.core.series.Series, 'input must be pandas series'
     assert timeseries.dtypes == 'datetime64[ns]', 'input must be pandas datetime'
 
-    date = timeseries.dt.date
-
     df = pd.DataFrame()
+
+    df['hour'] = timeseries.dt.hour  
+
+    date = timeseries.dt.date
     df['year'] = pd.DatetimeIndex(date).year
     df['month'] = pd.DatetimeIndex(date).month
     df['day'] = pd.DatetimeIndex(date).day
