@@ -55,11 +55,13 @@ def show_training(history):
 def expand_date(timeseries):
     """
     Expand pandas datetime series with 'Date' returning a dataframe with these columns:
-	- year : year
-	- month : month (1-12)
-	- hour : hour (0-23)
-  	- weekday : day of the week (0 Monday - 6 Sunday)
-	- holiday : weather day is holiday or not
+	- year: 
+	- month: 1 - 12
+	- hour : 0 - 23
+  	- weekday : 0 Monday - 6 Sunday
+	- holiday : 0 - 1 holiday
+    - workingday : 0 weekend or holiday - 1 workingday ,
+
     """
 
     assert type(
@@ -68,33 +70,27 @@ def expand_date(timeseries):
 
     date = timeseries.dt.date
 
-    print(date)
-
     df = pd.DataFrame()
-    df['Year'] = pd.DatetimeIndex(date).year
-    df['Month'] = pd.DatetimeIndex(date).month
-    df['Day'] = pd.DatetimeIndex(date).day
-    df['Weekday'] = pd.DatetimeIndex(date).weekday
+    df['year'] = pd.DatetimeIndex(date).year
+    df['month'] = pd.DatetimeIndex(date).month
+    df['day'] = pd.DatetimeIndex(date).day
+    df['weekday'] = pd.DatetimeIndex(date).weekday
 
     holidays = calendar().holidays(start=date.min(), end=date.max())
-    df['holiday'] = date.astype('datetime64').isin(holidays)
-
-    # df.drop('Date', axis='columns', inplace=True)
-    print("Holiday", holidays)
+    df['holiday'] = date.astype('datetime64').isin(holidays).astype(int)
+    df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
 
     return df
 
 
-''' 
-    df = pd.DataFrame()
-    dates = ['2016-12-25 17:24:55', 
-            '2016-06-12 00:43:35',
-            '2016-01-19 11:35:24',
-            '2016-04-06 19:32:31',
-            '2016-02-15 13:30:55']
+''' # test expand_date:
+df = pd.DataFrame()
+dates = [
+    '2016-12-25 17:24:55', '2016-06-12 00:43:35', '2016-01-19 11:35:24',
+    '2016-04-06 19:32:31', '2016-02-15 13:30:55'
+]
 
-    df['Dates'] =  pd.to_datetime(dates)
+df['Dates'] = pd.to_datetime(dates)
 
-    sample = expand_date(df['Dates'])
-    print(sample.head())
-'''
+sample = expand_date(df['Dates'])
+print(sample.head()) '''
