@@ -77,7 +77,7 @@ def expand_date(timeseries):
     df['weekday'] = pd.DatetimeIndex(date).weekday
 
     holidays = calendar().holidays(start=date.min(), end=date.max())
-    df['holiday'] = date.astype('datetime64').isin(holidays).astype(int)
+    df['holiday'] = date.astype('datetime64[ns]').isin(holidays).astype(int)
     df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
 
     return df
