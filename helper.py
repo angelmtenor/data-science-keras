@@ -54,7 +54,7 @@ def show_training(history):
 
 def expand_date(timeseries):
     """
-    Expand pandas datetime series with 'Date' returning a dataframe with these columns:
+    Expand a pandas datetime series returning a dataframe with these columns:
 	- year: 
 	- month: 1 - 12
 	- hour : 0 - 23
