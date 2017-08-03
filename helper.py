@@ -1,10 +1,27 @@
 """
 Helper module for Data-Science-Keras repository
 """
-
+import os
+import random as rn
+import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+import tensorflow as tf
+
+def reproducible(seed=42):
+    """ Setup reproducible results from run to run using Keras
+    https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    """
+    from keras import backend as K
+
+    os.environ['PYTHONHASHSEED'] = '0'
+    np.random.seed(seed)
+    rn.seed(seed)
+    # Multiple threads are a potential source of non-reproducible results.
+    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    tf.set_random_seed(seed)
+    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+    K.set_session(sess)
 
 
 def show_training(history):
@@ -67,6 +84,7 @@ def expand_date(timeseries):
     - workingday : 0 weekend or holiday - 1 workingday ,
 
     """
+    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
     assert type(
         timeseries) == pd.core.series.Series, 'input must be pandas series'
