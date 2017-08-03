@@ -21,16 +21,6 @@ def show_training(history):
         print("Error: 'loss' values not found in the history")
         return
 
-    # show final results
-
-    print("\nTraining loss:  \t{:.4f}".format(hist['loss'][-1]))
-    if 'val_loss' in hist:
-        print("Validation loss: \t{:.4f}".format(hist['val_loss'][-1]))
-    if 'acc' in hist:
-        print("\nTraining accuracy: \t{:.2f}".format(hist['acc'][-1]))
-    if 'val_acc' in hist:
-        print("Validation accuracy:\t{:.2f}".format(hist['val_acc'][-1]))
-
     # plot training
 
     plt.figure(figsize=(14, 4))
@@ -50,6 +40,20 @@ def show_training(history):
         plt.xlabel('epoch')
         plt.ylabel('accuracy')
         plt.legend()
+        
+    plt.show()    
+
+    # show final results
+
+    print("\nTraining loss:  \t{:.4f}".format(hist['loss'][-1]))
+    if 'val_loss' in hist:
+        print("Validation loss: \t{:.4f}".format(hist['val_loss'][-1]))
+    if 'acc' in hist:
+        print("\nTraining accuracy: \t{:.2f}".format(hist['acc'][-1]))
+    if 'val_acc' in hist:
+        print("Validation accuracy:\t{:.2f}".format(hist['val_acc'][-1]))
+
+
 
 
 def expand_date(timeseries):
@@ -90,8 +94,7 @@ def expand_date(timeseries):
 df = pd.DataFrame()
 dates = [
     '2016-12-25 17:24:55', '2016-06-12 00:43:35', '2016-01-19 11:35:24',
-    '2016-04-06 19:32:31', '2016-02-15 13:30:55'
-]
+    '2016-04-06 19:32:31', '2016-02-15 13:30:55']
 
 df['Dates'] = pd.to_datetime(dates)
 
