@@ -8,6 +8,15 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import tensorflow as tf
 
+def show_missing(df):
+    """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
+
+    plt.ylim([0, 1])
+    plt.title("Missing values")
+    plt.ylabel("Missing / Total")
+    (df.isnull().sum()/df.shape[0]).plot.bar()
+
+
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
