@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import tensorflow as tf
+import seaborn as sns
 
 def show_missing(df):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
@@ -16,6 +17,20 @@ def show_missing(df):
     plt.ylabel("Missing / Total")
     (df.isnull().sum()/df.shape[0]).plot.bar()
 
+
+def show_categorical(df, target, categorical ):
+    """ Display barplots of target vs categorical variables
+    input: pandas dataframe, target list, categorical features list
+    """
+
+    categorical_f = [c for c in categorical if c not in target]
+    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=[17,4])
+    plt.ylim([0, 1])
+
+    for idx, f in enumerate(categorical_f):
+        v = [v for v in df[f].values if str(v) != 'nan']
+        sorted_values = sorted(set(v))
+        sns.barplot(data=df, x=f, y=target[0], ax=ax[idx])
 
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
