@@ -50,6 +50,20 @@ def show_categorical(df, target, categorical, figsize=(17,4)):
             sns.barplot(data=df, x=f, y=t, ax=ax[idx])
 
 
+def show_numerical(df, target, numerical, figsize=(17,4)):
+    """ Display histograms of binary target vs numerical variables
+    input: pandas dataframe, target list, numerical features list
+    Target values must be numerical
+    """
+    numerical_f = [n for n in numerical if n not in target]
+    
+    for t in target:   # in case of several targets several plots will be shown
+        fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
+
+        for idx, f in enumerate(numerical_f):
+            g = sns.regplot(x=f, y=t, data=df, x_jitter=0.2, y_jitter=0.2, ax=ax[idx], marker=".")
+
+
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
