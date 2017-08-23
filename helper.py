@@ -23,13 +23,15 @@ def show_categorical(df, target, categorical, figsize=(17,4)):
     input: pandas dataframe, target list, categorical features list
     """
     categorical_f = [c for c in categorical if c not in target]
-    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
-    plt.ylim([0, 1])
+    
+    for t in target:   # in case of several targets several plots will be shown
+        fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
+        plt.ylim([0, 1])
 
-    for idx, f in enumerate(categorical_f):
-        v = [v for v in df[f].values if str(v) != 'nan']
-        sorted_values = sorted(set(v))
-        sns.barplot(data=df, x=f, y=target[0], ax=ax[idx])
+        for idx, f in enumerate(categorical_f):
+            v = [v for v in df[f].values if str(v) != 'nan']
+            sorted_values = sorted(set(v))
+            sns.barplot(data=df, x=f, y=t, ax=ax[idx])
 
 
 def reproducible(seed=42):
