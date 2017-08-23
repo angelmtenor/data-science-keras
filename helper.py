@@ -9,6 +9,22 @@ import pandas as pd
 import tensorflow as tf
 import seaborn as sns
 
+def remove_lowfreq(df, freq=0.01):
+    """
+    Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
+    """
+    threshold = df.shape[0]*freq
+
+    for f in df:
+        count = df[f].value_counts()  
+        low_freq = list(count[count < threshold].index)
+        if len(low_freq) > 0:
+            df.loc[:,f] = df.loc[:,f].replace(low_freq, np.nan)
+            #df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan) 
+        print(f, dict(df[f].value_counts()))
+    return df
+
+
 def show_missing(df, figsize=(8,3)):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
     plt.figure(figsize=figsize)
@@ -21,12 +37,12 @@ def show_missing(df, figsize=(8,3)):
 def show_categorical(df, target, categorical, figsize=(17,4)):
     """ Display barplots of target vs categorical variables
     input: pandas dataframe, target list, categorical features list
+    Target values must be numerical for barplots
     """
     categorical_f = [c for c in categorical if c not in target]
     
     for t in target:   # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
-        plt.ylim([0, 1])
 
         for idx, f in enumerate(categorical_f):
             v = [v for v in df[f].values if str(v) != 'nan']
