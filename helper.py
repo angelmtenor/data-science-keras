@@ -34,19 +34,32 @@ def show_missing(df, figsize=(8,3)):
     (df.isnull().sum()/df.shape[0]).plot.bar()
 
 
-def show_numerical(df, numerical, target=[], kde=False, figsize=(17,4)):
+def show_numerical(df, numerical, target=[], kde=False, sharey=False, figsize=(17,2)):
     """
     Display histograms of numerical features
     If a target list is provided, their histograms will be excluded
     """
     numerical_f = [n for n in numerical if n not in target]
-    fig, ax = plt.subplots(ncols=len(numerical_f), sharey=False, figsize=[17,2])
+    fig, ax = plt.subplots(ncols=len(numerical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(numerical_f):
         sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)        
 #         for value in df_filtered[t].unique():           
 #             sns.distplot(df.loc[df_filtered[t]==value, n].dropna(), ax=ax[idx])
 #             plt.legend(df_filtered[t].unique(), title=t)
 #             # ax[idx].yaxis.set_visible(False)
+
+
+def show_categorical(df, categorical, target=[], sharey=False, figsize=(17,2)):
+    """
+    Display histograms of categorical features
+    If a target list is provided, their histograms will be excluded
+    """
+    categorical_f = [n for n in categorical if n not in target]
+    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
+    for idx, n in enumerate(categorical_f):
+        so = sorted({v for v in df[n].values if str(v) != 'nan'})
+        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)  
+
 
 
 def show_target_vs_categorical(df, target, categorical, figsize=(17,4)):
@@ -60,9 +73,8 @@ def show_target_vs_categorical(df, target, categorical, figsize=(17,4)):
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(categorical_f):
-            v = [v for v in df[f].values if str(v) != 'nan']
-            sorted_values = sorted(set(v))
-            sns.barplot(data=df, x=f, y=t, ax=ax[idx])
+            so = sorted({v for v in df[f].values if str(v) != 'nan'})
+            sns.barplot(data=df, x=f, y=t, ax=ax[idx], order=so)
 
 
 def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17,4)):
