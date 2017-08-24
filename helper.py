@@ -34,7 +34,22 @@ def show_missing(df, figsize=(8,3)):
     (df.isnull().sum()/df.shape[0]).plot.bar()
 
 
-def show_categorical(df, target, categorical, figsize=(17,4)):
+def show_numerical(df, numerical, target=[], kde=False, figsize=(17,4)):
+    """
+    Display histograms of numerical features
+    If a target list is provided, their histograms will be excluded
+    """
+    numerical_f = [n for n in numerical if n not in target]
+    fig, ax = plt.subplots(ncols=len(numerical_f), sharey=False, figsize=[17,2])
+    for idx, n in enumerate(numerical_f):
+        sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)        
+#         for value in df_filtered[t].unique():           
+#             sns.distplot(df.loc[df_filtered[t]==value, n].dropna(), ax=ax[idx])
+#             plt.legend(df_filtered[t].unique(), title=t)
+#             # ax[idx].yaxis.set_visible(False)
+
+
+def show_target_vs_categorical(df, target, categorical, figsize=(17,4)):
     """ Display barplots of target vs categorical variables
     input: pandas dataframe, target list, categorical features list
     Target values must be numerical for barplots
@@ -50,7 +65,7 @@ def show_categorical(df, target, categorical, figsize=(17,4)):
             sns.barplot(data=df, x=f, y=t, ax=ax[idx])
 
 
-def show_numerical(df, target, numerical, figsize=(17,4)):
+def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17,4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list, numerical features list
     Target values must be numerical
@@ -61,7 +76,7 @@ def show_numerical(df, target, numerical, figsize=(17,4)):
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
-            g = sns.regplot(x=f, y=t, data=df, x_jitter=0.2, y_jitter=0.2, ax=ax[idx], marker=".")
+            g = sns.regplot(x=f, y=t, data=df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
 
 
 def reproducible(seed=42):
