@@ -9,7 +9,7 @@ import pandas as pd
 import tensorflow as tf
 import seaborn as sns
 
-def remove_lowfreq(df, freq=0.01):
+def remove_lowfreq(df, freq=0.01, show=False):
     """
     Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
     """
@@ -21,18 +21,28 @@ def remove_lowfreq(df, freq=0.01):
         if len(low_freq) > 0:
             df.loc[:,f] = df.loc[:,f].replace(low_freq, np.nan)
             #df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan) 
-        print(f, dict(df[f].value_counts()))
+        if show:
+            print(f, dict(df[f].value_counts()))
     return df
 
 
-def show_missing(df, figsize=(8,3)):
+def show_missing(df, figsize=(8,3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
-    plt.figure(figsize=figsize)
-    plt.ylim([0, 1])
-    plt.title("Missing values")
-    plt.ylabel("Missing / Total")
-    (df.isnull().sum()/df.shape[0]).plot.bar()
 
+    missing = df.isnull().sum()
+    missing_f = missing[missing>0]
+
+    print('Missing:')
+    for idx, value in missing_f.iteritems():
+        print("{:>20}:  {:>5} ({:.1f}%)".format(idx, value, value/df.shape[0]*100))
+    
+    if plot:
+        plt.figure(figsize=figsize)
+        plt.ylim([0, 1])
+        plt.title("Missing values")
+        plt.ylabel("Missing / Total")
+        (missing/df.shape[0]).plot.bar()
+    
 
 def show_numerical(df, numerical, target=[], kde=False, sharey=False, figsize=(17,2)):
     """
