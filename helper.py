@@ -3,83 +3,93 @@ Helper module for Data-Science-Keras repository
 """
 import os
 import random as rn
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
-import tensorflow as tf
 import seaborn as sns
+import tensorflow as tf
+import keras
+
 
 def remove_lowfreq(df, freq=0.01, show=False):
     """
     Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
     """
-    threshold = df.shape[0]*freq
+    threshold = df.shape[0] * freq
 
     for f in df:
-        count = df[f].value_counts()  
+        count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
         if len(low_freq) > 0:
-            df.loc[:,f] = df.loc[:,f].replace(low_freq, np.nan)
-            #df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan) 
+            df.loc[:, f] = df.loc[:, f].replace(low_freq, np.nan)
+            # df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan)
         if show:
             print(f, dict(df[f].value_counts()))
     return df
 
 
-def show_missing(df, figsize=(8,3), plot=False):
+def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
 
     missing = df.isnull().sum()
-    missing_f = missing[missing>0]
+    missing_f = missing[missing > 0]
 
     print('Missing:')
     for idx, value in missing_f.iteritems():
-        print("{:>20}:  {:>5} ({:.1f}%)".format(idx, value, value/df.shape[0]*100))
-    
+        print("{:>20}:  {:>5} ({:.1f}%)".format(idx, value, value / df.shape[0] * 100))
+
     if plot:
         plt.figure(figsize=figsize)
         plt.ylim([0, 1])
         plt.title("Missing values")
         plt.ylabel("Missing / Total")
-        (missing/df.shape[0]).plot.bar()
-    
+        (missing / df.shape[0]).plot.bar()
 
-def show_numerical(df, numerical, target=[], kde=False, sharey=False, figsize=(17,2)):
+
+def show_numerical(df, numerical, target=None, kde=False, sharey=False, figsize=(17, 2)):
     """
     Display histograms of numerical features
     If a target list is provided, their histograms will be excluded
     """
+    if target is None:
+        target = []
+
     numerical_f = [n for n in numerical if n not in target]
     fig, ax = plt.subplots(ncols=len(numerical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(numerical_f):
-        sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)        
-#         for value in df_filtered[t].unique():           
-#             sns.distplot(df.loc[df_filtered[t]==value, n].dropna(), ax=ax[idx])
+        sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
+        #         for value in df_filtered[t].unique():
+
+
+# sns.distplot(df.loc[df_filtered[t]==value, n].dropna(), ax=ax[idx])
 #             plt.legend(df_filtered[t].unique(), title=t)
 #             # ax[idx].yaxis.set_visible(False)
 
 
-def show_categorical(df, categorical, target=[], sharey=False, figsize=(17,2)):
+def show_categorical(df, categorical, target=None, sharey=False, figsize=(17, 2)):
     """
     Display histograms of categorical features
     If a target list is provided, their histograms will be excluded
     """
+    if target is None:
+        target = []
+
     categorical_f = [n for n in categorical if n not in target]
     fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
-        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)  
+        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
 
 
-
-def show_target_vs_categorical(df, target, categorical, figsize=(17,4)):
+def show_target_vs_categorical(df, target, categorical, figsize=(17, 4)):
     """ Display barplots of target vs categorical variables
     input: pandas dataframe, target list, categorical features list
     Target values must be numerical for barplots
     """
     categorical_f = [c for c in categorical if c not in target]
-    
-    for t in target:   # in case of several targets several plots will be shown
+
+    for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(categorical_f):
@@ -87,25 +97,24 @@ def show_target_vs_categorical(df, target, categorical, figsize=(17,4)):
             sns.barplot(data=df, x=f, y=t, ax=ax[idx], order=so)
 
 
-def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17,4)):
+def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list, numerical features list
     Target values must be numerical
     """
     numerical_f = [n for n in numerical if n not in target]
-    
-    for t in target:   # in case of several targets several plots will be shown
+
+    for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
-            g = sns.regplot(x=f, y=t, data=df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            sns.regplot(x=f, y=t, data=df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
 
 
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
     """
-    from keras import backend as K
 
     os.environ['PYTHONHASHSEED'] = '0'
     np.random.seed(seed)
@@ -114,7 +123,7 @@ def reproducible(seed=42):
     session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     tf.set_random_seed(seed)
     sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    K.set_session(sess)
+    keras.backend.set_session(sess)
 
 
 def show_training(history):
@@ -149,8 +158,8 @@ def show_training(history):
         plt.xlabel('epoch')
         plt.ylabel('accuracy')
         plt.legend()
-        
-    plt.show()    
+
+    plt.show()
 
     # show final results
 
@@ -166,12 +175,12 @@ def show_training(history):
 def expand_date(timeseries):
     """
     Expand a pandas datetime series returning a dataframe with these columns:
-	- hour : 0 - 23
-	- year: 
-	- month: 1 - 12
-  	- weekday : 0 Monday - 6 Sunday
-	- holiday : 0 - 1 holiday
-    - workingday : 0 weekend or holiday - 1 workingday ,
+    - hour : 0 - 23
+    - year:
+    - month: 1 - 12
+    - weekday : 0 Monday - 6 Sunday
+    - holiday : 0 - 1 holiday
+    - workingday : 0 weekend or holiday - 1 workingday
 
     """
     from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
@@ -182,7 +191,7 @@ def expand_date(timeseries):
 
     df = pd.DataFrame()
 
-    df['hour'] = timeseries.dt.hour  
+    df['hour'] = timeseries.dt.hour
 
     date = timeseries.dt.date
     df['year'] = pd.DatetimeIndex(date).year
@@ -198,10 +207,10 @@ def expand_date(timeseries):
     return df
 
 
-def ml_models(x_train, y_train, x_test, y_test, CV=False):
+def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
     """
     Train with classical machine learning models and show the test results
-    if CV=True an additional training with cross validation will be performed
+    if cross_validation=True an additional training with cross validation will be performed
     """
     from time import time
     from sklearn.naive_bayes import GaussianNB
@@ -214,44 +223,44 @@ def ml_models(x_train, y_train, x_test, y_test, CV=False):
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (GaussianNB(), SVC(kernel="rbf",), DecisionTreeClassifier(),
-                KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
+    classifiers = (GaussianNB(), SVC(kernel="rbf", ), DecisionTreeClassifier(),
+                   KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
 
     names = ["Naive Bayes", "SVM", "Decision Trees", "KNeighbors", "AdaBoost", "Random Forest"]
 
     for idx, clf in enumerate(classifiers):
-        
-        print("\n", names[idx],"\n", "-"*20)
+
+        clf_cv = clone(clf)
+
+        print("\n", names[idx], "\n", "-" * 20)
 
         t0 = time()
         # Fitting the model without cross validation
-        clf.fit(x_train, y_train[:,0])
-        t1 = time()
+        clf.fit(x_train, y_train[:, 0])
+        train_time = time()-t0
         y_pred = clf.predict(x_test)
-        accuracy = accuracy_score(y_pred, y_test[:,0])
+        accuracy = accuracy_score(y_pred, y_test[:, 0])
 
-        if CV:        
-            clone(clf, safe=True)
-            k_fold = KFold(10)
+        if cross_validation:
+            k_fold = KFold(n_splits=10)
 
-            t3 = time()
-            # Fitting the model with cross validation (CV)
-            for train, test in k_fold.split(x_train, y_train):
-                clf.fit(x_train, y_train[:,0])
-            t4 = time()
-        
-        y_pred_cv = clf.predict(x_test)
-        accuracy_cv = accuracy_score(y_pred_cv, y_test[:,0])
+            t0 = time()
+            # Fitting the model with cross validation
+            for id_train, id_test in k_fold.split(x_train):
+                #print(y_train[id_train, 0].shape)
+                clf_cv.fit(x_train[id_train], y_train[id_train, 0])
+            train_time_cv = time() - t0
 
-        print("Test Accuracy:  \t {:.2f}".format(accuracy))    
-        if CV:
-            print("Test Accuracy CV:\t {:.2f}".format(accuracy_cv))  
-        
-        print("Training Time:  \t {:.1f} ms".format((t1 - t0)*1000))
-        if CV:
-            print("Training Time CV: \t {:.1f} ms".format((t4 - t3)*1000))
+            y_pred_cv = clf_cv.predict(x_test)
+            accuracy_cv = accuracy_score(y_pred_cv, y_test[:, 0])
 
+        print("Test Accuracy:  \t {:.2f}".format(accuracy))
+        if cross_validation:
+            print("Test Accuracy CV:\t {:.2f}".format(accuracy_cv))
 
+        print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
+        if cross_validation:
+            print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
 
 ''' # test expand_date:
