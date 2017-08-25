@@ -153,8 +153,6 @@ def show_training(history):
         print("Validation accuracy:\t{:.2f}".format(hist['val_acc'][-1]))
 
 
-
-
 def expand_date(timeseries):
     """
     Expand a pandas datetime series returning a dataframe with these columns:
@@ -188,6 +186,62 @@ def expand_date(timeseries):
     df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
 
     return df
+
+
+def ml_models(x_train, y_train, x_test, y_test, CV=False):
+    """
+    Train with classical machine learning models and show the test results
+    if CV=True an additional training with cross validation will be performed
+    """
+    from time import time
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.svm import SVC
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+    from sklearn.metrics import accuracy_score
+
+    from sklearn.model_selection import KFold
+    from sklearn.base import clone
+
+    classifiers = (GaussianNB(), SVC(kernel="rbf",), DecisionTreeClassifier(),
+                KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
+
+    names = ["Naive Bayes", "SVM", "Decision Trees", "KNeighbors", "AdaBoost", "Random Forest"]
+
+    for idx, clf in enumerate(classifiers):
+        
+        print("\n", names[idx],"\n", "-"*20)
+
+        t0 = time()
+        # Fitting the model without cross validation
+        clf.fit(x_train, y_train[:,0])
+        t1 = time()
+        y_pred = clf.predict(x_test)
+        accuracy = accuracy_score(y_pred, y_test[:,0])
+
+        if CV:        
+            clone(clf, safe=True)
+            k_fold = KFold(10)
+
+            t3 = time()
+            # Fitting the model with cross validation (CV)
+            for train, test in k_fold.split(x_train, y_train):
+                clf.fit(x_train, y_train[:,0])
+            t4 = time()
+        
+        y_pred_cv = clf.predict(x_test)
+        accuracy_cv = accuracy_score(y_pred_cv, y_test[:,0])
+
+        print("Test Accuracy:  \t {:.2f}".format(accuracy))    
+        if CV:
+            print("Test Accuracy CV:\t {:.2f}".format(accuracy_cv))  
+        
+        print("Training Time:  \t {:.1f} ms".format((t1 - t0)*1000))
+        if CV:
+            print("Training Time CV: \t {:.1f} ms".format((t4 - t3)*1000))
+
+
 
 
 ''' # test expand_date:
