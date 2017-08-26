@@ -32,19 +32,20 @@ def remove_lowfreq(df, freq=0.01, show=False):
 def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
 
+    size = df.shape[0]
     missing = df.isnull().sum()
     missing_f = missing[missing > 0]
 
     print('Missing:')
     for idx, value in missing_f.iteritems():
-        print("{:>20}:  {:>5} ({:.1f}%)".format(idx, value, value / df.shape[0] * 100))
+        print("{:>20}:  {:>5}/{} ({:.1f}%)".format(idx, value, size, value / size * 100))
 
     if plot:
         plt.figure(figsize=figsize)
         plt.ylim([0, 1])
         plt.title("Missing values")
         plt.ylabel("Missing / Total")
-        (missing / df.shape[0]).plot.bar()
+        (missing / size).plot.bar()
 
 
 def show_numerical(df, numerical, target=None, kde=False, sharey=False, figsize=(17, 2)):
