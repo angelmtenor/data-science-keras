@@ -89,13 +89,18 @@ def show_target_vs_categorical(df, target, categorical, figsize=(17, 4)):
     Target values must be numerical for barplots
     """
     categorical_f = [c for c in categorical if c not in target]
+    copy_df = df.copy()
+    for t in target:
+        print(copy_df[t].dtype)
+        if copy_df[t].dtype.name=='category':
+            copy_df[t]=copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(categorical_f):
-            so = sorted({v for v in df[f].values if str(v) != 'nan'})
-            sns.barplot(data=df, x=f, y=t, ax=ax[idx], order=so)
+            so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+            sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
 
 
 def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17, 4)):
@@ -104,13 +109,35 @@ def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17, 4)):
     Target values must be numerical
     """
     numerical_f = [n for n in numerical if n not in target]
+    copy_df = df.copy()
+    for t in target:
+        if copy_df[t].dtype.name=='category':
+            copy_df[t]=copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
-            sns.regplot(x=f, y=t, data=df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
 
+
+def show_correlation(df, target, numerical):
+    """ 
+    Display Pearson correlation coefficient betweeen target and features
+    """
+    
+    numerical_f = [n for n in numerical if n not in target]
+    copy_df = df.copy()
+    for t in target:
+        if copy_df[t].dtype.name=='category':
+            copy_df[t]=copy_df[t].astype(int)
+
+    corr = copy_df.corr().loc[numerical_f, target]
+    corr.plot.bar(figsize=(8, 3))
+    plt.axhline(y=0, color='k', linestyle='--',)
+    plt.xlabel('feature')
+    plt.ylabel('Pearson correlation coefficient');
+    #sns.heatmap(corr, cmap="bwr")
 
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
