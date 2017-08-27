@@ -139,6 +139,7 @@ def show_correlation(df, target, numerical):
     plt.ylabel('Pearson correlation coefficient');
     #sns.heatmap(corr, cmap="bwr")
 
+
 def reproducible(seed=42):
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
