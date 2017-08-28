@@ -29,6 +29,16 @@ def remove_lowfreq(df, freq=0.01, show=False):
     return df
 
 
+def remove_outliers(df, sigma=3):
+    """
+    Remove outliers from numerical variables
+    """
+    num_df = df.select_dtypes(include=[np.number])
+    #col = list(num_df)
+    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]   
+    return df
+
+
 def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
 
@@ -48,13 +58,15 @@ def show_missing(df, figsize=(8, 3), plot=False):
         (missing / size).plot.bar()
 
 
-def show_numerical(df, numerical, target=None, kde=False, sharey=False, figsize=(17, 2)):
+def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
     """
     Display histograms of numerical features
     If a target list is provided, their histograms will be excluded
     """
     if target is None:
         target = []
+
+    numerical = list(df.select_dtypes(include=[np.number]))
 
     numerical_f = [n for n in numerical if n not in target]
     fig, ax = plt.subplots(ncols=len(numerical_f), sharey=sharey, figsize=figsize)
@@ -68,46 +80,14 @@ def show_numerical(df, numerical, target=None, kde=False, sharey=False, figsize=
 #             # ax[idx].yaxis.set_visible(False)
 
 
-def show_categorical(df, categorical, target=None, sharey=False, figsize=(17, 2)):
-    """
-    Display histograms of categorical features
-    If a target list is provided, their histograms will be excluded
-    """
-    if target is None:
-        target = []
-
-    categorical_f = [n for n in categorical if n not in target]
-    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
-    for idx, n in enumerate(categorical_f):
-        so = sorted({v for v in df[n].values if str(v) != 'nan'})
-        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
-
-
-def show_target_vs_categorical(df, target, categorical, figsize=(17, 4)):
-    """ Display barplots of target vs categorical variables
-    input: pandas dataframe, target list, categorical features list
-    Target values must be numerical for barplots
-    """
-    categorical_f = [c for c in categorical if c not in target]
-    copy_df = df.copy()
-    for t in target:
-        print(copy_df[t].dtype)
-        if copy_df[t].dtype.name=='category':
-            copy_df[t]=copy_df[t].astype(int)
-
-    for t in target:  # in case of several targets several plots will be shown
-        fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
-
-        for idx, f in enumerate(categorical_f):
-            so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-            sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
-
-
-def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17, 4)):
+def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
-    input: pandas dataframe, target list, numerical features list
-    Target values must be numerical
+    input: pandas dataframe, target list 
+        Target values must be numerical
     """
+
+    numerical = list(df.select_dtypes(include=[np.number]))
+
     numerical_f = [n for n in numerical if n not in target]
     copy_df = df.copy()
     for t in target:
@@ -121,11 +101,53 @@ def show_target_vs_numerical(df, target, numerical, jitter=0, figsize=(17, 4)):
             sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
 
 
-def show_correlation(df, target, numerical):
+def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
+    """
+    Display histograms of categorical features
+    If a target list is provided, their histograms will be excluded
+    """
+    if target is None:
+        target = []
+
+    categorical = list(df.select_dtypes(include=['category']))
+
+    categorical_f = [n for n in categorical if n not in target]
+    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
+    for idx, n in enumerate(categorical_f):
+        so = sorted({v for v in df[n].values if str(v) != 'nan'})
+        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+
+
+def show_target_vs_categorical(df, target, figsize=(17, 4)):
     """ 
-    Display Pearson correlation coefficient betweeen target and features
+    Display barplots of target vs categorical variables
+    input: pandas dataframe, target list
+    Target values must be numerical for barplots
+    """
+
+    categorical = list(df.select_dtypes(include=['category']))
+  
+    categorical_f = [c for c in categorical if c not in target]
+    copy_df = df.copy()
+    for t in target:
+        if copy_df[t].dtype.name=='category':
+            copy_df[t]=copy_df[t].astype(int)
+
+    for t in target:  # in case of several targets several plots will be shown
+        fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
+
+        for idx, f in enumerate(categorical_f):
+            so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+            sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+
+
+def show_correlation(df, target):
+    """ 
+    Display Pearson correlation coefficient between target and numerical features
     """
     
+    numerical = list(df.select_dtypes(include=[np.number]))
+
     numerical_f = [n for n in numerical if n not in target]
     copy_df = df.copy()
     for t in target:
@@ -169,7 +191,6 @@ def show_training(history):
         return
 
     # plot training
-
     plt.figure(figsize=(14, 4))
     plt.subplot(121)
     plt.plot(hist['loss'], label='Training')
@@ -191,7 +212,6 @@ def show_training(history):
     plt.show()
 
     # show final results
-
     print("\nTraining loss:  \t{:.4f}".format(hist['loss'][-1]))
     if 'val_loss' in hist:
         print("Validation loss: \t{:.4f}".format(hist['val_loss'][-1]))
