@@ -216,9 +216,9 @@ def show_training(history):
     if 'val_loss' in hist:
         print("Validation loss: \t{:.4f}".format(hist['val_loss'][-1]))
     if 'acc' in hist:
-        print("\nTraining accuracy: \t{:.2f}".format(hist['acc'][-1]))
+        print("\nTraining accuracy: \t{:.3f}".format(hist['acc'][-1]))
     if 'val_acc' in hist:
-        print("Validation accuracy:\t{:.2f}".format(hist['val_acc'][-1]))
+        print("Validation accuracy:\t{:.3f}".format(hist['val_acc'][-1]))
 
 
 def expand_date(timeseries):
@@ -303,9 +303,9 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
             y_pred_cv = clf_cv.predict(x_test)
             accuracy_cv = accuracy_score(y_pred_cv, y_test[:, 0])
 
-        print("Test Accuracy:  \t {:.2f}".format(accuracy))
+        print("Test Accuracy:  \t {:.3f}".format(accuracy))
         if cross_validation:
-            print("Test Accuracy CV:\t {:.2f}".format(accuracy_cv))
+            print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
 
         print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
         if cross_validation:
