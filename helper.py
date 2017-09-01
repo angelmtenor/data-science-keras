@@ -20,6 +20,8 @@ def classify_data(df, target, numerical=None, categorical=None):
     Output: classified and sorted dataframe
     """
 
+    df = df.copy()
+
     assert numerical or categorical, "Numerical or categorical variable list must be provided"
 
     if not categorical:
@@ -40,10 +42,14 @@ def classify_data(df, target, numerical=None, categorical=None):
     return df
 
 
-def remove_lowfreq(df, freq=0.01, show=False):
+def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
     """
     Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
     """
+    
+    if not inplace:
+        df = df.copy()
+    
     threshold = df.shape[0] * freq
 
     for f in df:
@@ -54,17 +60,25 @@ def remove_lowfreq(df, freq=0.01, show=False):
             # df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan)
         if show:
             print(f, dict(df[f].value_counts()))
-    return df
+
+    if not inplace:        
+        return df
 
 
-def remove_outliers(df, sigma=3):
+def remove_outliers(df, sigma=3, inplace=False):
     """
     Remove outliers from numerical variables
     """
+    if not inplace:
+        df.copy()
+
     num_df = df.select_dtypes(include=[np.number])
     #col = list(num_df)
     df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]   
-    
+
+    if not inplace:
+        return df
+
 
 def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
@@ -187,6 +201,58 @@ def show_correlation(df, target):
     plt.xlabel('feature')
     plt.ylabel('Pearson correlation coefficient');
     #sns.heatmap(corr, cmap="bwr")
+
+
+def normalize(data, use_scale=None):
+    """
+    Normalize numerical variables (mean=0, std=1)
+    
+    Input: dataframe to normalize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
+    Output:  normalized dataframe, dict(numerical_feature: [mean, std] d   
+    """
+    numerical = list(data.select_dtypes(include=[np.number]))
+
+    scale = {} if not use_scale else use_scale
+
+    for f in numerical:
+        if not use_scale:
+            mean, std = data[f].mean(), data[f].std()
+            data[f] = (data[f] - mean) / std
+            scale[f] = [mean, std]
+        else:
+            data.loc[:, f] = (data[f] - scale[f][0]) / scale[f][1]
+    return data, scale
+
+
+def create_dummy(data, target, use_dummies=None):
+    """ 
+    Replace categorical features by dummy features (no target)  
+    If no dummy list is used, a new one is created.  
+    
+    Input: dataframe, target list, preexistent dummy list
+    Output: dataframe with categorical replaced by dummies, generated dummy list
+     """
+
+    dummies = []
+
+    for f in list(data.select_dtypes(include=['category'])):
+        if f not in target:
+            dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
+            data = pd.concat([data, dummy], axis=1)
+            data.drop(f, axis=1, inplace=True)
+
+            dummies.extend(dummy)
+
+    if use_dummies:
+        missing = set(use_dummies) - set(dummies)
+        for m in missing:
+            data[m] = 0
+
+    # set new columns to category
+    for dummy in dummies:
+        data[dummy] = data[dummy].astype('category')
+
+    return data, dummies
 
 
 def reproducible(seed=42):
