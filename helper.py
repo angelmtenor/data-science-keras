@@ -64,8 +64,7 @@ def remove_outliers(df, sigma=3):
     num_df = df.select_dtypes(include=[np.number])
     #col = list(num_df)
     df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]   
-    return df
-
+    
 
 def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
