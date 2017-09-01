@@ -4,12 +4,12 @@ Helper module for Data-Science-Keras repository
 import os
 import random as rn
 
+import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import tensorflow as tf
-import keras
 
 
 def classify_data(df, target, numerical=None, categorical=None):
@@ -46,10 +46,10 @@ def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
     """
     Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
     """
-    
+
     if not inplace:
         df = df.copy()
-    
+
     threshold = df.shape[0] * freq
 
     for f in df:
@@ -61,7 +61,7 @@ def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
         if show:
             print(f, dict(df[f].value_counts()))
 
-    if not inplace:        
+    if not inplace:
         return df
 
 
@@ -73,8 +73,8 @@ def remove_outliers(df, sigma=3, inplace=False):
         df.copy()
 
     num_df = df.select_dtypes(include=[np.number])
-    #col = list(num_df)
-    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]   
+    # col = list(num_df)
+    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]
 
     if not inplace:
         return df
@@ -116,15 +116,10 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         #         for value in df_filtered[t].unique():
 
 
-# sns.distplot(df.loc[df_filtered[t]==value, n].dropna(), ax=ax[idx])
-#             plt.legend(df_filtered[t].unique(), title=t)
-#             # ax[idx].yaxis.set_visible(False)
-
-
 def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
-        Target values must be numerical
+        Target values should be numerical
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
@@ -132,8 +127,8 @@ def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
     numerical_f = [n for n in numerical if n not in target]
     copy_df = df.copy()
     for t in target:
-        if copy_df[t].dtype.name=='category':
-            copy_df[t]=copy_df[t].astype(int)
+        if copy_df[t].dtype.name == 'category':
+            copy_df[t] = copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
@@ -167,12 +162,12 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     """
 
     categorical = list(df.select_dtypes(include=['category']))
-  
+
     categorical_f = [c for c in categorical if c not in target]
     copy_df = df.copy()
     for t in target:
-        if copy_df[t].dtype.name=='category':
-            copy_df[t]=copy_df[t].astype(int)
+        if copy_df[t].dtype.name == 'category':
+            copy_df[t] = copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
@@ -186,21 +181,21 @@ def show_correlation(df, target):
     """ 
     Display Pearson correlation coefficient between target and numerical features
     """
-    
+
     numerical = list(df.select_dtypes(include=[np.number]))
 
     numerical_f = [n for n in numerical if n not in target]
     copy_df = df.copy()
     for t in target:
-        if copy_df[t].dtype.name=='category':
-            copy_df[t]=copy_df[t].astype(int)
+        if copy_df[t].dtype.name == 'category':
+            copy_df[t] = copy_df[t].astype(int)
 
     corr = copy_df.corr().loc[numerical_f, target]
     corr.plot.bar(figsize=(8, 3))
-    plt.axhline(y=0, color='k', linestyle='--',)
+    plt.axhline(y=0, color='k', linestyle='--', )
     plt.xlabel('feature')
     plt.ylabel('Pearson correlation coefficient');
-    #sns.heatmap(corr, cmap="bwr")
+    # sns.heatmap(corr, cmap="bwr")
 
 
 def normalize(data, use_scale=None):
@@ -379,7 +374,7 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
         t0 = time()
         # Fitting the model without cross validation
         clf.fit(x_train, y_train[:, 0])
-        train_time = time()-t0
+        train_time = time() - t0
         y_pred = clf.predict(x_test)
         accuracy = accuracy_score(y_pred, y_test[:, 0])
 
@@ -389,7 +384,7 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
             t0 = time()
             # Fitting the model with cross validation
             for id_train, id_test in k_fold.split(x_train):
-                #print(y_train[id_train, 0].shape)
+                # print(y_train[id_train, 0].shape)
                 clf_cv.fit(x_train[id_train], y_train[id_train, 0])
             train_time_cv = time() - t0
 
