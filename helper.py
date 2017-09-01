@@ -12,6 +12,34 @@ import tensorflow as tf
 import keras
 
 
+def classify_data(df, target, numerical=None, categorical=None):
+    """  Return a new dataframe with categorical variables as dtype 'categorical' and sorted
+    columns: numerical + categorical + target.
+    
+    Input: dataframe, target list, numerical list, categorical list
+    Output: classified and sorted dataframe
+    """
+
+    assert numerical or categorical, "Numerical or categorical variable list must be provided"
+
+    if not categorical:
+        categorical = [col for col in df if col not in numerical]
+    if not numerical:
+        numerical = [col for col in df if col not in categorical]
+
+    numerical_f = [col for col in numerical if col not in target]
+    categorical_f = [col for col in categorical if col not in target]
+
+    # sort columns of dataframe
+    df = df[numerical_f + categorical_f + target]
+
+    # assign category data type to categorical columns
+    for f in df[categorical]:
+        df[f] = df[f].astype('category')
+
+    return df
+
+
 def remove_lowfreq(df, freq=0.01, show=False):
     """
     Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
