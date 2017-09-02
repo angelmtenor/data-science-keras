@@ -74,7 +74,7 @@ def remove_outliers(df, sigma=3, inplace=False):
 
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
-    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (3 * num_df.std())]
+    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
 
     if not inplace:
         return df
@@ -166,6 +166,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     categorical_f = [c for c in categorical if c not in target]
     copy_df = df.copy()
     for t in target:
+        copy_df = copy_df[pd.notnull(copy_df[t])]
         if copy_df[t].dtype.name == 'category':
             copy_df[t] = copy_df[t].astype(int)
 
@@ -194,7 +195,7 @@ def show_correlation(df, target):
     corr.plot.bar(figsize=(8, 3))
     plt.axhline(y=0, color='k', linestyle='--', )
     plt.xlabel('feature')
-    plt.ylabel('Pearson correlation coefficient');
+    plt.ylabel('Pearson correlation coefficient')
     # sns.heatmap(corr, cmap="bwr")
 
 
@@ -224,7 +225,7 @@ def create_dummy(data, target, use_dummies=None):
     Replace categorical features by dummy features (no target)  
     If no dummy list is used, a new one is created.  
     
-    Input: dataframe, target list, preexistent dummy list
+    Input: dataframe, target list, dummy list
     Output: dataframe with categorical replaced by dummies, generated dummy list
      """
 
@@ -410,3 +411,4 @@ df['Dates'] = pd.to_datetime(dates)
 
 sample = expand_date(df['Dates'])
 print(sample.head()) '''
+
