@@ -134,7 +134,10 @@ def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
-            sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            # first y-axis label only
+            if idx != 0:
+                axs.set(ylabel='')
 
 
 def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
@@ -151,7 +154,10 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
     fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
-        sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+        axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+        # first y-axis label only
+        if idx != 0:
+            axs.set(ylabel='')
 
 
 def show_target_vs_categorical(df, target, figsize=(17, 4)):
@@ -172,10 +178,13 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
-
+        
         for idx, f in enumerate(categorical_f):
             so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-            sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+            # first y-axis label only
+            if idx != 0:
+                axs.set(ylabel='') 
 
 
 def show_correlation(df, target):
