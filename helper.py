@@ -99,9 +99,10 @@ def missing(df, limit=None, figsize=None, plot=True):
         plt.ylim([0, 1])
         plt.xlabel("Missing / Total")
         missing_ratio.plot(kind='barh')
+        if limit:
+            plt.axvline(limit, linestyle='--', color='k')
 
     if limit:
-        plt.axvline(limit, linestyle='--', color='k')
         return missing_ratio[missing_ratio>limit].index.tolist()
 
 
