@@ -4,7 +4,6 @@ Helper module for Data-Science-Keras repository
 import os
 import random as rn
 
-import keras
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -83,12 +82,14 @@ def remove_outliers(df, sigma=3, inplace=False):
 def show_missing(df, figsize=(8, 3), plot=False):
     """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
 
+
     size = df.shape[0]
     missing = df.isnull().sum()
-    missing_f = missing[missing > 0]
+    missing = missing[missing > 0]
+    missing = missing.sort_values(ascending=False)
 
     print('Missing:')
-    for idx, value in missing_f.iteritems():
+    for idx, value in missing.iteritems():
         print("{:>20}:  {:>5}/{} ({:.1f}%)".format(idx, value, size, value / size * 100))
 
     if plot:
@@ -96,7 +97,7 @@ def show_missing(df, figsize=(8, 3), plot=False):
         plt.ylim([0, 1])
         plt.title("Missing values")
         plt.ylabel("Missing / Total")
-        (missing / size).plot.bar()
+        (missing.sort_values(ascending=True) / size).plot(kind='barh')
 
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
@@ -261,6 +262,7 @@ def create_dummy(data, target, use_dummies=None):
 
 
 def reproducible(seed=42):
+    import keras
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
     """
