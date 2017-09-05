@@ -79,25 +79,30 @@ def remove_outliers(df, sigma=3, inplace=False):
         return df
 
 
-def show_missing(df, figsize=(8, 3), plot=False):
-    """ Display barplot with the ratio of missing values (NaN) for each column of the dataset """
-
+def missing(df, limit=None, figsize=None, plot=True):
+    """ 
+    Display the ratio of missing values (NaN) for each column of df
+    Only columns with missing values are shown
+    If limit_ratio is provided, return column names exceeding the ratio (features with little data)
+    """
 
     size = df.shape[0]
     missing = df.isnull().sum()
     missing = missing[missing > 0]
-    missing = missing.sort_values(ascending=False)
-
-    print('Missing:')
-    for idx, value in missing.iteritems():
-        print("{:>20}:  {:>5}/{} ({:.1f}%)".format(idx, value, size, value / size * 100))
+    missing = missing.sort_values(ascending=True)
+    missing_ratio = missing / size
 
     if plot:
+        if not figsize:
+            figsize=(8,missing_ratio.shape[0]//2+1)
         plt.figure(figsize=figsize)
         plt.ylim([0, 1])
-        plt.title("Missing values")
-        plt.ylabel("Missing / Total")
-        (missing.sort_values(ascending=True) / size).plot(kind='barh')
+        plt.xlabel("Missing / Total")
+        missing_ratio.plot(kind='barh')
+
+    if limit:
+        plt.axvline(limit, linestyle='--', color='k')
+        return missing_ratio[missing_ratio>limit].index.tolist()
 
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
