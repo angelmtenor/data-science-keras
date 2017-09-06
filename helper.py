@@ -74,6 +74,7 @@ def remove_outliers(df, sigma=3, inplace=False):
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
     df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
+    print(list(num_df))
 
     if not inplace:
         return df
