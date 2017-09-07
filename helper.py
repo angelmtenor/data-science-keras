@@ -43,15 +43,18 @@ def classify_data(df, target, numerical=None, categorical=None):
 
 def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
     """
-    Remove low frequency values appearing less than 'freq' in its column of the dataframe 'df'
+    Remove low frequency categorical values appearing less than 'freq' in its column of the dataframe 'df'
+    Only non-numerical columns are evaluated
     """
 
     if not inplace:
         df = df.copy()
 
     threshold = df.shape[0] * freq
+    
+    categorical = df.select_dtypes(exclude=[np.number])
 
-    for f in df:
+    for f in categorical:
         count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
         if len(low_freq) > 0:
@@ -69,7 +72,7 @@ def remove_outliers(df, sigma=3, inplace=False):
     Remove outliers from numerical variables
     """
     if not inplace:
-        df.copy()
+        df = df.copy()
 
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
@@ -90,6 +93,10 @@ def missing(df, limit=None, figsize=None, plot=True):
     size = df.shape[0]
     missing = df.isnull().sum()
     missing = missing[missing > 0]
+    if len(missing) == 0:
+        print("No missing values found")
+        return []
+
     missing = missing.sort_values(ascending=True)
     missing_ratio = missing / size
 
@@ -97,7 +104,7 @@ def missing(df, limit=None, figsize=None, plot=True):
         if not figsize:
             figsize=(8,missing_ratio.shape[0]//2+1)
         plt.figure(figsize=figsize)
-        plt.ylim([0, 1])
+        plt.xlim([0, 1])
         plt.xlabel("Missing / Total")
         missing_ratio.plot(kind='barh')
         if limit:
@@ -105,6 +112,34 @@ def missing(df, limit=None, figsize=None, plot=True):
 
     if limit:
         return missing_ratio[missing_ratio>limit].index.tolist()
+
+
+def simple_fill(df, target, include_numerical=True, include_categorical=True, inplace=True):
+    """
+    Fill missing numerical values of df with the median of the column ((include_numerical=True)
+    Fill missing categorical values of df with the median of the column (include_categorical=True)
+    Target column is not evaluated
+    """
+
+    if not inplace:
+        df = df.copy()
+
+    numerical = list(df.select_dtypes(include=[np.number]))
+    numerical_f = [col for col in numerical if col not in target]
+    categorical_f = [col for col in df if col not in numerical and col not in target ]
+
+    df.fillna(df[numerical_f].median(), inplace=True)  # NaN from numerical feature replaced by mean
+
+    # categorical
+    #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
+
+    modes = df[categorical_f].mode() 
+    for idx, f in enumerate(df[categorical_f]):
+        df[f].fillna(modes.iloc[0, idx], inplace=True)
+
+
+    if not inplace:
+        return df
 
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
