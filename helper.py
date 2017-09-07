@@ -163,7 +163,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         #         for value in df_filtered[t].unique():
 
 
-def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
+def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
         Target values must be parsed to numbers
@@ -187,9 +187,9 @@ def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
 
         for idx, f in enumerate(numerical_f):
             if len(numerical_f) > 1:
-                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".", fit_reg=fit_reg)
             else:
-                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax, marker=".")
+                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax, marker=".", fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='')
