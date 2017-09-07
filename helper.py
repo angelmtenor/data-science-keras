@@ -151,8 +151,12 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         target = []
 
     numerical = list(df.select_dtypes(include=[np.number]))
-
     numerical_f = [n for n in numerical if n not in target]
+
+    if not numerical_f:
+        print("There are no numerical features")
+        return
+
     fig, ax = plt.subplots(ncols=len(numerical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(numerical_f):
         sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
@@ -162,22 +166,30 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
 def show_target_vs_numerical(df, target, jitter=0, figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
-        Target values should be numerical
+        Target values must be parsed to numbers
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
-
     numerical_f = [n for n in numerical if n not in target]
+
+    if not numerical_f:
+        print("There are no numerical features")
+        return
+
     copy_df = df.copy()
+
     for t in target:
-        if copy_df[t].dtype.name == 'category':
-            copy_df[t] = copy_df[t].astype(int)
+        if t not in numerical:
+            copy_df[t] = copy_df[t].astype(int)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
-            axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            if len(numerical_f) > 1:
+                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".")
+            else:
+                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax, marker=".")
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='')
@@ -191,9 +203,13 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
     if target is None:
         target = []
 
-    categorical = list(df.select_dtypes(include=['category']))
+    numerical = list(df.select_dtypes(include=[np.number]))
+    categorical_f = [col for col in df if col not in numerical and col not in target]
 
-    categorical_f = [n for n in categorical if n not in target]
+    if not categorical_f:
+        print("There are no categorical variables")
+        return
+
     fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
@@ -210,13 +226,17 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     Target values must be numerical for barplots
     """
 
-    categorical = list(df.select_dtypes(include=['category']))
+    numerical = list(df.select_dtypes(include=[np.number]))
+    categorical_f = [col for col in df if col not in numerical and col not in target]
 
-    categorical_f = [c for c in categorical if c not in target]
+    if not categorical_f:
+        print("There are no categorical variables")
+        return
+
     copy_df = df.copy()
     for t in target:
         copy_df = copy_df[pd.notnull(copy_df[t])]
-        if copy_df[t].dtype.name == 'category':
+        if t not in numerical:
             copy_df[t] = copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
@@ -224,7 +244,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
         
         for idx, f in enumerate(categorical_f):
             so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax, order=so)
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='') 
@@ -236,11 +256,15 @@ def show_correlation(df, target):
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
-
     numerical_f = [n for n in numerical if n not in target]
+
+    if not numerical_f:
+        print("There are no numerical features")
+        return
+
     copy_df = df.copy()
     for t in target:
-        if copy_df[t].dtype.name == 'category':
+        if t not in numerical:
             copy_df[t] = copy_df[t].astype(int)
 
     corr = copy_df.corr().loc[numerical_f, target]
@@ -283,7 +307,11 @@ def create_dummy(data, target, use_dummies=None):
 
     dummies = []
 
-    for f in list(data.select_dtypes(include=['category'])):
+
+    numerical = list(data.select_dtypes(include=[np.number]))
+    categorical_f = [col for col in data if col not in numerical and col not in target]
+
+    for f in categorical_f:
         if f not in target:
             dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
             data = pd.concat([data, dummy], axis=1)
