@@ -41,7 +41,7 @@ def classify_data(df, target, numerical=None, categorical=None):
     return df
 
 
-def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
+def remove_lowfreq(df, ratio=0.01, show=False, inplace=False):
     """
     Remove low frequency categorical values appearing less than 'freq' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
@@ -50,7 +50,7 @@ def remove_lowfreq(df, freq=0.01, show=False, inplace=False):
     if not inplace:
         df = df.copy()
 
-    threshold = df.shape[0] * freq
+    threshold = df.shape[0] * ratio
     
     categorical = df.select_dtypes(exclude=[np.number])
 
@@ -244,7 +244,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
         
         for idx, f in enumerate(categorical_f):
             so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax, order=so)
+            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='') 
