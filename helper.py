@@ -51,7 +51,7 @@ def remove_lowfreq(df, ratio=0.01, show=False, inplace=False):
         df = df.copy()
 
     threshold = df.shape[0] * ratio
-    
+
     categorical = df.select_dtypes(exclude=[np.number])
 
     for f in categorical:
@@ -76,7 +76,8 @@ def remove_outliers(df, sigma=3, inplace=False):
 
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
-    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
+    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <=
+                                (sigma * num_df.std())]
     print(list(num_df))
 
     if not inplace:
@@ -102,7 +103,7 @@ def missing(df, limit=None, figsize=None, plot=True):
 
     if plot:
         if not figsize:
-            figsize=(8,missing_ratio.shape[0]//2+1)
+            figsize = (8, missing_ratio.shape[0] // 2 + 1)
         plt.figure(figsize=figsize)
         plt.xlim([0, 1])
         plt.xlabel("Missing / Total")
@@ -111,10 +112,14 @@ def missing(df, limit=None, figsize=None, plot=True):
             plt.axvline(limit, linestyle='--', color='k')
 
     if limit:
-        return missing_ratio[missing_ratio>limit].index.tolist()
+        return missing_ratio[missing_ratio > limit].index.tolist()
 
 
-def simple_fill(df, target, include_numerical=True, include_categorical=True, inplace=True):
+def simple_fill(df,
+                target,
+                include_numerical=True,
+                include_categorical=True,
+                inplace=True):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
     Fill missing categorical values of df with the median of the column (include_categorical=True)
@@ -126,17 +131,20 @@ def simple_fill(df, target, include_numerical=True, include_categorical=True, in
 
     numerical = list(df.select_dtypes(include=[np.number]))
     numerical_f = [col for col in numerical if col not in target]
-    categorical_f = [col for col in df if col not in numerical and col not in target ]
+    categorical_f = [
+        col for col in df if col not in numerical and col not in target
+    ]
 
-    df.fillna(df[numerical_f].median(), inplace=True)  # NaN from numerical feature replaced by mean
+    df.fillna(
+        df[numerical_f].median(),
+        inplace=True)  # NaN from numerical feature replaced by mean
 
     # categorical
     #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
 
-    modes = df[categorical_f].mode() 
+    modes = df[categorical_f].mode()
     for idx, f in enumerate(df[categorical_f]):
         df[f].fillna(modes.iloc[0, idx], inplace=True)
-
 
     if not inplace:
         return df
@@ -157,13 +165,18 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         print("There are no numerical features")
         return
 
-    fig, ax = plt.subplots(ncols=len(numerical_f), sharey=sharey, figsize=figsize)
+    fig, ax = plt.subplots(
+        ncols=len(numerical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(numerical_f):
         sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
         #         for value in df_filtered[t].unique():
 
 
-def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, figsize=(17, 4)):
+def show_target_vs_numerical(df,
+                             target,
+                             jitter=0,
+                             fit_reg=True,
+                             figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
         Target values must be parsed to numbers
@@ -180,16 +193,34 @@ def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, figsize=(17, 4)
 
     for t in target:
         if t not in numerical:
-            copy_df[t] = copy_df[t].astype(int)  # force categorical values to numerical (booleans, ...)
+            copy_df[t] = copy_df[t].astype(
+                int)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
-        fig, ax = plt.subplots(ncols=len(numerical_f), sharey=True, figsize=figsize)
+        fig, ax = plt.subplots(
+            ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
             if len(numerical_f) > 1:
-                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax[idx], marker=".", fit_reg=fit_reg)
+                axs = sns.regplot(
+                    x=f,
+                    y=t,
+                    data=copy_df,
+                    x_jitter=jitter,
+                    y_jitter=jitter,
+                    ax=ax[idx],
+                    marker=".",
+                    fit_reg=fit_reg)
             else:
-                axs = sns.regplot(x=f, y=t, data=copy_df, x_jitter=jitter, y_jitter=jitter, ax=ax, marker=".", fit_reg=fit_reg)
+                axs = sns.regplot(
+                    x=f,
+                    y=t,
+                    data=copy_df,
+                    x_jitter=jitter,
+                    y_jitter=jitter,
+                    ax=ax,
+                    marker=".",
+                    fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='')
@@ -204,13 +235,16 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
         target = []
 
     numerical = list(df.select_dtypes(include=[np.number]))
-    categorical_f = [col for col in df if col not in numerical and col not in target]
+    categorical_f = [
+        col for col in df if col not in numerical and col not in target
+    ]
 
     if not categorical_f:
         print("There are no categorical variables")
         return
 
-    fig, ax = plt.subplots(ncols=len(categorical_f), sharey=sharey, figsize=figsize)
+    fig, ax = plt.subplots(
+        ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
         axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
@@ -227,7 +261,9 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
-    categorical_f = [col for col in df if col not in numerical and col not in target]
+    categorical_f = [
+        col for col in df if col not in numerical and col not in target
+    ]
 
     if not categorical_f:
         print("There are no categorical variables")
@@ -240,14 +276,15 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
             copy_df[t] = copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
-        fig, ax = plt.subplots(ncols=len(categorical_f), sharey=True, figsize=figsize)
-        
+        fig, ax = plt.subplots(
+            ncols=len(categorical_f), sharey=True, figsize=figsize)
+
         for idx, f in enumerate(categorical_f):
             so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
             axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
             # first y-axis label only
             if idx != 0:
-                axs.set(ylabel='') 
+                axs.set(ylabel='')
 
 
 def show_correlation(df, target):
@@ -269,7 +306,10 @@ def show_correlation(df, target):
 
     corr = copy_df.corr().loc[numerical_f, target]
     corr.plot.bar(figsize=(8, 3))
-    plt.axhline(y=0, color='k', linestyle='--', )
+    plt.axhline(
+        y=0,
+        color='k',
+        linestyle='--', )
     plt.xlabel('feature')
     plt.ylabel('Pearson correlation coefficient')
     # sns.heatmap(corr, cmap="bwr")
@@ -307,9 +347,10 @@ def create_dummy(data, target, use_dummies=None):
 
     dummies = []
 
-
     numerical = list(data.select_dtypes(include=[np.number]))
-    categorical_f = [col for col in data if col not in numerical and col not in target]
+    categorical_f = [
+        col for col in data if col not in numerical and col not in target
+    ]
 
     for f in categorical_f:
         if f not in target:
@@ -341,7 +382,8 @@ def reproducible(seed=42):
     np.random.seed(seed)
     rn.seed(seed)
     # Multiple threads are a potential source of non-reproducible results.
-    session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    session_conf = tf.ConfigProto(
+        intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     tf.set_random_seed(seed)
     sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
     keras.backend.set_session(sess)
@@ -442,10 +484,14 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (GaussianNB(), SVC(kernel="rbf", ), DecisionTreeClassifier(),
-                   KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
+    classifiers = (GaussianNB(), SVC(
+        kernel="rbf", ), DecisionTreeClassifier(), KNeighborsClassifier(
+            n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
 
-    names = ["Naive Bayes", "SVM", "Decision Trees", "KNeighbors", "AdaBoost", "Random Forest"]
+    names = [
+        "Naive Bayes", "SVM", "Decision Trees", "KNeighbors", "AdaBoost",
+        "Random Forest"
+    ]
 
     for idx, clf in enumerate(classifiers):
 
@@ -479,17 +525,5 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
 
         print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
         if cross_validation:
-            print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
-
-
-''' # test expand_date:
-df = pd.DataFrame()
-dates = [
-    '2016-12-25 17:24:55', '2016-06-12 00:43:35', '2016-01-19 11:35:24',
-    '2016-04-06 19:32:31', '2016-02-15 13:30:55']
-
-df['Dates'] = pd.to_datetime(dates)
-
-sample = expand_date(df['Dates'])
-print(sample.head()) '''
-
+            print(
+                "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
