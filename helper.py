@@ -317,12 +317,12 @@ def show_correlation(df, target):
     # sns.heatmap(corr, cmap="bwr")
 
 
-def normalize(data, use_scale=None):
+def standardize(data, use_scale=None):
     """
-    Normalize numerical variables (mean=0, std=1)
+    Standardize numerical variables (mean=0, std=1)
     
-    Input: dataframe to normalize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
-    Output:  normalized dataframe, dict(numerical_feature: [mean, std] d   
+    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
+    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std] d   
     """
     numerical = list(data.select_dtypes(include=[np.number]))
 
@@ -532,7 +532,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
 
 
 def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0.1, n_estimators=100):
-        
+
     import xgboost as xgb
     from sklearn.metrics import accuracy_score
 
