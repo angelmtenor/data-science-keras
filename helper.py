@@ -2,7 +2,9 @@
 Helper module for Data-Science-Keras repository
 """
 import os
+from time import time
 import random as rn
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -468,9 +470,9 @@ def expand_date(timeseries):
     return df
 
 
-def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
+def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
     """
-    Train with classical machine learning models and show the test results
+    Build a train classical machine learning classification models and show the test results
     if cross_validation=True an additional training with cross validation will be performed
     """
     from time import time
@@ -527,3 +529,22 @@ def ml_models(x_train, y_train, x_test, y_test, cross_validation=False):
         if cross_validation:
             print(
                 "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+
+
+def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0.1, n_estimators=100):
+        
+    import xgboost as xgb
+    from sklearn.metrics import accuracy_score
+
+    clf = xgb.XGBClassifier(max_depth=max_depth, n_estimators=n_estimators, learning_rate=learning_rate)
+
+    t0 = time()
+
+    clf.fit(x_train, y_train[:, 0])
+    train_time = time() - t0
+    y_pred = clf.predict(x_test)
+    accuracy = accuracy_score(y_pred, y_test[:, 0])
+
+    print("\n", "XGBoost", "\n", "-" * 20)
+    print("Test Accuracy:  \t {:.3f}".format(accuracy))
+    print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
