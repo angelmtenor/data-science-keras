@@ -43,7 +43,7 @@ def classify_data(df, target, numerical=None, categorical=None):
     return df
 
 
-def remove_lowfreq(df, ratio=0.01, show=False, inplace=False):
+def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
     """
     Remove low frequency categorical values appearing less than 'freq' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
@@ -54,7 +54,12 @@ def remove_lowfreq(df, ratio=0.01, show=False, inplace=False):
 
     threshold = df.shape[0] * ratio
 
+    if not target:
+        target = []
+
     categorical = df.select_dtypes(exclude=[np.number])
+
+    categorical_f = [c for c in categorical if c not in target]
 
     for f in categorical:
         count = df[f].value_counts()
@@ -121,7 +126,7 @@ def simple_fill(df,
                 target,
                 include_numerical=True,
                 include_categorical=True,
-                inplace=True):
+                inplace=False):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
     Fill missing categorical values of df with the median of the column (include_categorical=True)
@@ -137,16 +142,18 @@ def simple_fill(df,
         col for col in df if col not in numerical and col not in target
     ]
 
-    df.fillna(
-        df[numerical_f].median(),
-        inplace=True)  # NaN from numerical feature replaced by mean
+    if include_numerical:
+        df.fillna(
+            df[numerical_f].median(),
+            inplace=True)  # NaN from numerical feature replaced by mean
 
     # categorical
     #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
 
-    modes = df[categorical_f].mode()
-    for idx, f in enumerate(df[categorical_f]):
-        df[f].fillna(modes.iloc[0, idx], inplace=True)
+    if include_categorical:
+        modes = df[categorical_f].mode()
+        for idx, f in enumerate(df[categorical_f]):
+            df[f].fillna(modes.iloc[0, idx], inplace=True)
 
     if not inplace:
         return df
