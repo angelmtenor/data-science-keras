@@ -61,7 +61,7 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
 
     categorical_f = [c for c in categorical if c not in target]
 
-    for f in categorical:
+    for f in categorical_f:
         count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
         if len(low_freq) > 0:
@@ -362,12 +362,11 @@ def create_dummy(data, target, use_dummies=None):
     ]
 
     for f in categorical_f:
-        if f not in target:
-            dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
-            data = pd.concat([data, dummy], axis=1)
-            data.drop(f, axis=1, inplace=True)
+        dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
+        data = pd.concat([data, dummy], axis=1)
+        data.drop(f, axis=1, inplace=True)
 
-            dummies.extend(dummy)
+        dummies.extend(dummy)
 
     if use_dummies:
         missing = set(use_dummies) - set(dummies)
