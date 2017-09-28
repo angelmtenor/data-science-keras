@@ -4,7 +4,7 @@ Helper module for Data-Science-Keras repository
 import os
 from time import time
 import random as rn
-
+import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,6 +36,10 @@ def classify_data(df, target, numerical=None, categorical=None):
     # sort columns of dataframe
     df = df[numerical_f + categorical_f + target]
 
+    # assign float data type to numerical columns
+    for n in df[numerical]:
+        df[n] = df[n].astype(np.float32)
+
     # assign category data type to categorical columns
     for f in df[categorical]:
         df[f] = df[f].astype('category')
@@ -45,7 +49,7 @@ def classify_data(df, target, numerical=None, categorical=None):
 
 def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
     """
-    Remove low frequency categorical values appearing less than 'freq' in its column of the dataframe 'df'
+    Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
     """
 
@@ -65,8 +69,9 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
         count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
         if len(low_freq) > 0:
-            df.loc[:, f] = df.loc[:, f].replace(low_freq, np.nan)
-            # df.loc[:,f] = df.loc[:,f].replace(np.nan,np.nan)
+            df[f] = df[f].replace(low_freq, np.nan)
+            df[f].cat.remove_unused_categories(inplace=True)
+            # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
         if show:
             print(f, dict(df[f].value_counts()))
 
@@ -121,12 +126,18 @@ def missing(df, limit=None, figsize=None, plot=True):
     if limit:
         return missing_ratio[missing_ratio > limit].index.tolist()
 
+def simple_fill(df, target,include_numerical=True, include_categorical=True, inplace=False):
+    warnings.warn('Use new function "fill_simple"')
 
-def simple_fill(df,
-                target,
-                include_numerical=True,
-                include_categorical=True,
-                inplace=False):
+    return fill_simple(df, target, 
+                        include_numerical=include_numerical, 
+                        include_categorical=include_categorical, 
+                        inplace=inplace)
+
+
+
+def fill_simple(df, target, missing_numerical='median', missing_categorical='mode',
+                include_numerical=True, include_categorical=True,inplace=False):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
     Fill missing categorical values of df with the median of the column (include_categorical=True)
@@ -142,18 +153,35 @@ def simple_fill(df,
         col for col in df if col not in numerical and col not in target
     ]
 
+    # numerical
+
     if include_numerical:
-        df.fillna(
-            df[numerical_f].median(),
-            inplace=True)  # NaN from numerical feature replaced by mean
+        if missing_numerical == 'median':
+            df.fillna(df[numerical_f].median(),inplace=True)
+        elif missing_numerical == 'mean':
+            df.fillna(df[numerical_f].mean(),inplace=True)
+        else:
+            Warnings.warn("missing_numerical must be 'mean' or 'median'")
+    print('Missing numerical filled with: {}'.format(
+                missing_numerical))
 
     # categorical
-    #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
-
+    
     if include_categorical:
-        modes = df[categorical_f].mode()
-        for idx, f in enumerate(df[categorical_f]):
-            df[f].fillna(modes.iloc[0, idx], inplace=True)
+
+        if missing_categorical == 'mode':
+            modes = df[categorical_f].mode()
+            for idx, f in enumerate(df[categorical_f]):
+                df[f].fillna(modes.iloc[0, idx], inplace=True)
+        else:
+            for f in categorical_f:
+                if missing_categorical not in df[f].cat.categories:
+                    df[f].cat.add_categories(missing_categorical, inplace=True)
+                df[f].fillna(missing_categorical, inplace=True)
+            print('Missing categorical filled with label: "{}"'.format(
+                missing_categorical))
+
+    #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
 
     if not inplace:
         return df
@@ -324,61 +352,106 @@ def show_correlation(df, target):
     # sns.heatmap(corr, cmap="bwr")
 
 
+def scale(data, scale_param=None):
+    """
+    Standardize numerical variables (mean=0, std=1)
+    
+    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
+    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
+    """
+
+    data = data.copy()
+
+    num = list(data.select_dtypes(include=[np.number]))
+
+    if not scale_param:
+        create_scale = True
+        scale_param = {}
+    else:
+        create_scale = False
+
+    for f in num:
+        if create_scale:
+            mean, std = data[f].mean(), data[f].std()
+            data[f] = (data[f].values - mean) / std
+            scale_param[f] = [mean, std]
+        else:
+            data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
+            
+    return data, scale_param
+
+
+
+
 def standardize(data, use_scale=None):
     """
     Standardize numerical variables (mean=0, std=1)
     
     Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
-    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std] d   
+    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
     """
-    numerical = list(data.select_dtypes(include=[np.number]))
+    warnings.warn(' Use new "scale" function')
+    
+    return scale(data, use_scale)
+    
+    
 
-    scale = {} if not use_scale else use_scale
-
-    for f in numerical:
-        if not use_scale:
-            mean, std = data[f].mean(), data[f].std()
-            data[f] = (data[f] - mean) / std
-            scale[f] = [mean, std]
-        else:
-            data.loc[:, f] = (data[f] - scale[f][0]) / scale[f][1]
-    return data, scale
-
-
-def create_dummy(data, target, use_dummies=None):
+def replace_by_dummies(data, target, dict_dummies=None):
     """ 
     Replace categorical features by dummy features (no target)  
     If no dummy list is used, a new one is created.  
     
     Input: dataframe, target list, dummy list
-    Output: dataframe with categorical replaced by dummies, generated dummy list
-     """
+    Output: dataframe with categorical replaced by dummies, dummy dictionary
+     """   
 
-    dummies = []
+    data = data.copy()
 
-    numerical = list(data.select_dtypes(include=[np.number]))
-    categorical_f = [
-        col for col in data if col not in numerical and col not in target
-    ]
+    if not dict_dummies:
+        create_dummies = True
+    else:
+        create_dummies = False
+
+    found_dummies = []
+
+    categorical = list(data.select_dtypes(include=['category']))
+    categorical_f = [col for col in categorical if col not in target]
 
     for f in categorical_f:
         dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
         data = pd.concat([data, dummy], axis=1)
         data.drop(f, axis=1, inplace=True)
 
-        dummies.extend(dummy)
+        found_dummies.extend(dummy)
 
-    if use_dummies:
-        missing = set(use_dummies) - set(dummies)
+    if not create_dummies:
+
+        # remove new dummies not in given dummies
+        new = set(found_dummies) - set(dict_dummies)
+        for n in new:
+            data.drop(n, axis=1, inplace=True)
+
+        # fill missing dummies with empty values (0)
+        missing = set(dict_dummies) - set(found_dummies)
         for m in missing:
             data[m] = 0
 
+    else:
+        dict_dummies = found_dummies
+
     # set new columns to category
-    for dummy in dummies:
+    for dummy in dict_dummies:
         data[dummy] = data[dummy].astype('category')
 
-    return data, dummies
+    return data, dict_dummies
 
+
+def create_dummy(data, target, use_dummies=None):
+
+    warnings.warn('Use new "replace_by_dummies"')
+
+    return replace_by_dummies(data, target, dict_dummies=use_dummies)
+    
 
 def reproducible(seed=42):
     import keras
