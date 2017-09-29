@@ -10,7 +10,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import tensorflow as tf
+
+
+def force_categorical(df):
+    """ Force non numerical fields to pandas 'category' type """
+    non_numerical = list(df.select_dtypes(exclude=[np.number]))
+
+    fields_to_change = [f for f in df if f in non_numerical and df[f].dtype.name != 'category']
+
+    for f in fields_to_change:
+        df[f] = df[f].astype('category')
+
+    print("Non-numerical fields changed to 'category'", fields_to_change)
+
+    return df
 
 
 def classify_data(df, target, numerical=None, categorical=None):
@@ -40,7 +53,7 @@ def classify_data(df, target, numerical=None, categorical=None):
     for n in df[numerical]:
         df[n] = df[n].astype(np.float32)
 
-    # assign category data type to categorical columns
+    # assign category data type to categorical columns (force_categorical not needed)
     for f in df[categorical]:
         df[f] = df[f].astype('category')
 
@@ -61,11 +74,12 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
     if not target:
         target = []
 
-    categorical = df.select_dtypes(exclude=[np.number])
-
+    df = force_categorical(df)
+    categorical = df.select_dtypes(include=['category'])
     categorical_f = [c for c in categorical if c not in target]
 
-    for f in categorical_f:
+    for f in categorical_f:     
+
         count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
         if len(low_freq) > 0:
@@ -454,6 +468,7 @@ def create_dummy(data, target, use_dummies=None):
     
 
 def reproducible(seed=42):
+    import tensorflow as tf
     import keras
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
