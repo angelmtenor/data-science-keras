@@ -141,7 +141,7 @@ def missing(df, limit=None, figsize=None, plot=True):
         return missing_ratio[missing_ratio > limit].index.tolist()
 
 def simple_fill(df, target,include_numerical=True, include_categorical=True, inplace=False):
-    warnings.warn('Use new function "fill_simple"')
+    warnings.warn('Use new function "fill_simple", ', stacklevel=2)
 
     return fill_simple(df, target, 
                         include_numerical=include_numerical, 
@@ -404,7 +404,7 @@ def standardize(data, use_scale=None):
     Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
     Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
     """
-    warnings.warn(' Use new "scale" function')
+    warnings.warn(' Use new "scale" function', DeprecationWarning, stacklevel=2)
     
     return scale(data, use_scale)
     
@@ -462,7 +462,7 @@ def replace_by_dummies(data, target, dict_dummies=None):
 
 def create_dummy(data, target, use_dummies=None):
 
-    warnings.warn('Use new "replace_by_dummies"')
+    warnings.warn('Use new "replace_by_dummies"', stacklevel=2)
 
     return replace_by_dummies(data, target, dict_dummies=use_dummies)
     
