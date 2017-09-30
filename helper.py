@@ -170,14 +170,14 @@ def fill_simple(df, target, missing_numerical='median', missing_categorical='mod
     # numerical
 
     if include_numerical:
-        if missing_numerical == 'median':
-            df.fillna(df[numerical_f].median(),inplace=True)
-        elif missing_numerical == 'mean':
-            df.fillna(df[numerical_f].mean(),inplace=True)
-        else:
-            Warnings.warn("missing_numerical must be 'mean' or 'median'")
-    print('Missing numerical filled with: {}'.format(
-                missing_numerical))
+        for f in numerical_f:
+            if missing_numerical == 'median':
+                df[f].fillna(df[f].median(),inplace=True)
+            elif missing_numerical == 'mean':
+                df[f].fillna(df[f].mean(),inplace=True)
+            else:
+                Warnings.warn("missing_numerical must be 'mean' or 'median'")
+                print('Missing numerical filled with: {}'.format(missing_numerical))
 
     # categorical
     
