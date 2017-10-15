@@ -21,7 +21,8 @@ def force_categorical(df):
     for f in fields_to_change:
         df[f] = df[f].astype('category')
 
-    print("Non-numerical fields changed to 'category'", fields_to_change)
+    if fields_to_change:
+        print("Non-numerical fields changed to 'category':", fields_to_change)
 
     return df
 
@@ -78,6 +79,9 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
     categorical = df.select_dtypes(include=['category'])
     categorical_f = [c for c in categorical if c not in target]
 
+    if not categorical_f:
+        print('None categorical variables found')
+    
     for f in categorical_f:     
 
         count = df[f].value_counts()
