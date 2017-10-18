@@ -61,11 +61,13 @@ def classify_data(df, target, numerical=None, categorical=None):
     return df
 
 
-def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
+def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
     """
+
+    warnings.warn(' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
 
     if not inplace:
         df = df.copy()
@@ -81,7 +83,8 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
 
     if not categorical_f:
         print('None categorical variables found')
-    
+
+      
     for f in categorical_f:     
 
         count = df[f].value_counts()
@@ -95,6 +98,53 @@ def remove_lowfreq(df, target=None, ratio=0.01,  show=False, inplace=False):
 
     if not inplace:
         return df
+
+
+def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=None):
+    """
+    Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
+    Only non-numerical columns are evaluated
+    """
+
+    df = df.copy()
+
+    threshold = df.shape[0] * ratio
+
+    if not target:
+        target = []
+
+    df = force_categorical(df)
+    categorical = df.select_dtypes(include=['category'])
+    categorical_f = [c for c in categorical if c not in target]
+
+    if not categorical_f:
+        print('None categorical variables found')
+
+    if dict_categories:
+        for f in categorical_f:     
+            df[f].cat.set_categories(dict_categories[f], inplace=True)
+
+    else:
+        dict_categories = dict()
+      
+        for f in categorical_f:     
+
+            count = df[f].value_counts()
+            low_freq = list(count[count < threshold].index)
+            if len(low_freq) > 0:
+                df[f] = df[f].replace(low_freq, np.nan)
+                df[f].cat.remove_unused_categories(inplace=True)
+                # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
+
+            dict_categories[f] =  df[f].cat.categories    
+
+            if show:
+                print(f, list(df[f].value_counts()))
+
+    return df, dict_categories
+
+
+
 
 
 def remove_outliers(df, sigma=3, inplace=False):
@@ -342,7 +392,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
                 axs.set(ylabel='')
 
 
-def show_correlation(df, target):
+def show_correlation(df, target, limit=None, figsize=(8, 3)):
     """ 
     Display Pearson correlation coefficient between target and numerical features
     """
@@ -359,8 +409,8 @@ def show_correlation(df, target):
         if t not in numerical:
             copy_df[t] = copy_df[t].astype(int)
 
-    corr = copy_df.corr().loc[numerical_f, target]
-    corr.plot.bar(figsize=(8, 3))
+    corr = copy_df.corr().loc[numerical_f, target].fillna(0)
+    corr.plot.bar(figsize=figsize)
     plt.axhline(
         y=0,
         color='k',
@@ -368,6 +418,9 @@ def show_correlation(df, target):
     plt.xlabel('feature')
     plt.ylabel('Pearson correlation coefficient')
     # sns.heatmap(corr, cmap="bwr")
+
+    if limit:
+        return corr.loc[abs(corr['target']) < abs(limit)].index.tolist()
 
 
 def scale(data, scale_param=None):
@@ -381,7 +434,6 @@ def scale(data, scale_param=None):
     data = data.copy()
 
     num = list(data.select_dtypes(include=[np.number]))
-
     if not scale_param:
         create_scale = True
         scale_param = {}
@@ -414,7 +466,7 @@ def standardize(data, use_scale=None):
     
     
 
-def replace_by_dummies(data, target, dict_dummies=None):
+def replace_by_dummies(data, target, dummies=None):
     """ 
     Replace categorical features by dummy features (no target)  
     If no dummy list is used, a new one is created.  
@@ -425,7 +477,7 @@ def replace_by_dummies(data, target, dict_dummies=None):
 
     data = data.copy()
 
-    if not dict_dummies:
+    if not dummies:
         create_dummies = True
     else:
         create_dummies = False
@@ -445,30 +497,30 @@ def replace_by_dummies(data, target, dict_dummies=None):
     if not create_dummies:
 
         # remove new dummies not in given dummies
-        new = set(found_dummies) - set(dict_dummies)
+        new = set(found_dummies) - set(dummies)
         for n in new:
             data.drop(n, axis=1, inplace=True)
 
         # fill missing dummies with empty values (0)
-        missing = set(dict_dummies) - set(found_dummies)
+        missing = set(dummies) - set(found_dummies)
         for m in missing:
             data[m] = 0
 
     else:
-        dict_dummies = found_dummies
+        dummies = found_dummies
 
     # set new columns to category
-    for dummy in dict_dummies:
+    for dummy in dummies:
         data[dummy] = data[dummy].astype('category')
 
-    return data, dict_dummies
+    return data, dummies
 
 
 def create_dummy(data, target, use_dummies=None):
 
     warnings.warn('Use new "replace_by_dummies"', stacklevel=2)
 
-    return replace_by_dummies(data, target, dict_dummies=use_dummies)
+    return replace_by_dummies(data, target, dummies=use_dummies)
     
 
 def reproducible(seed=42):
