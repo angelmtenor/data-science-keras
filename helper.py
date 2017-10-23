@@ -466,7 +466,7 @@ def standardize(data, use_scale=None):
     
     
 
-def replace_by_dummies(data, target, dummies=None):
+def replace_by_dummies(data, target, dummies=None, drop_first=False):
     """ 
     Replace categorical features by dummy features (no target)  
     If no dummy list is used, a new one is created.  
@@ -488,7 +488,7 @@ def replace_by_dummies(data, target, dummies=None):
     categorical_f = [col for col in categorical if col not in target]
 
     for f in categorical_f:
-        dummy = pd.get_dummies(data[f], prefix=f, drop_first=False)
+        dummy = pd.get_dummies(data[f], prefix=f, drop_first=drop_first)
         data = pd.concat([data, dummy], axis=1)
         data.drop(f, axis=1, inplace=True)
 
