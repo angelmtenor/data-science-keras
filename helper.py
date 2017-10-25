@@ -104,6 +104,7 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
+    Return: modified df, dict_categories
     """
 
     df = df.copy()
@@ -142,9 +143,6 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
                 print(f, list(df[f].value_counts()))
 
     return df, dict_categories
-
-
-
 
 
 def remove_outliers(df, sigma=3, inplace=False):
@@ -653,10 +651,10 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
 
         t0 = time()
         # Fitting the model without cross validation
-        clf.fit(x_train, y_train[:, 0])
+        clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict(x_test)
-        accuracy = accuracy_score(y_pred, y_test[:, 0])
+        accuracy = accuracy_score(y_pred, y_test)
 
         if cross_validation:
             k_fold = KFold(n_splits=10)
@@ -669,7 +667,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
             train_time_cv = time() - t0
 
             y_pred_cv = clf_cv.predict(x_test)
-            accuracy_cv = accuracy_score(y_pred_cv, y_test[:, 0])
+            accuracy_cv = accuracy_score(y_pred_cv, y_test)
 
         print("Test Accuracy:  \t {:.3f}".format(accuracy))
         if cross_validation:
@@ -690,11 +688,12 @@ def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0
 
     t0 = time()
 
-    clf.fit(x_train, y_train[:, 0])
+    clf.fit(x_train, y_train)
     train_time = time() - t0
     y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_pred, y_test[:, 0])
+    accuracy = accuracy_score(y_pred, y_test)
 
     print("\n", "XGBoost", "\n", "-" * 20)
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
     print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
+    return clf
