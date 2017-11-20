@@ -58,6 +58,10 @@ def classify_data(df, target, numerical=None, categorical=None):
     for f in df[categorical]:
         df[f] = df[f].astype('category')
 
+    print('n numerical:   {}'.format(len(numerical_f)))
+    print('n categorical: {}'.format(len(categorical_f)))
+
+
     return df
 
 
@@ -292,12 +296,11 @@ def show_target_vs_numerical(df,
         print("There are no numerical features")
         return
 
-    copy_df = df.copy()
+    df = df.copy()
 
     for t in target:
         if t not in numerical:
-            copy_df[t] = copy_df[t].astype(
-                int)  # force categorical values to numerical (booleans, ...)
+            df[t] = df[t].astype(int)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(
@@ -308,21 +311,23 @@ def show_target_vs_numerical(df,
                 axs = sns.regplot(
                     x=f,
                     y=t,
-                    data=copy_df,
+                    data=df,
                     x_jitter=jitter,
                     y_jitter=jitter,
                     ax=ax[idx],
                     marker=".",
+                    scatter_kws={'s':1},
                     fit_reg=fit_reg)
             else:
                 axs = sns.regplot(
                     x=f,
                     y=t,
-                    data=copy_df,
+                    data=df,
                     x_jitter=jitter,
                     y_jitter=jitter,
                     ax=ax,
                     marker=".",
+                    scatter_kws={'s':2},
                     fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
@@ -421,13 +426,15 @@ def show_correlation(df, target, limit=None, figsize=(8, 3)):
         return corr.loc[abs(corr['target']) < abs(limit)].index.tolist()
 
 
-def scale(data, scale_param=None):
+def scale(data, scale_param=None, method='std'):
     """
     Standardize numerical variables (mean=0, std=1)
     
     Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
     Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
     """
+
+    assert method == 'std' or method == 'minmax' or method == 'maxabs'
 
     data = data.copy()
 
@@ -439,13 +446,34 @@ def scale(data, scale_param=None):
         create_scale = False
 
     for f in num:
-        if create_scale:
-            mean, std = data[f].mean(), data[f].std()
-            data[f] = (data[f].values - mean) / std
-            scale_param[f] = [mean, std]
-        else:
-            data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
-            
+        if method == 'std':
+            if create_scale:
+                mean, std = data[f].mean(), data[f].std()
+                data[f] = (data[f].values - mean) / std
+                scale_param[f] = [mean, std]
+            else:
+                data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
+        
+        elif method == 'minmax':
+        
+            if create_scale:
+                min, max = data[f].min(), data[f].max()
+                data[f] = (data[f].values - min) / (max-min)
+                scale_param[f] = [min, max]
+            else:
+                min, max = scale_param[f][0], scale_param[f][1]
+                data.loc[:, f] = (data[f].values - min) / (max - min)
+
+        elif method == 'maxabs':
+        
+            if create_scale:
+                min, max = data[f].min(), data[f].max()
+                data[f] = 2*(data[f].values - min) / (max-min) -1
+                scale_param[f] = [min, max]
+            else:
+                min, max = scale_param[f][0], scale_param[f][1]
+                data.loc[:, f] = 0.5*(data[f].values * (max -min) + max + min)
+
     return data, scale_param
 
 
@@ -654,7 +682,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict(x_test)
-        accuracy = accuracy_score(y_pred, y_test)
+        accuracy = accuracy_score(y_test, y_pred)
 
         if cross_validation:
             k_fold = KFold(n_splits=10)
@@ -667,7 +695,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
             train_time_cv = time() - t0
 
             y_pred_cv = clf_cv.predict(x_test)
-            accuracy_cv = accuracy_score(y_pred_cv, y_test)
+            accuracy_cv = accuracy_score(y_test, y_pred_cv)
 
         print("Test Accuracy:  \t {:.3f}".format(accuracy))
         if cross_validation:
@@ -691,7 +719,7 @@ def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0
     clf.fit(x_train, y_train)
     train_time = time() - t0
     y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_pred, y_test)
+    accuracy = accuracy_score(y_test, y_pred)
 
     print("\n", "XGBoost", "\n", "-" * 20)
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
