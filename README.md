@@ -1,13 +1,13 @@
 # data-science-keras
 Data science projects with Keras
 
-This repo contains several notebooks solving data science projetcs with artificial neural networks 
+This repo contains several notebooks solving data science projects with artificial neural networks 
 implemented in Keras.
 
 ## Instructions
 
 * clone the project
-* open the desired project with jupyter notebook
+* open the desired project with Jupyter Notebook
 
 ## Creator
 
@@ -16,5 +16,6 @@ implemented in Keras.
 
 With the help of:
 
-* Udacity
-* Kaggle datasets
+* [Udacity](https://www.udacity.com/)
+* [Coursera](https://www.coursera.org/)
+* [Kaggle](https://www.kaggle.com/)
