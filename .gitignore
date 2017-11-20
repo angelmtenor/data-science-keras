@@ -1,7 +1,7 @@
 __pycache__/
-.idea/
-.ipynb_checkpoints/
-.vscode/
+.idea/*
+.ipynb_checkpoints/*
+.vscode/*
 
 ztemplate.ipynb
 data/maintenance_training_filtered.csv
