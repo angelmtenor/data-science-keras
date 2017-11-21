@@ -16,7 +16,9 @@ def force_categorical(df):
     """ Force non numerical fields to pandas 'category' type """
     non_numerical = list(df.select_dtypes(exclude=[np.number]))
 
-    fields_to_change = [f for f in df if f in non_numerical and df[f].dtype.name != 'category']
+    fields_to_change = [
+        f for f in df if f in non_numerical and df[f].dtype.name != 'category'
+    ]
 
     for f in fields_to_change:
         df[f] = df[f].astype('category')
@@ -61,7 +63,6 @@ def classify_data(df, target, numerical=None, categorical=None):
     print('n numerical:   {}'.format(len(numerical_f)))
     print('n categorical: {}'.format(len(categorical_f)))
 
-
     return df
 
 
@@ -71,7 +72,10 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     Only non-numerical columns are evaluated
     """
 
-    warnings.warn(' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
+    warnings.warn(
+        ' Use new "remove_categories" function',
+        DeprecationWarning,
+        stacklevel=2)
 
     if not inplace:
         df = df.copy()
@@ -88,8 +92,7 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     if not categorical_f:
         print('None categorical variables found')
 
-      
-    for f in categorical_f:     
+    for f in categorical_f:
 
         count = df[f].value_counts()
         low_freq = list(count[count < threshold].index)
@@ -104,7 +107,11 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
         return df
 
 
-def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=None):
+def remove_categories(df,
+                      target=None,
+                      ratio=0.01,
+                      show=False,
+                      dict_categories=None):
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
@@ -126,13 +133,13 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
         print('None categorical variables found')
 
     if dict_categories:
-        for f in categorical_f:     
+        for f in categorical_f:
             df[f].cat.set_categories(dict_categories[f], inplace=True)
 
     else:
         dict_categories = dict()
-      
-        for f in categorical_f:     
+
+        for f in categorical_f:
 
             count = df[f].value_counts()
             low_freq = list(count[count < threshold].index)
@@ -141,7 +148,7 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
                 df[f].cat.remove_unused_categories(inplace=True)
                 # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
 
-            dict_categories[f] =  df[f].cat.categories    
+            dict_categories[f] = df[f].cat.categories
 
             if show:
                 print(f, list(df[f].value_counts()))
@@ -196,18 +203,29 @@ def missing(df, limit=None, figsize=None, plot=True):
     if limit:
         return missing_ratio[missing_ratio > limit].index.tolist()
 
-def simple_fill(df, target,include_numerical=True, include_categorical=True, inplace=False):
+
+def simple_fill(df,
+                target,
+                include_numerical=True,
+                include_categorical=True,
+                inplace=False):
     warnings.warn('Use new function "fill_simple", ', stacklevel=2)
 
-    return fill_simple(df, target, 
-                        include_numerical=include_numerical, 
-                        include_categorical=include_categorical, 
-                        inplace=inplace)
+    return fill_simple(
+        df,
+        target,
+        include_numerical=include_numerical,
+        include_categorical=include_categorical,
+        inplace=inplace)
 
 
-
-def fill_simple(df, target, missing_numerical='median', missing_categorical='mode',
-                include_numerical=True, include_categorical=True,inplace=False):
+def fill_simple(df,
+                target,
+                missing_numerical='median',
+                missing_categorical='mode',
+                include_numerical=True,
+                include_categorical=True,
+                inplace=False):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
     Fill missing categorical values of df with the median of the column (include_categorical=True)
@@ -228,15 +246,16 @@ def fill_simple(df, target, missing_numerical='median', missing_categorical='mod
     if include_numerical:
         for f in numerical_f:
             if missing_numerical == 'median':
-                df[f].fillna(df[f].median(),inplace=True)
+                df[f].fillna(df[f].median(), inplace=True)
             elif missing_numerical == 'mean':
-                df[f].fillna(df[f].mean(),inplace=True)
+                df[f].fillna(df[f].mean(), inplace=True)
             else:
                 Warnings.warn("missing_numerical must be 'mean' or 'median'")
-                print('Missing numerical filled with: {}'.format(missing_numerical))
+                print('Missing numerical filled with: {}'.format(
+                    missing_numerical))
 
     # categorical
-    
+
     if include_categorical:
 
         if missing_categorical == 'mode':
@@ -300,7 +319,8 @@ def show_target_vs_numerical(df,
 
     for t in target:
         if t not in numerical:
-            df[t] = df[t].astype(int)  # force categorical values to numerical (booleans, ...)
+            df[t] = df[t].astype(
+                int)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
         fig, ax = plt.subplots(
@@ -316,7 +336,7 @@ def show_target_vs_numerical(df,
                     y_jitter=jitter,
                     ax=ax[idx],
                     marker=".",
-                    scatter_kws={'s':1},
+                    scatter_kws={'s': 1},
                     fit_reg=fit_reg)
             else:
                 axs = sns.regplot(
@@ -327,7 +347,7 @@ def show_target_vs_numerical(df,
                     y_jitter=jitter,
                     ax=ax,
                     marker=".",
-                    scatter_kws={'s':2},
+                    scatter_kws={'s': 2},
                     fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
@@ -452,31 +472,31 @@ def scale(data, scale_param=None, method='std'):
                 data[f] = (data[f].values - mean) / std
                 scale_param[f] = [mean, std]
             else:
-                data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
-        
+                data.loc[:, f] = (
+                    data[f] - scale_param[f][0]) / scale_param[f][1]
+
         elif method == 'minmax':
-        
+
             if create_scale:
                 min, max = data[f].min(), data[f].max()
-                data[f] = (data[f].values - min) / (max-min)
+                data[f] = (data[f].values - min) / (max - min)
                 scale_param[f] = [min, max]
             else:
                 min, max = scale_param[f][0], scale_param[f][1]
                 data.loc[:, f] = (data[f].values - min) / (max - min)
 
         elif method == 'maxabs':
-        
+
             if create_scale:
                 min, max = data[f].min(), data[f].max()
-                data[f] = 2*(data[f].values - min) / (max-min) -1
+                data[f] = 2 * (data[f].values - min) / (max - min) - 1
                 scale_param[f] = [min, max]
             else:
                 min, max = scale_param[f][0], scale_param[f][1]
-                data.loc[:, f] = 0.5*(data[f].values * (max -min) + max + min)
+                data.loc[:, f] = 0.5 * (data[f].values *
+                                        (max - min) + max + min)
 
     return data, scale_param
-
-
 
 
 def standardize(data, use_scale=None):
@@ -486,11 +506,11 @@ def standardize(data, use_scale=None):
     Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
     Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
     """
-    warnings.warn(' Use new "scale" function', DeprecationWarning, stacklevel=2)
-    
+    warnings.warn(
+        ' Use new "scale" function', DeprecationWarning, stacklevel=2)
+
     return scale(data, use_scale)
-    
-    
+
 
 def replace_by_dummies(data, target, dummies=None, drop_first=False):
     """ 
@@ -499,7 +519,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
     
     Input: dataframe, target list, dummy list
     Output: dataframe with categorical replaced by dummies, dummy dictionary
-     """   
+     """
 
     data = data.copy()
 
@@ -547,7 +567,7 @@ def create_dummy(data, target, use_dummies=None):
     warnings.warn('Use new "replace_by_dummies"', stacklevel=2)
 
     return replace_by_dummies(data, target, dummies=use_dummies)
-    
+
 
 def reproducible(seed=42):
     import tensorflow as tf
@@ -646,7 +666,8 @@ def expand_date(timeseries):
     return df
 
 
-def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
+def ml_classification(x_train, y_train, x_test, y_test,
+                      cross_validation=False):
     """
     Build a train classical machine learning classification models and show the test results
     if cross_validation=True an additional training with cross validation will be performed
@@ -707,12 +728,21 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False):
                 "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
 
-def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0.1, n_estimators=100):
+def XGBClassifier(x_train,
+                  y_train,
+                  x_test,
+                  y_test,
+                  max_depth=3,
+                  learning_rate=0.1,
+                  n_estimators=100):
 
     import xgboost as xgb
     from sklearn.metrics import accuracy_score
 
-    clf = xgb.XGBClassifier(max_depth=max_depth, n_estimators=n_estimators, learning_rate=learning_rate)
+    clf = xgb.XGBClassifier(
+        max_depth=max_depth,
+        n_estimators=n_estimators,
+        learning_rate=learning_rate)
 
     t0 = time()
 
