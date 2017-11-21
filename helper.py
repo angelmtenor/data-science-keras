@@ -32,7 +32,7 @@ def force_categorical(df):
 def classify_data(df, target, numerical=None, categorical=None):
     """  Return a new dataframe with categorical variables as dtype 'categorical' and sorted
     columns: numerical + categorical + target.
-    
+
     Input: dataframe, target list, numerical list, categorical list
     Output: classified and sorted dataframe
     """
@@ -143,7 +143,7 @@ def remove_categories(df,
 
             count = df[f].value_counts()
             low_freq = list(count[count < threshold].index)
-            if len(low_freq) > 0:
+            if low_freq:
                 df[f] = df[f].replace(low_freq, np.nan)
                 df[f].cat.remove_unused_categories(inplace=True)
                 # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
@@ -174,21 +174,21 @@ def remove_outliers(df, sigma=3, inplace=False):
 
 
 def missing(df, limit=None, figsize=None, plot=True):
-    """ 
+    """
     Display the ratio of missing values (NaN) for each column of df
     Only columns with missing values are shown
     If limit_ratio is provided, return column names exceeding the ratio (features with little data)
     """
 
     size = df.shape[0]
-    missing = df.isnull().sum()
-    missing = missing[missing > 0]
-    if len(missing) == 0:
+    m = df.isnull().sum()
+    m = m[m > 0]
+    if not m:
         print("No missing values found")
         return []
 
-    missing = missing.sort_values(ascending=True)
-    missing_ratio = missing / size
+    m = m.sort_values(ascending=True)
+    missing_ratio = m / size
 
     if plot:
         if not figsize:
@@ -250,7 +250,7 @@ def fill_simple(df,
             elif missing_numerical == 'mean':
                 df[f].fillna(df[f].mean(), inplace=True)
             else:
-                Warnings.warn("missing_numerical must be 'mean' or 'median'")
+                warnings.warn("missing_numerical must be 'mean' or 'median'")
                 print('Missing numerical filled with: {}'.format(
                     missing_numerical))
 
@@ -291,7 +291,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         print("There are no numerical features")
         return
 
-    fig, ax = plt.subplots(
+    _, ax = plt.subplots(
         ncols=len(numerical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(numerical_f):
         sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
@@ -323,7 +323,7 @@ def show_target_vs_numerical(df,
                 int)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
-        fig, ax = plt.subplots(
+        _, ax = plt.subplots(
             ncols=len(numerical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(numerical_f):
@@ -371,7 +371,7 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
         print("There are no categorical variables")
         return
 
-    fig, ax = plt.subplots(
+    _, ax = plt.subplots(
         ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
@@ -404,7 +404,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
             copy_df[t] = copy_df[t].astype(int)
 
     for t in target:  # in case of several targets several plots will be shown
-        fig, ax = plt.subplots(
+        _, ax = plt.subplots(
             ncols=len(categorical_f), sharey=True, figsize=figsize)
 
         for idx, f in enumerate(categorical_f):
@@ -712,7 +712,7 @@ def ml_classification(x_train, y_train, x_test, y_test,
             # Fitting the model with cross validation
             for id_train, id_test in k_fold.split(x_train):
                 # print(y_train[id_train, 0].shape)
-                clf_cv.fit(x_train[id_train], y_train[id_train, 0])
+                clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             train_time_cv = time() - t0
 
             y_pred_cv = clf_cv.predict(x_test)
@@ -735,6 +735,7 @@ def XGBClassifier(x_train,
                   max_depth=3,
                   learning_rate=0.1,
                   n_estimators=100):
+    """ Custom XGBoost classifier """
 
     import xgboost as xgb
     from sklearn.metrics import accuracy_score
