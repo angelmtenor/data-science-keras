@@ -183,7 +183,7 @@ def missing(df, limit=None, figsize=None, plot=True):
     size = df.shape[0]
     m = df.isnull().sum()
     m = m[m > 0]
-    if not m:
+    if m.empty:
         print("No missing values found")
         return []
 
