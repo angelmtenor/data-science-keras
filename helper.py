@@ -690,17 +690,16 @@ def ml_classification(x_train, y_train, x_test, y_test,
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import accuracy_score, roc_auc_score
 
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (GaussianNB(), SVC(
-        kernel="rbf", ), DecisionTreeClassifier(), KNeighborsClassifier(
+    classifiers = (GaussianNB(), DecisionTreeClassifier(), KNeighborsClassifier(
             n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
 
     names = [
-        "Naive Bayes", "SVM", "Decision Trees", "KNeighbors", "AdaBoost",
+        "Naive Bayes", "Decision Trees", "KNeighbors", "AdaBoost",
         "Random Forest"
     ]
 
@@ -714,8 +713,8 @@ def ml_classification(x_train, y_train, x_test, y_test,
         # Fitting the model without cross validation
         clf.fit(x_train, y_train)
         train_time = time() - t0
-        y_pred = clf.predict(x_test)
-        accuracy = accuracy_score(y_test, y_pred)
+        y_pred = clf.predict_proba(x_test)
+        accuracy = clf.score(x_test, y_test)
 
         if cross_validation:
             k_fold = KFold(n_splits=10)
@@ -727,10 +726,11 @@ def ml_classification(x_train, y_train, x_test, y_test,
                 clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             train_time_cv = time() - t0
 
-            y_pred_cv = clf_cv.predict(x_test)
-            accuracy_cv = accuracy_score(y_test, y_pred_cv)
+            y_pred_cv = clf_cv.predict_proba(x_test)
+            accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
 
         print("Test Accuracy:  \t {:.3f}".format(accuracy))
+        print('ROC_AUC: \t\t {:.3f}'.format(roc_auc_score(y_test, y_pred[:,1])))
         if cross_validation:
             print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
 
@@ -761,8 +761,8 @@ def XGBClassifier(x_train,
 
     clf.fit(x_train, y_train)
     train_time = time() - t0
-    y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    y_pred = clf.predict_proba(x_test)
+    accuracy = accuracy_score(y_test, y_pred[:,1])
 
     print("\n", "XGBoost", "\n", "-" * 20)
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
