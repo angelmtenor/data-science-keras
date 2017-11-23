@@ -62,9 +62,10 @@ def classify_data(df, target, numerical=None, categorical=None):
     for f in df[categorical]:
         df[f] = df[f].astype('category')
 
-    print('n numerical:   {}'.format(len(numerical_f)))
-    print('n categorical: {}'.format(len(categorical_f)))
-
+    print('numerical features:   {}'.format(len(numerical_f)))
+    print('categorical features: {}'.format(len(categorical_f)))
+    for t in target:
+        print("target '{}': {}".format(t, df[t].dtype))
     return df
 
 
@@ -304,6 +305,7 @@ def show_target_vs_numerical(df,
                              target,
                              jitter=0,
                              fit_reg=True,
+                             point_size = 1,
                              figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
@@ -338,7 +340,7 @@ def show_target_vs_numerical(df,
                     y_jitter=jitter,
                     ax=ax[idx],
                     marker=".",
-                    scatter_kws={'s': 1},
+                    scatter_kws={'s': point_size},
                     fit_reg=fit_reg)
             else:
                 axs = sns.regplot(
@@ -349,7 +351,7 @@ def show_target_vs_numerical(df,
                     y_jitter=jitter,
                     ax=ax,
                     marker=".",
-                    scatter_kws={'s': 2},
+                    scatter_kws={'s': point_size*2},
                     fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
@@ -377,7 +379,10 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
         ncols=len(categorical_f), sharey=sharey, figsize=figsize)
     for idx, n in enumerate(categorical_f):
         so = sorted({v for v in df[n].values if str(v) != 'nan'})
-        axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+        if len(categorical_f) == 1:
+            axs = sns.countplot(df[n].dropna(), ax=ax, order=so)
+        else:
+            axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
         # first y-axis label only
         if idx != 0:
             axs.set(ylabel='')
@@ -411,7 +416,12 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
 
         for idx, f in enumerate(categorical_f):
             so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-            axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+
+            if len(categorical_f) == 1:
+                axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax, order=so)
+            else:
+                axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+
             # first y-axis label only
             if idx != 0:
                 axs.set(ylabel='')
