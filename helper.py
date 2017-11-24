@@ -699,7 +699,7 @@ def ml_classification(x_train, y_train, x_test, y_test,
             n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
 
     names = [
-        "Naive Bayes", "Decision Trees", "KNeighbors", "AdaBoost",
+        "Naive Bayes", "Decision Tree", "KNeighbors", "AdaBoost",
         "Random Forest"
     ]
 
