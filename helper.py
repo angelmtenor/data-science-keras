@@ -762,7 +762,7 @@ def XGBClassifier(x_train,
     clf.fit(x_train, y_train)
     train_time = time() - t0
     y_pred = clf.predict_proba(x_test)
-    accuracy = accuracy_score(y_test, y_pred[:,1])
+    accuracy = accuracy_score(y_test, y_pred[:, 1])
 
     print("\n", "XGBoost", "\n", "-" * 20)
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
