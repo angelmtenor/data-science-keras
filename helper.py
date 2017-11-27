@@ -11,7 +11,25 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-sns.set()
+sns.set() # set seaborn style
+
+
+def reproducible(seed=42):
+    import tensorflow as tf
+    import keras
+    """ Setup reproducible results from run to run using Keras
+    https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    """
+
+    os.environ['PYTHONHASHSEED'] = '0'
+    np.random.seed(seed)
+    rn.seed(seed)
+    # Multiple threads are a potential source of non-reproducible results.
+    session_conf = tf.ConfigProto(
+        intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    tf.set_random_seed(seed)
+    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
+    keras.backend.set_session(sess)
 
 
 def force_categorical(df):
@@ -579,24 +597,6 @@ def create_dummy(data, target, use_dummies=None):
     warnings.warn('Use new "replace_by_dummies"', stacklevel=2)
 
     return replace_by_dummies(data, target, dummies=use_dummies)
-
-
-def reproducible(seed=42):
-    import tensorflow as tf
-    import keras
-    """ Setup reproducible results from run to run using Keras
-    https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
-    """
-
-    os.environ['PYTHONHASHSEED'] = '0'
-    np.random.seed(seed)
-    rn.seed(seed)
-    # Multiple threads are a potential source of non-reproducible results.
-    session_conf = tf.ConfigProto(
-        intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    tf.set_random_seed(seed)
-    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    keras.backend.set_session(sess)
 
 
 def show_training(history):
