@@ -1,7 +1,6 @@
-# data-science-keras
-Data science projects with Keras
+# Data science projects with Keras
 
-This repo contains a set of data science projects solved with artificial neural networks implemented in Keras.
+This repo contains a set of data science projects solved with artificial neural networks implemented in Keras
 
 ## Classification models
 
