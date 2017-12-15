@@ -1,6 +1,6 @@
 # Data science projects with Keras
 
-This repo contains a set of data science projects solved with artificial neural networks implemented in Keras
+This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/)
 
 ## Classification models
 
@@ -19,9 +19,9 @@ This repo contains a set of data science projects solved with artificial neural 
 
 ## Regression models
 
-- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_sharing.ipynb)Predicts daily bike rental ridership 
+- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_sharing.ipynb) Predicts daily bike rental ridership 
 
-- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/house_prices.ipynb)Predicts house sales prices from Ames Housing database   
+- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/house_prices.ipynb) Predicts house sales prices from Ames Housing database   
 
 - [Simple tickets](https://github.com/angelmtenor/data-science-keras/blob/master/simple_tickets.ipynb)  Predicts the number of tickets requested by different clients
 
@@ -39,10 +39,27 @@ This repo contains a set of data science projects solved with artificial neural 
 - [Network](https://github.com/angelmtenor/data-science-keras/blob/master/network.ipynb)  Predicts missing salaries and new email connections from a company's email network
 
 
+## Requirements
+- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, Jupyter notebook
+
+[Anaconda recomended](https://www.anaconda.com/what-is-anaconda/
+https://www.anaconda.com/what-is-anaconda/)
+ 
+
+
 ## Instructions
 
-* clone the project
-* open the desired project with Jupyter Notebook
+* clone the repository using `git`: 
+``` sh
+git clone https://github.com/angelmtenor/data-science-keras.git
+```
+
+* open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) 
+``` sh 
+cd data-science-keras
+jupyter notebook
+```
+
 
 ## Creator
 
