@@ -40,21 +40,21 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 ## Requirements
-- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
-- Tensorflow & Keras. See [Installation section from Keras](https://github.com/keras-team/keras)
+- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, and Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
+- TensorFlow and Keras. See [Installation section from Keras](https://github.com/keras-team/keras)
 
 
 ## Instructions
 
-* clone the repository using `git`: 
+* Clone the repository using `git`: 
 ``` sh
 git clone https://github.com/angelmtenor/data-science-keras.git
 ```
 
-* open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) 
+* Open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) 
 ``` sh 
 cd data-science-keras
-jupyter notebook
+jupyter notebook 
 ```
 
 
