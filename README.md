@@ -40,11 +40,8 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 ## Requirements
-- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, Jupyter notebook
-
-[Anaconda recomended](https://www.anaconda.com/what-is-anaconda/
-https://www.anaconda.com/what-is-anaconda/)
- 
+- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
+- Tensorflow & Keras. See [Installation section from Keras](https://github.com/keras-team/keras)
 
 
 ## Instructions
