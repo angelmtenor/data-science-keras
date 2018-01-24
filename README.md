@@ -4,14 +4,14 @@ This repo contains a set of data science projects solved with artificial neural 
 
 ## Classification models
 
-- [Enron Scandal](https://github.com/angelmtenor/data-science-keras/blob/master/enron_scandal.ipynb) Identifies Enron employees who may have committed fraud 
+- [Enron Scandal](https://github.com/angelmtenor/data-science-keras/blob/master/enron_scandal.ipynb) Identifies Enron employees who may have committed fraud
 
 - [Property Maintenance Fines](https://github.com/angelmtenor/data-science-keras/blob/master/property_maintenance_fines.ipynb) Predicts the probability of a set of blight tickets to be paid on time
 
-- [Sentiment IMDB](https://github.com/angelmtenor/data-science-keras/blob/master/sentiment_IMDB.ipynb)  Predicts positive or negative sentiments from movie reviews
+- [Sentiment IMDB](https://github.com/angelmtenor/data-science-keras/blob/master/sentiment_IMDB.ipynb)  Predicts positive or negative sentiments from movie reviews (NLP)
 
 
-- [Spam detector](https://github.com/angelmtenor/data-science-keras/blob/master/spam_detector.ipynb) Predicts the probability that a given email is a spam email
+- [Spam detector](https://github.com/angelmtenor/data-science-keras/blob/master/spam_detector.ipynb) Predicts the probability that a given email is a spam email (NLP)
 
 - [Student Admissions](https://github.com/angelmtenor/data-science-keras/blob/master/student_admissions.ipynb)  Predicts student admissions to graduate school at UCLA 
 
@@ -28,11 +28,11 @@ This repo contains a set of data science projects solved with artificial neural 
 
 ## Recurrent models
 
-- [Machine Translation](https://github.com/angelmtenor/data-science-keras/blob/master/machine_translation.ipynb)  Translates sentences from English to French
+- [Machine Translation](https://github.com/angelmtenor/data-science-keras/blob/master/machine_translation.ipynb)  Translates sentences from English to French (NLP)
 
 - [Simple Stock Prediction](https://github.com/angelmtenor/data-science-keras/blob/master/simple_stock_prediction.ipynb) Predicts Alphabet Inc. stock price 
 
-- [Text generator](https://github.com/angelmtenor/data-science-keras/blob/master/text_generator.ipynb) Creates an English language sequence generator
+- [Text generator](https://github.com/angelmtenor/data-science-keras/blob/master/text_generator.ipynb) Creates an English language sequence generator (NLP)
 
 ## Social network models
 
