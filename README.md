@@ -19,7 +19,7 @@ This repo contains a set of data science projects solved with artificial neural 
 
 ## Regression models
 
-- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_sharing.ipynb) Predicts daily bike rental ridership 
+- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_rental.ipynb) Predicts daily bike rental ridership 
 
 - [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/house_prices.ipynb) Predicts house sales prices from Ames Housing database   
 
