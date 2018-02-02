@@ -1,10 +1,11 @@
 """
 Helper module for Data-Science-Keras repository
 """
-import os
+import os, warnings
+warnings.simplefilter(action="ignore", category=FutureWarning)
+
 from time import time
 import random as rn
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,6 +13,22 @@ import pandas as pd
 import seaborn as sns
 
 sns.set() # set seaborn style
+
+
+def info_gpu():
+    """ Show GPU device (if available), keras version and tensorflow version """
+    import tensorflow as tf
+    import keras
+
+    # Check for a GPU
+    if not tf.test.gpu_device_name():
+        warnings.warn('No GPU')
+    else:
+        print('{}'.format(tf.test.gpu_device_name()))
+
+    # Check TensorFlow Version
+    print('Keras\t\tv{}'.format(keras.__version__))
+    print('TensorFlow\tv{}'.format(tf.__version__))
 
 
 def reproducible(seed=42):
@@ -761,8 +778,8 @@ def XGBClassifier(x_train,
 
     clf.fit(x_train, y_train)
     train_time = time() - t0
-    y_pred = clf.predict_proba(x_test)
-    accuracy = accuracy_score(y_test, y_pred[:, 1])
+    y_pred = clf.predict(x_test)
+    accuracy = accuracy_score(y_test, y_pred)
 
     print("\n", "XGBoost", "\n", "-" * 20)
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
