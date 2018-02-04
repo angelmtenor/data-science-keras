@@ -111,9 +111,7 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     """
 
     warnings.warn(
-        ' Use new "remove_categories" function',
-        DeprecationWarning,
-        stacklevel=2)
+        ' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
 
     if not inplace:
         df = df.copy()
@@ -247,7 +245,7 @@ def simple_fill(df,
                 include_numerical=True,
                 include_categorical=True,
                 inplace=False):
-    warnings.warn('Use new function "fill_simple", ', stacklevel=2)
+    warnings.warn('Use new "fill_simple" funciton', stacklevel=2)
 
     return fill_simple(
         df,
@@ -611,7 +609,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
 
 def create_dummy(data, target, use_dummies=None):
 
-    warnings.warn('Use new "replace_by_dummies"', stacklevel=2)
+    warnings.warn('Use new "replace_by_dummies" function', stacklevel=2)
 
     return replace_by_dummies(data, target, dummies=use_dummies)
 
