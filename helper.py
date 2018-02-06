@@ -784,7 +784,7 @@ def XGBClassifier(x_train,
     return clf
 
 
-def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
+def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning re models.
     If cross_validation=True an additional training with cross validation will be performed.
@@ -804,23 +804,27 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
             n_neighbors=10), AdaBoostRegressor(), RandomForestRegressor(100))
 
     names = [
-        "Linear", "Bayesian ridge", "Decision Tree", "KNeighbors", "AdaBoost",
+        "Linear", "Bayesian Ridge", "Decision Tree", "KNeighbors", "AdaBoost",
         "Random Forest"
     ]
 
+    col = ['Time (s)', 'Test loss', 'Test R2 score']
+    results = pd.DataFrame(columns=col)
+
     for idx, clf in enumerate(classifiers):
 
+        name = names[idx]
         clf_cv = clone(clf)
 
-        print("\n\n", names[idx], "\n", "-" * 20)
+        print(name)
 
         t0 = time()
         # Fitting the model without cross validation
         clf.fit(x_train, y_train)
-        train_time = time() - t0
+        train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
-        r2 = r2_score(y_test, y_pred)
-        loss = mean_squared_error(y_test, y_pred)
+        r2 = np.around(r2_score(y_test, y_pred), 3)
+        loss = np.around(mean_squared_error(y_test, y_pred),4)
   
         if cross_validation:
             print('CV not implemented')
@@ -835,14 +839,18 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
 
         #     y_pred_cv = clf_cv.predict(x_test)
         #     r2_cv = r2_score(y_test, y_pred_cv[:,1])
-            
-        print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
-        print("\nTest loss:  \t\t {:.3f}".format(loss))
-        print("\nTest R2-score:  \t {:.3f}".format(r2))
+
+        results = results.append(pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
+        if show:
+            print("-" * 20)
+            print("Training Time:  \t {:.1f} s".format(train_time))
+            print("Test loss:  \t\t {:.4f}".format(loss))
+            print("Test R2-score:  \t {:.3f}".format(r2))
 
         # if cross_validation:
         #     print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
-
+ 
         # if cross_validation:
-        #     print(
+        #     print( 
         #         "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+    return results.sort_values('Test loss')
