@@ -694,7 +694,7 @@ def expand_date(timeseries):
 
 
 def ml_classification(x_train, y_train, x_test, y_test,
-                      cross_validation=False):
+                      cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
@@ -704,7 +704,7 @@ def ml_classification(x_train, y_train, x_test, y_test,
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-    from sklearn.metrics import accuracy_score, roc_auc_score
+    from sklearn.metrics import accuracy_score, roc_auc_score, log_loss
 
     from sklearn.model_selection import KFold
     from sklearn.base import clone
@@ -717,41 +717,51 @@ def ml_classification(x_train, y_train, x_test, y_test,
         "Random Forest"
     ]
 
+    col = ['Time (s)', 'Test loss', 'Test accuracy', 'Test ROC-AUC']
+    results = pd.DataFrame(columns=col)
+
     for idx, clf in enumerate(classifiers):
 
         clf_cv = clone(clf)
 
-        print("\n", names[idx], "\n", "-" * 20)
+        name = names[idx]
+        print(name)
 
         t0 = time()
         # Fitting the model without cross validation
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
+        loss = log_loss(y_test, y_pred)
         accuracy = clf.score(x_test, y_test)
+        roc_auc = roc_auc_score(y_test, y_pred[:,1])
 
         if cross_validation:
-            k_fold = KFold(n_splits=10)
+            warnings.warn('CV removed')
 
-            t0 = time()
-            # Fitting the model with cross validation
-            for id_train, id_test in k_fold.split(x_train):
-                # print(y_train[id_train, 0].shape)
-                clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
-            train_time_cv = time() - t0
+            # k_fold = KFold(n_splits=10)
 
-            y_pred_cv = clf_cv.predict_proba(x_test)
-            accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
+            # t0 = time()
+            # # Fitting the model with cross validation
+            # for id_train, id_test in k_fold.split(x_train):
+            #     # print(y_train[id_train, 0].shape)
+            #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
+            # train_time_cv = time() - t0
 
-        print("Test Accuracy:  \t {:.3f}".format(accuracy))
-        print('ROC_AUC: \t\t {:.3f}'.format(roc_auc_score(y_test, y_pred[:,1])))
-        if cross_validation:
-            print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
+            # y_pred_cv = clf_cv.predict_proba(x_test)
+            # accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
+            # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
+            # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
-        if cross_validation:
-            print(
-                "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+        results = results.append(pd.DataFrame([[train_time, loss, accuracy, roc_auc]], columns=col, index=[name]))
+
+        if show:
+            print("Training Time:  \t {:.1f} s".format(train_time))
+            print("Test loss:  \t\t {:.4f}".format(loss))
+            print("Test Accuracy:  \t {:.3f}".format(accuracy))
+            print('ROC_AUC: \t\t {:.3f}'.format(roc_auc))  
+        
+    return results.sort_values('Test accuracy', ascending=False)
 
 
 def XGBClassifier(x_train,
@@ -827,7 +837,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         loss = np.around(mean_squared_error(y_test, y_pred),4)
   
         if cross_validation:
-            print('CV not implemented')
+            warnings.warn('CV removed')
         
             # k_fold = KFold(n_splits=10)
             # t0 = time()
@@ -849,7 +859,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
             print("-" * 20)
             print("Training Time:  \t {:.1f} s".format(train_time))
             print("Test loss:  \t\t {:.4f}".format(loss))
-            print("Test R2-score:  \t {:.3f}".format(r2))
+            print("Test R2-score:  \t {:.3f}\n".format(r2))
 
 
     return results.sort_values('Test loss')
