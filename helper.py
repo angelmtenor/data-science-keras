@@ -696,12 +696,11 @@ def expand_date(timeseries):
 def ml_classification(x_train, y_train, x_test, y_test,
                       cross_validation=False):
     """
-    Build a train classical machine learning classification models and show the test results
-    if cross_validation=True an additional training with cross validation will be performed
+    Build, train, and test the data set with classical machine learning classification models.
+    If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
     from sklearn.naive_bayes import GaussianNB
-    from sklearn.svm import SVC
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
@@ -783,3 +782,66 @@ def XGBClassifier(x_train,
     print("Test Accuracy:  \t {:.3f}".format(accuracy))
     print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
     return clf
+
+
+def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
+    """
+    Build, train, and test the data set with classical machine learning re models.
+    If cross_validation=True an additional training with cross validation will be performed.
+    """
+    from time import time
+    from sklearn.linear_model import BayesianRidge
+    from sklearn.tree import DecisionTreeRegressor
+    from sklearn.neighbors import KNeighborsRegressor
+    from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
+    from sklearn.metrics import r2_score, mean_squared_error
+
+    from sklearn.model_selection import KFold
+    from sklearn.base import clone
+
+    classifiers = (BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
+            n_neighbors=10), AdaBoostRegressor(), RandomForestRegressor(100))
+
+    names = [
+        "Bayesian ridge", "Decision Tree", "KNeighbors", "AdaBoost",
+        "Random Forest"
+    ]
+
+    for idx, clf in enumerate(classifiers):
+
+        clf_cv = clone(clf)
+
+        print("\n\n", names[idx], "\n", "-" * 20)
+
+        t0 = time()
+        # Fitting the model without cross validation
+        clf.fit(x_train, y_train)
+        train_time = time() - t0
+        y_pred = clf.predict(x_test)
+        r2 = r2_score(y_test, y_pred)
+        loss = mean_squared_error(y_test, y_pred)
+  
+        if cross_validation:
+            print('CV not implemented')
+        #     k_fold = KFold(n_splits=10)
+
+        #     t0 = time()
+        #     # Fitting the model with cross validation
+        #     for id_train, id_test in k_fold.split(x_train):
+        #         # print(y_train[id_train, 0].shape)
+        #         clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
+        #     train_time_cv = time() - t0
+
+        #     y_pred_cv = clf_cv.predict(x_test)
+        #     r2_cv = r2_score(y_test, y_pred_cv[:,1])
+            
+        print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
+        print("\nTest loss:  \t\t {:.3f}".format(loss))
+        print("\nTest R2-score:  \t {:.3f}".format(r2))
+
+        # if cross_validation:
+        #     print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
+
+        # if cross_validation:
+        #     print(
+        #         "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
