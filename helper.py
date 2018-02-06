@@ -786,7 +786,7 @@ def XGBClassifier(x_train,
 
 def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
-    Build, train, and test the data set with classical machine learning re models.
+    Build, train, and test the data set with classical machine learning regression models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
@@ -800,7 +800,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
+    regressors = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
             n_neighbors=10), AdaBoostRegressor(), RandomForestRegressor(100))
 
     names = [
@@ -811,7 +811,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     col = ['Time (s)', 'Test loss', 'Test R2 score']
     results = pd.DataFrame(columns=col)
 
-    for idx, clf in enumerate(classifiers):
+    for idx, clf in enumerate(regressors):
 
         name = names[idx]
         clf_cv = clone(clf)
@@ -828,29 +828,28 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
   
         if cross_validation:
             print('CV not implemented')
-        #     k_fold = KFold(n_splits=10)
+        
+            # k_fold = KFold(n_splits=10)
+            # t0 = time()
+            # # Fitting the model with cross validation
+            # for id_train, id_test in k_fold.split(x_train):
+            #     # print(y_train[id_train, 0].shape)
+            #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
+            # train_time_cv = time() - t0
 
-        #     t0 = time()
-        #     # Fitting the model with cross validation
-        #     for id_train, id_test in k_fold.split(x_train):
-        #         # print(y_train[id_train, 0].shape)
-        #         clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
-        #     train_time_cv = time() - t0
-
-        #     y_pred_cv = clf_cv.predict(x_test)
-        #     r2_cv = r2_score(y_test, y_pred_cv[:,1])
+            # y_pred_cv = clf_cv.predict(x_test)
+            # r2_cv = r2_score(y_test, y_pred_cv[:,1])
+        
+            # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
+            # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
         results = results.append(pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
+
         if show:
             print("-" * 20)
             print("Training Time:  \t {:.1f} s".format(train_time))
             print("Test loss:  \t\t {:.4f}".format(loss))
             print("Test R2-score:  \t {:.3f}".format(r2))
 
-        # if cross_validation:
-        #     print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
- 
-        # if cross_validation:
-        #     print( 
-        #         "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+
     return results.sort_values('Test loss')
