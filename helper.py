@@ -790,6 +790,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
     If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
+    from sklearn.linear_model import LinearRegression
     from sklearn.linear_model import BayesianRidge
     from sklearn.tree import DecisionTreeRegressor
     from sklearn.neighbors import KNeighborsRegressor
@@ -799,11 +800,11 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False):
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
+    classifiers = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
             n_neighbors=10), AdaBoostRegressor(), RandomForestRegressor(100))
 
     names = [
-        "Bayesian ridge", "Decision Tree", "KNeighbors", "AdaBoost",
+        "Linear", "Bayesian ridge", "Decision Tree", "KNeighbors", "AdaBoost",
         "Random Forest"
     ]
 
