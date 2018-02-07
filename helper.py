@@ -22,10 +22,10 @@ def info_gpu():
 
     # Check for a GPU
     if not tf.test.gpu_device_name():
-        warnings.warn('No GPU')
+        print('-- No GPU  --')
     else:
         print('{}'.format(tf.test.gpu_device_name()))
-
+ 
     # Check TensorFlow Version
     print('Keras\t\tv{}'.format(keras.__version__))
     print('TensorFlow\tv{}'.format(tf.__version__))
