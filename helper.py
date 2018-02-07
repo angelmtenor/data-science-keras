@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-sns.set() # set seaborn style
+sns.set()  # set seaborn style
 
 
 def info_gpu():
@@ -111,7 +111,9 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     """
 
     warnings.warn(
-        ' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
+        ' Use new "remove_categories" function',
+        DeprecationWarning,
+        stacklevel=2)
 
     if not inplace:
         df = df.copy()
@@ -338,7 +340,7 @@ def show_target_vs_numerical(df,
                              target,
                              jitter=0,
                              fit_reg=True,
-                             point_size = 1,
+                             point_size=1,
                              figsize=(17, 4)):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
@@ -384,7 +386,7 @@ def show_target_vs_numerical(df,
                     y_jitter=jitter,
                     ax=ax,
                     marker=".",
-                    scatter_kws={'s': point_size*2},
+                    scatter_kws={'s': point_size * 2},
                     fit_reg=fit_reg)
             # first y-axis label only
             if idx != 0:
@@ -693,8 +695,12 @@ def expand_date(timeseries):
     return df
 
 
-def ml_classification(x_train, y_train, x_test, y_test,
-                      cross_validation=False, show=False):
+def ml_classification(x_train,
+                      y_train,
+                      x_test,
+                      y_test,
+                      cross_validation=False,
+                      show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
@@ -709,8 +715,9 @@ def ml_classification(x_train, y_train, x_test, y_test,
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    classifiers = (GaussianNB(), DecisionTreeClassifier(), KNeighborsClassifier(
-            n_neighbors=10), AdaBoostClassifier(), RandomForestClassifier(100))
+    classifiers = (GaussianNB(), DecisionTreeClassifier(),
+                   KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(),
+                   RandomForestClassifier(100))
 
     names = [
         "Naive Bayes", "Decision Tree", "KNeighbors", "AdaBoost",
@@ -734,7 +741,7 @@ def ml_classification(x_train, y_train, x_test, y_test,
         y_pred = clf.predict_proba(x_test)
         loss = log_loss(y_test, y_pred)
         accuracy = clf.score(x_test, y_test)
-        roc_auc = roc_auc_score(y_test, y_pred[:,1])
+        roc_auc = roc_auc_score(y_test, y_pred[:, 1])
 
         if cross_validation:
             warnings.warn('CV removed')
@@ -753,14 +760,18 @@ def ml_classification(x_train, y_train, x_test, y_test,
             # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(pd.DataFrame([[train_time, loss, accuracy, roc_auc]], columns=col, index=[name]))
+        results = results.append(
+            pd.DataFrame(
+                [[train_time, loss, accuracy, roc_auc]],
+                columns=col,
+                index=[name]))
 
         if show:
             print("Training Time:  \t {:.1f} s".format(train_time))
             print("Test loss:  \t\t {:.4f}".format(loss))
             print("Test Accuracy:  \t {:.3f}".format(accuracy))
-            print('ROC_AUC: \t\t {:.3f}'.format(roc_auc))  
-        
+            print('ROC_AUC: \t\t {:.3f}'.format(roc_auc))
+
     return results.sort_values('Test accuracy', ascending=False)
 
 
@@ -794,7 +805,12 @@ def XGBClassifier(x_train,
     return clf
 
 
-def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
+def ml_regression(x_train,
+                  y_train,
+                  x_test,
+                  y_test,
+                  cross_validation=False,
+                  show=False):
     """
     Build, train, and test the data set with classical machine learning regression models.
     If cross_validation=True an additional training with cross validation will be performed.
@@ -810,8 +826,9 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     from sklearn.model_selection import KFold
     from sklearn.base import clone
 
-    regressors = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(), KNeighborsRegressor(
-            n_neighbors=10), AdaBoostRegressor(), RandomForestRegressor(100))
+    regressors = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(),
+                  KNeighborsRegressor(n_neighbors=10), AdaBoostRegressor(),
+                  RandomForestRegressor(100))
 
     names = [
         "Linear", "Bayesian Ridge", "Decision Tree", "KNeighbors", "AdaBoost",
@@ -834,11 +851,11 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
         r2 = np.around(r2_score(y_test, y_pred), 3)
-        loss = np.around(mean_squared_error(y_test, y_pred),4)
-  
+        loss = np.around(mean_squared_error(y_test, y_pred), 4)
+
         if cross_validation:
             warnings.warn('CV removed')
-        
+
             # k_fold = KFold(n_splits=10)
             # t0 = time()
             # # Fitting the model with cross validation
@@ -849,17 +866,17 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
 
             # y_pred_cv = clf_cv.predict(x_test)
             # r2_cv = r2_score(y_test, y_pred_cv[:,1])
-        
+
             # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
             # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
+        results = results.append(
+            pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
 
         if show:
             print("-" * 20)
             print("Training Time:  \t {:.1f} s".format(train_time))
             print("Test loss:  \t\t {:.4f}".format(loss))
             print("Test R2-score:  \t {:.3f}\n".format(r2))
-
 
     return results.sort_values('Test loss')
