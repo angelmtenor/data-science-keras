@@ -710,7 +710,7 @@ def ml_classification(x_train,
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-    from sklearn.metrics import accuracy_score, roc_auc_score, log_loss
+    from sklearn.metrics import accuracy_score, roc_auc_score, log_loss, f1_score
 
     from sklearn.model_selection import KFold
     from sklearn.base import clone
@@ -724,7 +724,7 @@ def ml_classification(x_train,
         "Random Forest"
     ]
 
-    col = ['Time (s)', 'Test loss', 'Test accuracy', 'Test ROC-AUC']
+    col = ['Time (s)', 'Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC', 'F1-score']
     results = pd.DataFrame(columns=col)
 
     for idx, clf in enumerate(classifiers):
@@ -740,8 +740,8 @@ def ml_classification(x_train,
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
         loss = log_loss(y_test, y_pred)
-        accuracy = clf.score(x_test, y_test)
-        roc_auc = roc_auc_score(y_test, y_pred[:, 1])
+
+        acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:,1], show = False)
 
         if cross_validation:
             warnings.warn('CV removed')
@@ -762,7 +762,7 @@ def ml_classification(x_train,
 
         results = results.append(
             pd.DataFrame(
-                [[train_time, loss, accuracy, roc_auc]],
+                [[train_time, loss, acc, pre, rec, roc, f1]],
                 columns=col,
                 index=[name]))
 
@@ -771,8 +771,10 @@ def ml_classification(x_train,
             print("Test loss:  \t\t {:.4f}".format(loss))
             print("Test Accuracy:  \t {:.3f}".format(accuracy))
             print('ROC_AUC: \t\t {:.3f}'.format(roc_auc))
+            print('F1-score: \t\t {:.3f}\n'.format(f1))
 
-    return results.sort_values('Test accuracy', ascending=False)
+
+    return results.sort_values('Accuracy', ascending=False).round(2)
 
 
 def XGBClassifier(x_train,
@@ -882,31 +884,34 @@ def ml_regression(x_train,
     return results.sort_values('Test loss')
 
 
-def binary_classification_scores(y_test, y_pred):
+def binary_classification_scores(y_test, y_pred, show=True):
     """ Print classification metrics """
 
     from sklearn.metrics import roc_auc_score, precision_score, accuracy_score, recall_score
     from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
 
+    rec, roc, f1 = 0, 0, 0
+
     y_pred_b = (y_pred > 0.5).astype(int)
 
-    print('Test scores:\n'+'-'*11)
     acc = accuracy_score(y_test, y_pred_b)
-    print('Accuracy: \t{:.2f}'.format(acc)) 
 
     warnings.filterwarnings("ignore", 
         message="Precision is ill-defined and being set to 0.0 due to no predicted samples")
     pre = precision_score(y_test, y_pred_b)
-    print('Precision: \t{:.2f}'.format(pre))
 
     if acc > 0 and pre > 0:
         rec = recall_score(y_test, y_pred_b)
-        print('Recall: \t{:.2f}'.format(rec))
-
         roc = roc_auc_score(y_test, y_pred)
-        print('ROC AUC: \t{:.2f}'.format(roc))
-
         f1 = f1_score(y_test, y_pred_b)
-        print('F1-score: \t{:.2f}'.format(f1))
 
-    print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
+    if show:
+        print('Test scores:\n'+'-'*11)
+        print('Accuracy: \t{:.2f}'.format(acc)) 
+        print('Precision: \t{:.2f}'.format(pre))
+        print('Recall: \t{:.2f}'.format(rec))
+        print('ROC AUC: \t{:.2f}'.format(roc))
+        print('F1-score: \t{:.2f}'.format(f1))
+        print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
+
+    return acc, pre, rec, roc, f1
