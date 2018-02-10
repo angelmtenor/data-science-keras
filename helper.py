@@ -880,3 +880,31 @@ def ml_regression(x_train,
             print("Test R2-score:  \t {:.3f}\n".format(r2))
 
     return results.sort_values('Test loss')
+
+
+def classification_scores(y_test, y_pred):
+    """ Print classification metrics """
+
+    from sklearn.metrics import roc_auc_score, precision_score, accuracy_score, recall_score
+    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
+
+    print('Test scores:\n'+'-'*11)
+    acc = accuracy_score(y_test, y_pred)
+    print('Accuracy: \t{:.2f}'.format(acc)) 
+
+    warnings.filterwarnings("ignore", 
+        message="Precision is ill-defined and being set to 0.0 due to no predicted samples")
+    pre = precision_score(y_test, y_pred)
+    print('Precision: \t{:.2f}'.format(pre))
+
+    if acc > 0 and pre > 0:
+        rec = recall_score(y_test, y_pred)
+        print('Recall: \t{:.2f}'.format(rec))
+
+        roc = roc_auc_score(y_test, y_pred)
+        print('ROC AUC: \t{:.2f}'.format(roc))
+
+        f1 = f1_score(y_test, y_pred)
+        print('F1-score: \t{:.2f}'.format(f1))
+
+    print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred))
