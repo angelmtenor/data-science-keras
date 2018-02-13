@@ -740,7 +740,6 @@ def ml_classification(x_train,
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.neighbors import KNeighborsClassifier
     from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-    from sklearn.metrics import accuracy_score, roc_auc_score, log_loss, f1_score
 
     from sklearn.model_selection import KFold
     from sklearn.base import clone
@@ -878,8 +877,8 @@ def ml_regression(x_train,
 def binary_classification_scores(y_test, y_pred, show=True):
     """ Print classification metrics """
 
-    from sklearn.metrics import roc_auc_score, precision_score, accuracy_score, recall_score
-    from sklearn.metrics import f1_score, confusion_matrix, roc_curve, auc
+    from sklearn.metrics import log_loss,accuracy_score, precision_score, recall_score
+    from sklearn.metrics import roc_auc_score, f1_score, confusion_matrix
 
     rec, roc, f1 = 0, 0, 0
 
