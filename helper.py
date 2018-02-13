@@ -358,7 +358,7 @@ def show_target_vs_numerical(df,
 
     for t in target:
         if t not in numerical:
-            df[t] = df[t].astype(float16)  # force categorical values to numerical (booleans, ...)
+            df[t] = df[t].astype(np.float16)  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
         _, ax = plt.subplots(
@@ -442,7 +442,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     for t in target:
         copy_df = copy_df[pd.notnull(copy_df[t])]
         if t not in numerical:
-            copy_df[t] = copy_df[t].astype(float16)
+            copy_df[t] = copy_df[t].astype(np.float16)
 
     for t in target:  # in case of several targets several plots will be shown
         _, ax = plt.subplots(
@@ -476,7 +476,7 @@ def show_correlation(df, target, limit=None, figsize=(8, 3)):
     copy_df = df.copy()
     for t in target:
         if t not in numerical:
-            copy_df[t] = copy_df[t].astype(float16)
+            copy_df[t] = copy_df[t].astype(np.float16)
 
     corr = copy_df.corr().loc[numerical_f, target].fillna(0)
     corr.plot.bar(figsize=figsize)
