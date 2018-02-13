@@ -875,7 +875,7 @@ def ml_regression(x_train,
 
 
 def binary_classification_scores(y_test, y_pred, show=True):
-    """ Print classification metrics """
+    """ Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score """
 
     from sklearn.metrics import log_loss,accuracy_score, precision_score, recall_score
     from sklearn.metrics import roc_auc_score, f1_score, confusion_matrix
@@ -911,7 +911,7 @@ def binary_classification_scores(y_test, y_pred, show=True):
 
 
 def regression_scores(y_test, y_pred, show=True):
-    """ Print regression metrics """
+    """ Return regression metrics: (loss, R2 Score) """
 
     from sklearn.metrics import r2_score, mean_squared_error
 
