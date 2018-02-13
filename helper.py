@@ -695,6 +695,36 @@ def expand_date(timeseries):
     return df
 
 
+def XGBClassifier(x_train,
+                  y_train,
+                  x_test,
+                  y_test,
+                  max_depth=3,
+                  learning_rate=0.1,
+                  n_estimators=100):
+    """ Custom XGBoost classifier """
+
+    import xgboost as xgb
+    from sklearn.metrics import accuracy_score
+
+    clf = xgb.XGBClassifier(
+        max_depth=max_depth,
+        n_estimators=n_estimators,
+        learning_rate=learning_rate)
+
+    t0 = time()
+
+    clf.fit(x_train, y_train)
+    train_time = time() - t0
+    y_pred = clf.predict(x_test)
+    accuracy = accuracy_score(y_test, y_pred)
+
+    print("\n", "XGBoost", "\n", "-" * 20)
+    print("Test Accuracy:  \t {:.3f}".format(accuracy))
+    print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
+    return clf
+
+
 def ml_classification(x_train,
                       y_train,
                       x_test,
@@ -729,7 +759,7 @@ def ml_classification(x_train,
 
     for idx, clf in enumerate(classifiers):
 
-        clf_cv = clone(clf)
+        # clf_cv = clone(clf)
 
         name = names[idx]
         print(name)
@@ -739,12 +769,11 @@ def ml_classification(x_train,
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
-        loss = log_loss(y_test, y_pred)
 
-        acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:,1], show = False)
+        loss, acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:,1], show = show)
 
         if cross_validation:
-            warnings.warn('CV removed')
+            warnings.warn('Cross-validation removed')
 
             # k_fold = KFold(n_splits=10)
 
@@ -764,47 +793,9 @@ def ml_classification(x_train,
             pd.DataFrame(
                 [[train_time, loss, acc, pre, rec, roc, f1]],
                 columns=col,
-                index=[name]))
-
-        if show:
-            print("Training Time:  \t {:.1f} s".format(train_time))
-            print("Test loss:  \t\t {:.4f}".format(loss))
-            print("Test Accuracy:  \t {:.3f}".format(accuracy))
-            print('ROC_AUC: \t\t {:.3f}'.format(roc_auc))
-            print('F1-score: \t\t {:.3f}\n'.format(f1))
-
+                index=[name]))                
 
     return results.sort_values('Accuracy', ascending=False).round(2)
-
-
-def XGBClassifier(x_train,
-                  y_train,
-                  x_test,
-                  y_test,
-                  max_depth=3,
-                  learning_rate=0.1,
-                  n_estimators=100):
-    """ Custom XGBoost classifier """
-
-    import xgboost as xgb
-    from sklearn.metrics import accuracy_score
-
-    clf = xgb.XGBClassifier(
-        max_depth=max_depth,
-        n_estimators=n_estimators,
-        learning_rate=learning_rate)
-
-    t0 = time()
-
-    clf.fit(x_train, y_train)
-    train_time = time() - t0
-    y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_test, y_pred)
-
-    print("\n", "XGBoost", "\n", "-" * 20)
-    print("Test Accuracy:  \t {:.3f}".format(accuracy))
-    print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
-    return clf
 
 
 def ml_regression(x_train,
@@ -823,7 +814,6 @@ def ml_regression(x_train,
     from sklearn.tree import DecisionTreeRegressor
     from sklearn.neighbors import KNeighborsRegressor
     from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-    from sklearn.metrics import r2_score, mean_squared_error
 
     from sklearn.model_selection import KFold
     from sklearn.base import clone
@@ -843,7 +833,7 @@ def ml_regression(x_train,
     for idx, clf in enumerate(regressors):
 
         name = names[idx]
-        clf_cv = clone(clf)
+        # clf_cv = clone(clf)
 
         print(name)
 
@@ -852,11 +842,12 @@ def ml_regression(x_train,
         clf.fit(x_train, y_train)
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
-        r2 = np.around(r2_score(y_test, y_pred), 3)
-        loss = np.around(mean_squared_error(y_test, y_pred), 4)
+
+        loss, r2 = regression_scores(y_test, y_pred, show = show)
+
 
         if cross_validation:
-            warnings.warn('CV removed')
+            warnings.warn('Cross-validation removed')
 
             # k_fold = KFold(n_splits=10)
             # t0 = time()
@@ -894,6 +885,8 @@ def binary_classification_scores(y_test, y_pred, show=True):
 
     y_pred_b = (y_pred > 0.5).astype(int)
 
+    loss = log_loss(y_test, y_pred)
+
     acc = accuracy_score(y_test, y_pred_b)
 
     warnings.filterwarnings("ignore", 
@@ -907,6 +900,7 @@ def binary_classification_scores(y_test, y_pred, show=True):
 
     if show:
         print('Test scores:\n'+'-'*11)
+        print('Loss (log_loss): \t{:.4f}'.format(loss)) 
         print('Accuracy: \t{:.2f}'.format(acc)) 
         print('Precision: \t{:.2f}'.format(pre))
         print('Recall: \t{:.2f}'.format(rec))
@@ -914,4 +908,21 @@ def binary_classification_scores(y_test, y_pred, show=True):
         print('F1-score: \t{:.2f}'.format(f1))
         print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
 
-    return acc, pre, rec, roc, f1
+    return loss, acc, pre, rec, roc, f1
+
+
+def regression_scores(y_test, y_pred, show=True):
+    """ Print regression metrics """
+
+    from sklearn.metrics import r2_score, mean_squared_error
+
+    r2 = r2_score(y_test, y_pred)
+    loss = mean_squared_error(y_test, y_pred)
+
+
+    if show:
+        print('Test scores:\n'+'-'*11)
+        print('Loss (mse): \t{:.4f}'.format(loss)) 
+        print('R2 Score: \t{:.2f}'.format(r2)) 
+
+    return loss, r2
