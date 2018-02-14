@@ -881,8 +881,10 @@ def binary_classification_scores(y_test, y_pred, show=True):
 
     rec, roc, f1 = 0, 0, 0
 
-    y_pred_b = (y_pred > 0.5).astype(int)
+    y_pred_b = (y_pred > 0.5).astype(int) 
 
+    warnings.filterwarnings("ignore", message="divide by zero encountered in log")
+    warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
     loss = log_loss(y_test, y_pred)
 
     acc = accuracy_score(y_test, y_pred_b)
@@ -897,8 +899,8 @@ def binary_classification_scores(y_test, y_pred, show=True):
         f1 = f1_score(y_test, y_pred_b)
 
     if show:
-        print('Test scores:\n'+'-'*11)
-        print('Loss (log_loss): \t{:.4f}'.format(loss)) 
+        print('Scores:\n'+'-'*11)
+        print('Log_Loss: \t{:.4f}'.format(loss)) 
         print('Accuracy: \t{:.2f}'.format(acc)) 
         print('Precision: \t{:.2f}'.format(pre))
         print('Recall: \t{:.2f}'.format(rec))
@@ -907,7 +909,7 @@ def binary_classification_scores(y_test, y_pred, show=True):
         print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
 
     return loss, acc, pre, rec, roc, f1
-
+ 
 
 def regression_scores(y_test, y_pred, show=True):
     """ Return regression metrics: (loss, R2 Score) """
@@ -919,8 +921,21 @@ def regression_scores(y_test, y_pred, show=True):
 
 
     if show:
-        print('Test scores:\n'+'-'*11)
+        print('Scores:\n'+'-'*11)
         print('Loss (mse): \t{:.4f}'.format(loss)) 
         print('R2 Score: \t{:.2f}'.format(r2)) 
 
     return loss, r2
+
+
+def get_class_weight(y):
+    """ Return dictionary of weight vector for imbalanced binary target """
+    from sklearn.utils import class_weight
+
+    y_plain = np.ravel(y)
+
+    cw = class_weight.compute_class_weight('balanced', np.unique(y_plain), y_plain)
+
+    cw = {idx : value for idx, value in enumerate(cw)}
+
+    return cw
