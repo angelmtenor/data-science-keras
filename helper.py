@@ -735,21 +735,18 @@ def ml_classification(x_train,
     If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
-    from sklearn.naive_bayes import GaussianNB
     from sklearn.tree import DecisionTreeClassifier
-    from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+    from sklearn.naive_bayes import GaussianNB
+    from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, ExtraTreesClassifier
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
-    classifiers = (GaussianNB(), DecisionTreeClassifier(),
-                   KNeighborsClassifier(n_neighbors=10), AdaBoostClassifier(),
-                   RandomForestClassifier(100))
+    classifiers = (GaussianNB(),  AdaBoostClassifier(), DecisionTreeClassifier(),
+        RandomForestClassifier(100), ExtraTreesClassifier(100))
 
     names = [
-        "Naive Bayes", "Decision Tree", "KNeighbors", "AdaBoost",
-        "Random Forest"
+        "Naive Bayes", "AdaBoost", "Decision Tree", "Random Forest", "Extremely Randomized Trees"
     ]
 
     col = ['Time (s)', 'Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC', 'F1-score']
@@ -764,6 +761,9 @@ def ml_classification(x_train,
 
         t0 = time()
         # Fitting the model without cross validation
+
+        warnings.filterwarnings("ignore", message="overflow encountered in reduce")
+
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
