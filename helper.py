@@ -25,7 +25,7 @@ def info_gpu():
         print('-- No GPU  --')
     else:
         print('{}'.format(tf.test.gpu_device_name()))
- 
+
     # Check TensorFlow Version
     print('Keras\t\tv{}'.format(keras.__version__))
     print('TensorFlow\tv{}'.format(tf.__version__))
@@ -247,7 +247,7 @@ def simple_fill(df,
                 include_numerical=True,
                 include_categorical=True,
                 inplace=False):
-    warnings.warn('Use new "fill_simple" funciton', stacklevel=2)
+    warnings.warn('Use new "fill_simple" function', stacklevel=2)
 
     return fill_simple(
         df,
@@ -358,7 +358,9 @@ def show_target_vs_numerical(df,
 
     for t in target:
         if t not in numerical:
-            df[t] = df[t].astype(np.float16)  # force categorical values to numerical (booleans, ...)
+            df[t] = df[t].astype(
+                np.float16
+            )  # force categorical values to numerical (booleans, ...)
 
     for t in target:  # in case of several targets several plots will be shown
         _, ax = plt.subplots(
@@ -742,14 +744,19 @@ def ml_classification(x_train,
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
-    classifiers = (GaussianNB(),  AdaBoostClassifier(), DecisionTreeClassifier(),
-        RandomForestClassifier(100), ExtraTreesClassifier(100))
+    classifiers = (GaussianNB(), AdaBoostClassifier(),
+                   DecisionTreeClassifier(), RandomForestClassifier(100),
+                   ExtraTreesClassifier(100))
 
     names = [
-        "Naive Bayes", "AdaBoost", "Decision Tree", "Random Forest", "Extremely Randomized Trees"
+        "Naive Bayes", "AdaBoost", "Decision Tree", "Random Forest",
+        "Extremely Randomized Trees"
     ]
 
-    col = ['Time (s)', 'Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC', 'F1-score']
+    col = [
+        'Time (s)', 'Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC',
+        'F1-score'
+    ]
     results = pd.DataFrame(columns=col)
 
     for idx, clf in enumerate(classifiers):
@@ -762,13 +769,15 @@ def ml_classification(x_train,
         t0 = time()
         # Fitting the model without cross validation
 
-        warnings.filterwarnings("ignore", message="overflow encountered in reduce")
+        warnings.filterwarnings(
+            "ignore", message="overflow encountered in reduce")
 
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
 
-        loss, acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:,1], show = show)
+        loss, acc, pre, rec, roc, f1 = binary_classification_scores(
+            y_test, y_pred[:, 1], show=show)
 
         if cross_validation:
             warnings.warn('Cross-validation removed')
@@ -791,7 +800,7 @@ def ml_classification(x_train,
             pd.DataFrame(
                 [[train_time, loss, acc, pre, rec, roc, f1]],
                 columns=col,
-                index=[name]))                
+                index=[name]))
 
     return results.sort_values('Accuracy', ascending=False).round(2)
 
@@ -841,8 +850,7 @@ def ml_regression(x_train,
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
 
-        loss, r2 = regression_scores(y_test, y_pred, show = show)
-
+        loss, r2 = regression_scores(y_test, y_pred, show=show)
 
         if cross_validation:
             warnings.warn('Cross-validation removed')
@@ -876,21 +884,26 @@ def ml_regression(x_train,
 def binary_classification_scores(y_test, y_pred, show=True):
     """ Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score """
 
-    from sklearn.metrics import log_loss,accuracy_score, precision_score, recall_score
+    from sklearn.metrics import log_loss, accuracy_score, precision_score, recall_score
     from sklearn.metrics import roc_auc_score, f1_score, confusion_matrix
 
     rec, roc, f1 = 0, 0, 0
 
-    y_pred_b = (y_pred > 0.5).astype(int) 
+    y_pred_b = (y_pred > 0.5).astype(int)
 
-    warnings.filterwarnings("ignore", message="divide by zero encountered in log")
-    warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
+    warnings.filterwarnings(
+        "ignore", message="divide by zero encountered in log")
+    warnings.filterwarnings(
+        "ignore", message="invalid value encountered in multiply")
     loss = log_loss(y_test, y_pred)
 
     acc = accuracy_score(y_test, y_pred_b)
 
-    warnings.filterwarnings("ignore", 
-        message="Precision is ill-defined and being set to 0.0 due to no predicted samples")
+    warnings.filterwarnings(
+        "ignore",
+        message=
+        "Precision is ill-defined and being set to 0.0 due to no predicted samples"
+    )
     pre = precision_score(y_test, y_pred_b)
 
     if acc > 0 and pre > 0:
@@ -899,9 +912,9 @@ def binary_classification_scores(y_test, y_pred, show=True):
         f1 = f1_score(y_test, y_pred_b)
 
     if show:
-        print('Scores:\n'+'-'*11)
-        print('Log_Loss: \t{:.4f}'.format(loss)) 
-        print('Accuracy: \t{:.2f}'.format(acc)) 
+        print('Scores:\n' + '-' * 11)
+        print('Log_Loss: \t{:.4f}'.format(loss))
+        print('Accuracy: \t{:.2f}'.format(acc))
         print('Precision: \t{:.2f}'.format(pre))
         print('Recall: \t{:.2f}'.format(rec))
         print('ROC AUC: \t{:.2f}'.format(roc))
@@ -909,7 +922,7 @@ def binary_classification_scores(y_test, y_pred, show=True):
         print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
 
     return loss, acc, pre, rec, roc, f1
- 
+
 
 def regression_scores(y_test, y_pred, show=True):
     """ Return regression metrics: (loss, R2 Score) """
@@ -919,11 +932,10 @@ def regression_scores(y_test, y_pred, show=True):
     r2 = r2_score(y_test, y_pred)
     loss = mean_squared_error(y_test, y_pred)
 
-
     if show:
-        print('Scores:\n'+'-'*11)
-        print('Loss (mse): \t{:.4f}'.format(loss)) 
-        print('R2 Score: \t{:.2f}'.format(r2)) 
+        print('Scores:\n' + '-' * 11)
+        print('Loss (mse): \t{:.4f}'.format(loss))
+        print('R2 Score: \t{:.2f}'.format(r2))
 
     return loss, r2
 
@@ -934,9 +946,10 @@ def get_class_weight(y):
 
     y_plain = np.ravel(y)
 
-    cw = class_weight.compute_class_weight('balanced', np.unique(y_plain), y_plain)
+    cw = class_weight.compute_class_weight('balanced',
+                                           np.unique(y_plain), y_plain)
 
-    cw = {idx : value for idx, value in enumerate(cw)}
+    cw = {idx: value for idx, value in enumerate(cw)}
 
     return cw
 
@@ -948,5 +961,7 @@ def show_feature_importances(features, model, top=10):
     if n < top:
         top = n
 
-    print("\n Top contributing features:\n","-"*26)
-    print(pd.Series(data=model.feature_importances_ , index=features).nlargest(top).round(2))
+    print("\n Top contributing features:\n", "-" * 26)
+    print(
+        pd.Series(data=model.feature_importances_, index=features).nlargest(
+            top).round(2))
