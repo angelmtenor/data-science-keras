@@ -881,7 +881,7 @@ def ml_regression(x_train,
     return results.sort_values('Test loss')
 
 
-def binary_classification_scores(y_test, y_pred, show=True):
+def binary_classification_scores(y_test, y_pred, return_dataframe=False, index=" ", show=True):
     """ Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score """
 
     from sklearn.metrics import log_loss, accuracy_score, precision_score, recall_score
@@ -912,14 +912,19 @@ def binary_classification_scores(y_test, y_pred, show=True):
         f1 = f1_score(y_test, y_pred_b)
 
     if show:
-        print('Scores:\n' + '-' * 11)
-        print('Log_Loss: \t{:.4f}'.format(loss))
-        print('Accuracy: \t{:.2f}'.format(acc))
-        print('Precision: \t{:.2f}'.format(pre))
-        print('Recall: \t{:.2f}'.format(rec))
-        print('ROC AUC: \t{:.2f}'.format(roc))
-        print('F1-score: \t{:.2f}'.format(f1))
+    #     print('Scores:\n' + '-' * 11)
+    #     print('Log_Loss: \t{:.4f}'.format(loss))
+    #     print('Accuracy: \t{:.2f}'.format(acc))
+    #     print('Precision: \t{:.2f}'.format(pre))
+    #     print('Recall: \t{:.2f}'.format(rec))
+    #     print('ROC AUC: \t{:.2f}'.format(roc))
+    #     print('F1-score: \t{:.2f}'.format(f1))
         print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
+
+    if return_dataframe:
+        col = ['Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC','F1-score']
+        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)   
+        return scores
 
     return loss, acc, pre, rec, roc, f1
 
