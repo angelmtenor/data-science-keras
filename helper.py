@@ -939,3 +939,14 @@ def get_class_weight(y):
     cw = {idx : value for idx, value in enumerate(cw)}
 
     return cw
+
+
+def show_feature_importances(features, model, top=10):
+    """ Show the most relevant features of a trained tree-based model """
+
+    n = len(features)
+    if n < top:
+        top = n
+
+    print("\n Top contributing features:\n","-"*26)
+    print(pd.Series(data=model.feature_importances_ , index=features).nlargest(top).round(2))
