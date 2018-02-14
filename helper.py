@@ -954,14 +954,20 @@ def get_class_weight(y):
     return cw
 
 
-def show_feature_importances(features, model, top=10):
-    """ Show the most relevant features of a trained tree-based model """
+def feature_importances(features, model, top=10, plot=True):
+    """ Return a dataframe with the most relevant features from a trained tree-based model """
 
-    n = len(features)
+    n = len(features) 
     if n < top:
         top = n
 
-    print("\n Top contributing features:\n", "-" * 26)
-    print(
-        pd.Series(data=model.feature_importances_, index=features).nlargest(
-            top).round(2))
+    #print("\n Top contributing features:\n", "-" * 26)
+    importances = pd.DataFrame(data={'Importances':model.feature_importances_}, index=features)
+    importances = importances.sort_values('Importances', ascending=False).round(2).head(top)
+
+    if plot:
+        figsize = (8, top // 2 + 1)
+        importances.plot.barh(figsize=figsize)
+        plt.gca().invert_yaxis()
+
+    return importances
