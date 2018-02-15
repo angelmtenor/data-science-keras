@@ -49,6 +49,9 @@ def reproducible(seed=42):
     keras.backend.set_session(sess)
 
 
+# DATA PROCESSING ------------------------------------------------
+
+
 def force_categorical(df):
     """ Force non numerical fields to pandas 'category' type """
     non_numerical = list(df.select_dtypes(exclude=[np.number]))
@@ -62,6 +65,41 @@ def force_categorical(df):
 
     if fields_to_change:
         print("Non-numerical fields changed to 'category':", fields_to_change)
+
+    return df
+
+
+def expand_date(timeseries):
+    """
+    Expand a pandas datetime series returning a dataframe with these columns:
+    - hour : 0 - 23
+    - year:
+    - month: 1 - 12
+    - weekday : 0 Monday - 6 Sunday
+    - holiday : 0 - 1 holiday
+    - workingday : 0 weekend or holiday - 1 workingday
+
+    """
+    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+
+    assert type(
+        timeseries) == pd.core.series.Series, 'input must be pandas series'
+    assert timeseries.dtypes == 'datetime64[ns]', 'input must be pandas datetime'
+
+    df = pd.DataFrame()
+
+    df['hour'] = timeseries.dt.hour
+
+    date = timeseries.dt.date
+    df['year'] = pd.DatetimeIndex(date).year
+    df['month'] = pd.DatetimeIndex(date).month
+    df['day'] = pd.DatetimeIndex(date).day
+    df['weekday'] = pd.DatetimeIndex(date).weekday
+
+    holidays = calendar().holidays(start=date.min(), end=date.max())
+    hol = date.astype('datetime64[ns]').isin(holidays)
+    df['holiday'] = hol.values.astype(int)
+    df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
 
     return df
 
@@ -314,6 +352,9 @@ def fill_simple(df,
         return df
 
 
+# DATA EXPLORATION ------------------------------------------------
+
+
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
     """
     Display histograms of numerical features
@@ -494,6 +535,9 @@ def show_correlation(df, target, limit=None, figsize=(8, 3)):
         return corr.loc[abs(corr['target']) < abs(limit)].index.tolist()
 
 
+# DATA PROCESSING FOR ML & DL ---------------------------------------------
+
+
 def scale(data, scale_param=None, method='std'):
     """
     Standardize numerical variables (mean=0, std=1)
@@ -617,6 +661,23 @@ def create_dummy(data, target, use_dummies=None):
     return replace_by_dummies(data, target, dummies=use_dummies)
 
 
+def get_class_weight(y):
+    """ Return dictionary of weight vector for imbalanced binary target """
+    from sklearn.utils import class_weight
+
+    y_plain = np.ravel(y)
+
+    cw = class_weight.compute_class_weight('balanced',
+                                           np.unique(y_plain), y_plain)
+
+    cw = {idx: value for idx, value in enumerate(cw)}
+
+    return cw
+
+
+# MACHINE LEARNING & DEEP LEARNING ------------------------------------------------
+
+
 def show_training(history):
     """
     Print the final loss and plot its evolution in the training process.
@@ -659,41 +720,6 @@ def show_training(history):
         print("\nTraining accuracy: \t{:.3f}".format(hist['acc'][-1]))
     if 'val_acc' in hist:
         print("Validation accuracy:\t{:.3f}".format(hist['val_acc'][-1]))
-
-
-def expand_date(timeseries):
-    """
-    Expand a pandas datetime series returning a dataframe with these columns:
-    - hour : 0 - 23
-    - year:
-    - month: 1 - 12
-    - weekday : 0 Monday - 6 Sunday
-    - holiday : 0 - 1 holiday
-    - workingday : 0 weekend or holiday - 1 workingday
-
-    """
-    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
-
-    assert type(
-        timeseries) == pd.core.series.Series, 'input must be pandas series'
-    assert timeseries.dtypes == 'datetime64[ns]', 'input must be pandas datetime'
-
-    df = pd.DataFrame()
-
-    df['hour'] = timeseries.dt.hour
-
-    date = timeseries.dt.date
-    df['year'] = pd.DatetimeIndex(date).year
-    df['month'] = pd.DatetimeIndex(date).month
-    df['day'] = pd.DatetimeIndex(date).day
-    df['weekday'] = pd.DatetimeIndex(date).weekday
-
-    holidays = calendar().holidays(start=date.min(), end=date.max())
-    hol = date.astype('datetime64[ns]').isin(holidays)
-    df['holiday'] = hol.values.astype(int)
-    df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
-
-    return df
 
 
 def XGBClassifier(x_train,
@@ -943,20 +969,6 @@ def regression_scores(y_test, y_pred, show=True):
         print('R2 Score: \t{:.2f}'.format(r2))
 
     return loss, r2
-
-
-def get_class_weight(y):
-    """ Return dictionary of weight vector for imbalanced binary target """
-    from sklearn.utils import class_weight
-
-    y_plain = np.ravel(y)
-
-    cw = class_weight.compute_class_weight('balanced',
-                                           np.unique(y_plain), y_plain)
-
-    cw = {idx: value for idx, value in enumerate(cw)}
-
-    return cw
 
 
 def feature_importances(features, model, top=10, plot=True):
