@@ -354,6 +354,21 @@ def fill_simple(df,
 
 # DATA EXPLORATION ------------------------------------------------
 
+def info_data(df, target=None):
+    """ Display basic information of dataset df """
+    n_samples = df.shape[0]
+    n_features = df.shape[1] - len(target)
+        
+    print("Samples: \t{} \nFeatures: \t{}".format(n_samples, n_features))  
+
+    if target:
+        print("Target: \t{}".format(target))  
+
+        if len(df[target].squeeze().unique()) == 2:
+            counts = (df[target].squeeze().value_counts(dropna=False))
+            print("\nBinary target: \t{}".format(counts.to_dict()))
+            print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
+            print("Dummy accuracy:\t{:.2f}".format(max(counts)/sum(counts)))
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
     """
