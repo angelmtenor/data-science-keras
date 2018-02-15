@@ -135,10 +135,10 @@ def classify_data(df, target, numerical=None, categorical=None):
     for f in df[categorical]:
         df[f] = df[f].astype('category')
 
-    print('numerical features:   {}'.format(len(numerical_f)))
-    print('categorical features: {}'.format(len(categorical_f)))
+    print('Numerical features: \t{}'.format(len(numerical_f)))
+    print('Categorical features: \t{}'.format(len(categorical_f)))
     for t in target:
-        print("target '{}': {}".format(t, df[t].dtype))
+        print("Target: \t\t{} ({})".format(t, df[t].dtype))
     return df
 
 
@@ -355,7 +355,7 @@ def fill_simple(df,
 # DATA EXPLORATION ------------------------------------------------
 
 def info_data(df, target=None):
-    """ Display basic information of dataset df """
+    """ Display basic information of the dataset and the target (if provided) """
     n_samples = df.shape[0]
     n_features = df.shape[1] - len(target)
         
@@ -369,6 +369,12 @@ def info_data(df, target=None):
             print("\nBinary target: \t{}".format(counts.to_dict()))
             print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
             print("Dummy accuracy:\t{:.2f}".format(max(counts)/sum(counts)))
+
+
+def get_types(df):
+    """ Return a dataframe with the types of dataframe df """
+    return pd.DataFrame(dict(df.dtypes), index=["Type"])[df.columns]
+
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
     """
