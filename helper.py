@@ -6,6 +6,8 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 
 from time import time
 import random as rn
+import math
+
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -376,11 +378,15 @@ def get_types(df):
     return pd.DataFrame(dict(df.dtypes), index=["Type"])[df.columns]
 
 
-def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
+def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), ncols=5):
     """
     Display histograms of numerical features
     If a target list is provided, their histograms will be excluded
     """
+    if ncols <= 1:
+        ncols =5
+        print( "Number of columns changed to {}".format(ncols))
+
     if target is None:
         target = []
 
@@ -391,11 +397,23 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2)):
         print("There are no numerical features")
         return
 
-    _, ax = plt.subplots(
-        ncols=len(numerical_f), sharey=sharey, figsize=figsize)
-    for idx, n in enumerate(numerical_f):
-        sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
-        #         for value in df_filtered[t].unique():
+    nrows = math.ceil(len(numerical_f)/ncols)
+
+    for row in range(nrows):
+
+        if row == nrows-1 and len(numerical_f) % ncols == 1: # case 1 only plot in last row
+            plt.subplots(ncols=1, figsize=figsize)
+            sns.distplot(df[numerical_f[-1]].dropna(), kde=kde)
+   
+        else: # standard case
+    
+            if row == nrows-1 and len(numerical_f) % ncols != 0:  
+                ncols =   len(numerical_f) % ncols # adjust size of last row  
+                
+            _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
+
+            for idx, n in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
+                sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
 
 
 def show_target_vs_numerical(df,
