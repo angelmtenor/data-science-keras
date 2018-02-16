@@ -568,7 +568,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
                 axs.set(ylabel='')
 
 
-def correlation(df, target, limit=None, figsize=None, plot=True):
+def correlation(df, target, limit=0, figsize=None, plot=True):
     """ 
     Display Pearson correlation coefficient between target and numerical features
     Return a list with low-correlated features if limit is provided
@@ -594,11 +594,11 @@ def correlation(df, target, limit=None, figsize=None, plot=True):
     corr.plot.barh(figsize=figsize)
     plt.gca().invert_yaxis()
     
-    if limit:
+    if limit>0:
         plt.axvline(x=-limit, color='k', linestyle='--', )
         plt.axvline(x=limit, color='k', linestyle='--', )
-    plt.xlabel('feature')
-    plt.ylabel('Pearson correlation coefficient')
+    plt.xlabel('Pearson correlation coefficient')
+    plt.ylabel('feature')
 
     if limit:
         return corr.loc[abs(corr[target[0]]) < abs(limit)].index.tolist()
@@ -757,6 +757,20 @@ def get_class_weight(y):
 
 
 # MACHINE LEARNING & DEEP LEARNING ------------------------------------------------
+
+def one_hot_output(y_train, y_test=None):
+    """ 
+    Return one hot encoded output 
+    If y_test is provided, both (y_train, y_test) encoded are returned
+    """
+    import keras
+    num_classes = len(np.unique(y_train))
+    y_train = keras.utils.to_categorical(y_train, num_classes)
+    if y_test.any():
+        y_test = keras.utils.to_categorical(y_test, num_classes)
+        return y_train, y_test
+    else:
+        return y_train
 
 
 def show_training(history):
