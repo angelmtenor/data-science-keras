@@ -454,9 +454,7 @@ def show_target_vs_numerical(df,
 
     nrows = math.ceil(len(numerical_f)/ncols)
 
-
     for t in target:  # in case of several targets several plots will be shown
-
 
         for row in range(nrows):
 
@@ -570,9 +568,11 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
                 axs.set(ylabel='')
 
 
-def show_correlation(df, target, limit=None, figsize=(8, 3)):
+def correlation(df, target, limit=None, figsize=None, plot=True):
     """ 
     Display Pearson correlation coefficient between target and numerical features
+    Return a list with low-correlated features if limit is provided
+
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
@@ -587,18 +587,33 @@ def show_correlation(df, target, limit=None, figsize=(8, 3)):
         if t not in numerical:
             copy_df[t] = copy_df[t].astype(np.float16)
 
-    corr = copy_df.corr().loc[numerical_f, target].fillna(0)
-    corr.plot.bar(figsize=figsize)
-    plt.axhline(
-        y=0,
-        color='k',
-        linestyle='--', )
+    corr = copy_df.corr().loc[numerical_f, target].fillna(0).sort_values(target, ascending=False).round(2)
+
+    if not figsize:
+        figsize = (8, len(numerical_f) // 2 + 1) 
+    corr.plot.barh(figsize=figsize)
+    plt.gca().invert_yaxis()
+    
+    if limit:
+        plt.axvline(x=-limit, color='k', linestyle='--', )
+        plt.axvline(x=limit, color='k', linestyle='--', )
     plt.xlabel('feature')
     plt.ylabel('Pearson correlation coefficient')
-    # sns.heatmap(corr, cmap="bwr")
 
     if limit:
-        return corr.loc[abs(corr['target']) < abs(limit)].index.tolist()
+        return corr.loc[abs(corr[target[0]]) < abs(limit)].index.tolist()
+
+
+def show_correlation(df, target, limit=None, figsize=None):
+    """ 
+    Display Pearson correlation coefficient between target and numerical features
+    """
+
+    warnings.warn(
+        ' Use new "scale" function', DeprecationWarning, stacklevel=2)
+
+    return correlation(df, target, limit=limit, figsize=figsize)
+
 
 
 # DATA PROCESSING FOR ML & DL ---------------------------------------------
