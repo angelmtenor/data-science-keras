@@ -743,16 +743,14 @@ def create_dummy(data, target, use_dummies=None):
 
 
 def get_class_weight(y):
-    """ Return dictionary of weight vector for imbalanced binary target """
+    """ Return dictionary of weight vector for imbalanced binary target """    
     from sklearn.utils import class_weight
 
     y_plain = np.ravel(y)
-
     cw = class_weight.compute_class_weight('balanced',
                                            np.unique(y_plain), y_plain)
-
     cw = {idx: value for idx, value in enumerate(cw)}
-
+    print(cw)
     return cw
 
 
