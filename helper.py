@@ -806,6 +806,57 @@ def dummy_clf(x_train, y_train, x_test, y_test):
     return binary_classification_scores(y_test[:, 1], y_pred, return_dataframe=True, index="Dummy")
 
 
+def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_nodes=None, summary=False,
+    kernel_initializer='glorot_uniform',  bias_initializer='zeros', 
+    kernel_regularizer=None, bias_regularizer=None):
+    """ Build an universal DNN for classification"""
+
+    import keras
+    from keras.models import Sequential
+    from keras.layers.core import Dense, Dropout
+    from keras import regularizers
+ 
+    if not input_nodes:
+        input_nodes = input_size
+
+        # weights = keras.initializers.RandomNormal(stddev=0.00001) 
+
+    model = Sequential()
+
+    # input + first hidden layer
+    model.add(
+        Dense(
+            input_nodes,
+            input_dim=input_size,
+            activation='relu',
+            kernel_initializer=kernel_initializer))
+    model.add(Dropout(dropout))
+
+    # additional hidden layers
+    for i in range(1, hidden_layers):
+        model.add(
+            Dense(
+                input_nodes//i+1,
+                activation='relu',
+                kernel_initializer=kernel_initializer))
+        model.add(Dropout(dropout))
+
+    # output layer
+    model.add(
+        Dense(
+            2,
+            activation='softmax',
+            kernel_initializer=kernel_initializer))
+
+    opt = keras.optimizers.adam()
+    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+    
+    if summary:
+        model.summary()
+
+    return model 
+
+
 def show_training(history):
     """
     Print the final loss and plot its evolution in the training process.
