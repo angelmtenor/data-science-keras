@@ -356,6 +356,11 @@ def fill_simple(df,
 
 # DATA EXPLORATION ------------------------------------------------
 
+def is_binary(data):
+    """ Return True if the input series (column of dataframe) is binary """
+    return len(data.squeeze().unique()) == 2
+
+
 def info_data(df, target=None):
     """ Display basic information of the dataset and the target (if provided) """
     n_samples = df.shape[0]
@@ -366,7 +371,7 @@ def info_data(df, target=None):
     if target:
         print("Target: \t{}".format(target))  
 
-        if len(df[target].squeeze().unique()) == 2:
+        if is_binary(df[target]):
             counts = (df[target].squeeze().value_counts(dropna=False))
             print("\nBinary target: \t{}".format(counts.to_dict()))
             print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
@@ -421,7 +426,8 @@ def show_target_vs_numerical(df,
                              jitter=0,
                              fit_reg=True,
                              point_size=1,
-                             figsize=(17, 4)):
+                             figsize=(17, 4),
+                             ncols=5):
     """ Display histograms of binary target vs numerical variables
     input: pandas dataframe, target list 
         Target values must be parsed to numbers
@@ -430,6 +436,10 @@ def show_target_vs_numerical(df,
     numerical = list(df.select_dtypes(include=[np.number]))
     numerical_f = [n for n in numerical if n not in target]
 
+    if ncols <= 1:
+        ncols =5
+        print( "Number of columns changed to {}".format(ncols))
+ 
     if not numerical_f:
         print("There are no numerical features")
         return
@@ -442,36 +452,53 @@ def show_target_vs_numerical(df,
                 np.float16
             )  # force categorical values to numerical (booleans, ...)
 
-    for t in target:  # in case of several targets several plots will be shown
-        _, ax = plt.subplots(
-            ncols=len(numerical_f), sharey=True, figsize=figsize)
+    nrows = math.ceil(len(numerical_f)/ncols)
 
-        for idx, f in enumerate(numerical_f):
-            if len(numerical_f) > 1:
+
+    for t in target:  # in case of several targets several plots will be shown
+
+
+        for row in range(nrows):
+
+            if row == nrows-1 and len(numerical_f) % ncols == 1: # case 1 only plot in last row
+                plt.subplots(ncols=1, figsize=figsize)
+
                 axs = sns.regplot(
-                    x=f,
+                    x=df[numerical_f[-1]],
                     y=t,
                     data=df,
                     x_jitter=jitter,
                     y_jitter=jitter,
-                    ax=ax[idx],
-                    marker=".",
-                    scatter_kws={'s': point_size},
-                    fit_reg=fit_reg)
-            else:
-                axs = sns.regplot(
-                    x=f,
-                    y=t,
-                    data=df,
-                    x_jitter=jitter,
-                    y_jitter=jitter,
-                    ax=ax,
                     marker=".",
                     scatter_kws={'s': point_size * 2},
                     fit_reg=fit_reg)
-            # first y-axis label only
-            if idx != 0:
-                axs.set(ylabel='')
+
+            else:
+
+                if row == nrows-1 and len(numerical_f) % ncols != 0:  
+                    ncols =   len(numerical_f) % ncols # adjust size of last row  
+
+                _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
+
+                for idx, f in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
+                    axs = sns.regplot(
+                        x=f,
+                        y=t,
+                        data=df,
+                        x_jitter=jitter,
+                        y_jitter=jitter,
+                        ax=ax[idx],
+                        marker=".",
+                        scatter_kws={'s': point_size},
+                        fit_reg=fit_reg)
+                        
+                    # first y-axis label only
+                if idx != 0:
+                    axs.set(ylabel='')
+                    
+                if is_binary(df[target]):
+                    plt.ylim(ymin=-0.2, ymax=1.2)
+
 
 
 def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
