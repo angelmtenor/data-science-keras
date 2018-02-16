@@ -773,6 +773,27 @@ def one_hot_output(y_train, y_test=None):
         return y_train
 
 
+def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
+    """ 
+    Separate the data intro training and test set, and the into features and target
+    Stratified split will use class labels when 'stratify=True'(classification)
+    Return x_train, y_train, x_test, y_test from dataset """
+
+
+    from sklearn.model_selection import train_test_split
+
+    st = data[target] if stratify else None
+   
+    train, test = train_test_split(
+        data, test_size=test_size, random_state=random_state, stratify=st)
+
+    # Separate the data into features and targets (x=features, y=targets)
+    x_train, y_train = train.drop(target, axis=1).values, train[target].values
+    x_test, y_test = test.drop(target, axis=1).values, test[target].values
+    
+    return  x_train, y_train, x_test, y_test 
+
+
 def show_training(history):
     """
     Print the final loss and plot its evolution in the training process.
