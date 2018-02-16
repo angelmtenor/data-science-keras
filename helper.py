@@ -794,6 +794,20 @@ def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     return  x_train, y_train, x_test, y_test 
 
 
+def dummy_clf(x_train, y_train, x_test, y_test):
+    """ 
+    Build a dummy classsifier, print the confusion matrix and return a 
+    dataframe with the binary classification scores
+    """
+    from sklearn.dummy import DummyClassifier
+
+    clf = DummyClassifier(strategy='most_frequent').fit(x_train, np.ravel(y_train))
+    # The dummy 'most_frequent' classifier always predicts class 0 (NO SPAM)
+    y_pred = clf.predict(x_test).reshape([-1, 1])
+
+    return binary_classification_scores(y_test[:, 1], y_pred, return_dataframe=True, index="Dummy")
+
+
 def show_training(history):
     """
     Print the final loss and plot its evolution in the training process.
