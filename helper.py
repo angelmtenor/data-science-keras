@@ -857,6 +857,45 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
     return model 
 
 
+def train_nn(model, x_train, y_train, validation_data=None, class_weight=None, path=False, show=True):
+    """ 
+    Train a neural network model. If no validation_data is provided, a split for validation
+    will be used
+    """
+    
+    if show:
+        print('Training ....')
+    
+    #callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=0)]
+    t0 = time()
+
+    history = model.fit(
+        x_train,
+        y_train,
+        epochs=150,
+        batch_size=128,              
+        verbose=0,
+        class_weight=class_weight,
+        # validation_split=0,
+        # validation_data = validation_data,
+        # callbacks=callbacks
+    )
+
+    if show:
+        print("time: \t {:.1f} s".format(time() - t0))
+        show_training(history)
+
+    if path:
+        model.save(path)
+        print("\nModel saved at", path)
+    
+    return history
+
+
+
+
+
+
 def show_training(history):
     """
     Print the final loss and plot its evolution in the training process.
