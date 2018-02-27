@@ -908,7 +908,8 @@ def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_node
 
 
 
-def train_nn(model, x_train, y_train, validation_data=None, class_weight=None, path=False, show=True):
+def train_nn(model, x_train, y_train, class_weight=None,epochs=100, batch_size=128, verbose=0, 
+    callbacks=None, validation_split=0.0, validation_data=None, path=False, show=True):
     """ 
     Train a neural network model. If no validation_data is provided, a split for validation
     will be used
@@ -923,13 +924,13 @@ def train_nn(model, x_train, y_train, validation_data=None, class_weight=None, p
     history = model.fit(
         x_train,
         y_train,
-        epochs=150,
-        batch_size=128,              
-        verbose=0,
+        epochs=epochs,
+        batch_size=batch_size,              
+        verbose=verbose,
         class_weight=class_weight,
-        # validation_split=0,
-        # validation_data = validation_data,
-        # callbacks=callbacks
+        validation_split=validation_split,
+        validation_data = validation_data,
+        callbacks=callbacks
     )
 
     if show:
