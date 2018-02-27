@@ -1170,7 +1170,7 @@ def ml_regression(x_train,
             print("Test loss:  \t\t {:.4f}".format(loss))
             print("Test R2-score:  \t {:.3f}\n".format(r2))
 
-    return results.sort_values('Test loss')
+    return results.sort_values('Test loss').round(2)
 
 
 def binary_classification_scores(y_test, y_pred, return_dataframe=False, index=" ", show=True):
@@ -1221,7 +1221,7 @@ def binary_classification_scores(y_test, y_pred, return_dataframe=False, index="
     return loss, acc, pre, rec, roc, f1
 
 
-def regression_scores(y_test, y_pred, show=True):
+def regression_scores(y_test, y_pred, show=False, return_dataframe=False, index=" "):
     """ Return regression metrics: (loss, R2 Score) """
 
     from sklearn.metrics import r2_score, mean_squared_error
@@ -1233,6 +1233,11 @@ def regression_scores(y_test, y_pred, show=True):
         print('Scores:\n' + '-' * 11)
         print('Loss (mse): \t{:.4f}'.format(loss))
         print('R2 Score: \t{:.2f}'.format(r2))
+
+    if return_dataframe:
+        col = ['Loss', 'R2 Score']
+        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)   
+        return scores
 
     return loss, r2
 
