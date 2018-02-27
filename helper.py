@@ -854,7 +854,58 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
     if summary:
         model.summary()
 
-    return model 
+    return model
+
+
+
+def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_nodes=None, summary=False,
+    kernel_initializer='glorot_uniform',  bias_initializer='zeros', 
+    kernel_regularizer=None, bias_regularizer=None):
+    """ Build an universal DNN for regression"""
+
+    import keras
+    from keras.models import Sequential
+    from keras.layers.core import Dense, Dropout
+    from keras import regularizers
+ 
+    if not input_nodes:
+        input_nodes = input_size
+
+        # weights = keras.initializers.RandomNormal(stddev=0.00001) 
+
+    model = Sequential()
+
+    # input + first hidden layer
+    model.add(
+        Dense(
+            input_nodes,
+            input_dim=input_size,
+            activation='relu',
+            kernel_initializer=kernel_initializer))
+    model.add(Dropout(dropout))
+
+    # additional hidden layers
+    for i in range(1, hidden_layers):
+        model.add(
+            Dense(
+                input_nodes//i+1,
+                activation='relu',
+                kernel_initializer=kernel_initializer))
+        model.add(Dropout(dropout))
+
+    # output layer
+    model.add(
+        Dense(
+            output_size,
+            kernel_initializer=kernel_initializer))
+
+    model.compile(loss='mean_squared_error', optimizer='rmsprop')
+    
+    if summary:
+        model.summary()
+
+    return model
+
 
 
 def train_nn(model, x_train, y_train, validation_data=None, class_weight=None, path=False, show=True):
