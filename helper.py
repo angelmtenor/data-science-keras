@@ -369,13 +369,13 @@ def info_data(df, target=None):
     print("Samples: \t{} \nFeatures: \t{}".format(n_samples, n_features))  
 
     if target:
-        print("Target: \t{}".format(target))  
-
-        if is_binary(df[target]):
-            counts = (df[target].squeeze().value_counts(dropna=False))
-            print("\nBinary target: \t{}".format(counts.to_dict()))
-            print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
-            print("Dummy accuracy:\t{:.2f}".format(max(counts)/sum(counts)))
+        for t in target:
+            print("Target: \t{}".format(t))  
+            if is_binary(df[t]):
+                counts = (df[t].squeeze().value_counts(dropna=False))
+                print("Binary target: \t{}".format(counts.to_dict()))
+                print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
+                print("Dummy accuracy:\t{:.2f}".format(max(counts)/sum(counts)))
 
 
 def get_types(df):
@@ -494,7 +494,7 @@ def show_target_vs_numerical(df,
                 if idx != 0:
                     axs.set(ylabel='')
                     
-                if is_binary(df[target]):
+                if is_binary(df[t]):
                     plt.ylim(ymin=-0.2, ymax=1.2)
 
 
@@ -610,7 +610,7 @@ def show_correlation(df, target, limit=None, figsize=None):
     """
 
     warnings.warn(
-        ' Use new "scale" function', DeprecationWarning, stacklevel=2)
+        ' Use new "correlation" function', DeprecationWarning, stacklevel=2)
 
     return correlation(df, target, limit=limit, figsize=figsize)
 
@@ -890,10 +890,6 @@ def train_nn(model, x_train, y_train, validation_data=None, class_weight=None, p
         print("\nModel saved at", path)
     
     return history
-
-
-
-
 
 
 def show_training(history):
