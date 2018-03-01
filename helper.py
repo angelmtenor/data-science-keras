@@ -527,8 +527,8 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
 
         if row == nrows-1 and len(categorical_f) % ncols == 1: # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
-            so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
-            sns.countplot(df[categorical_f[-1]].dropna(), order=so)
+            # so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
+            sns.countplot(df[categorical_f[-1]].dropna())
    
         else: # standard case
     
@@ -542,12 +542,9 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
                 axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
                 if idx != 0:
                     axs.set(ylabel='')
-    
 
-
-
-
-def show_target_vs_categorical(df, target, figsize=(17, 4)):
+                    
+def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
     """ 
     Display barplots of target vs categorical variables
     input: pandas dataframe, target list
@@ -558,6 +555,12 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
     categorical_f = [
         col for col in df if col not in numerical and col not in target
     ]
+    
+    
+    if ncols <= 1:
+        ncols =5
+        print( "Number of columns changed to {}".format(ncols))    
+    
 
     if not categorical_f:
         print("There are no categorical variables")
@@ -568,22 +571,34 @@ def show_target_vs_categorical(df, target, figsize=(17, 4)):
         copy_df = copy_df[pd.notnull(copy_df[t])]
         if t not in numerical:
             copy_df[t] = copy_df[t].astype(np.float16)
+            
+    nrows = math.ceil(len(categorical_f)/ncols)
 
     for t in target:  # in case of several targets several plots will be shown
-        _, ax = plt.subplots(
-            ncols=len(categorical_f), sharey=True, figsize=figsize)
+        
+        for row in range(nrows):
 
-        for idx, f in enumerate(categorical_f):
-            so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+            if row == nrows-1 and len(categorical_f) % ncols == 1: # case 1 only plot in last row
+                plt.subplots(ncols=1, figsize=figsize)
+                # so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+                axs = sns.barplot(data=copy_df, x=f, y=t)
 
-            if len(categorical_f) == 1:
-                axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax, order=so)
-            else:
-                axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+            else:      
+                
+                if row == nrows-1 and len(categorical_f) % ncols != 0:  
+                    ncols =   len(categorical_f) % ncols # adjust size of last row  
 
-            # first y-axis label only
-            if idx != 0:
-                axs.set(ylabel='')
+                _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
+
+                for idx, f in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
+ 
+                    so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+
+                    axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
+
+                    # first y-axis label only
+                    if idx != 0:
+                        axs.set(ylabel='')
 
 
 def correlation(df, target, limit=0, figsize=None, plot=True):
