@@ -890,7 +890,8 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
             input_nodes,
             input_dim=input_size,
             activation='relu',
-            kernel_initializer=kernel_initializer))
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer))
     model.add(Dropout(dropout))
 
     # additional hidden layers
@@ -899,7 +900,8 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
             Dense(
                 input_nodes//i+1,
                 activation='relu',
-                kernel_initializer=kernel_initializer))
+                kernel_initializer=kernel_initializer,
+                bias_initializer=bias_initializer))
         model.add(Dropout(dropout))
 
     # output layer
@@ -907,7 +909,8 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
         Dense(
             2,
             activation='softmax',
-            kernel_initializer=kernel_initializer))
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer))
 
     opt = keras.optimizers.adam()
     model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
@@ -921,7 +924,7 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
 
 def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_nodes=None, summary=False,
     kernel_initializer='glorot_uniform',  bias_initializer='zeros', 
-    kernel_regularizer=None, bias_regularizer=None):
+    kernel_regularizer=None, bias_regularizer=None, optimizer='rmsprop'):
     """ Build an universal DNN for regression"""
 
     import keras
@@ -942,7 +945,8 @@ def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_node
             input_nodes,
             input_dim=input_size,
             activation='relu',
-            kernel_initializer=kernel_initializer))
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer))
     model.add(Dropout(dropout))
 
     # additional hidden layers
@@ -951,16 +955,18 @@ def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_node
             Dense(
                 input_nodes//i+1,
                 activation='relu',
-                kernel_initializer=kernel_initializer))
+                kernel_initializer=kernel_initializer,
+                bias_initializer=bias_initializer))
         model.add(Dropout(dropout))
 
     # output layer
     model.add(
         Dense(
             output_size,
-            kernel_initializer=kernel_initializer))
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer))
 
-    model.compile(loss='mean_squared_error', optimizer='rmsprop')
+    model.compile(loss='mean_squared_error', optimizer=optimizer)
     
     if summary:
         model.summary()
