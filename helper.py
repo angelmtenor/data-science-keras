@@ -806,10 +806,10 @@ def one_hot_output(y_train, y_test=None):
 
 def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     """ 
-    Separate the data intro training and test set, and the into features and target
-    Stratified split will use class labels when 'stratify=True'(classification)
-    Return x_train, y_train, x_test, y_test from dataset """
-
+    Separate the data intro training and test set. Also split them into features and target.
+    Stratified split will use class labels when 'stratify=True'(classification).
+    Return x_train, y_train, x_test, y_test from the dataset 
+    """
 
     from sklearn.model_selection import train_test_split
 
@@ -822,7 +822,35 @@ def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     x_train, y_train = train.drop(target, axis=1).values, train[target].values
     x_test, y_test = test.drop(target, axis=1).values, test[target].values
     
-    return  x_train, y_train, x_test, y_test 
+    return  x_train, y_train, x_test, y_tes
+
+
+def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0.2, 
+                        random_state=9):
+    """ 
+    Separate the data intro training, validation, and test set. Also split them into features and target.
+    Stratified split will use class labels when 'stratify=True'(classification).
+    Return x_train, y_train, x_val, y_val, x_test, y_test from the dataset 
+    """
+ 
+    from sklearn.model_selection import train_test_split
+
+    st = data[target] if stratify else None
+    
+    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=st)
+    train, val = train_test_split(train, test_size=val_size, random_state=random_state, stratify=st)
+
+    # Separate the data into features and target (x=features, y=target)
+    x_train, y_train = train.drop(target, axis=1).values, train[target].values
+    x_val, y_val = val.drop(target, axis=1).values, val[target].values
+    x_test, y_test = test.drop(target, axis=1).values, test[target].values
+
+    print("train size \t X:{} \t Y:{}".format(x_train.shape, y_train.shape))
+    print("validation size\t X:{} \t Y:{}".format(x_val.shape, y_val.shape))
+    print("test size  \t X:{} \t Y:{} ".format(x_test.shape, y_test.shape))
+    
+    return x_train, y_train, x_val, y_val, x_test, y_test 
+
 
 
 def dummy_clf(x_train, y_train, x_test, y_test):
