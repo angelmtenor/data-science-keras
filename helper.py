@@ -499,13 +499,17 @@ def show_target_vs_numerical(df,
 
 
 
-def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
+def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
     """
     Display histograms of categorical features
     If a target list is provided, their histograms will be excluded
     """
     if target is None:
         target = []
+        
+    if ncols <= 1:
+        ncols =5
+        print( "Number of columns changed to {}".format(ncols))
 
     numerical = list(df.select_dtypes(include=[np.number]))
     categorical_f = [
@@ -515,18 +519,32 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2)):
     if not categorical_f:
         print("There are no categorical variables")
         return
+    
+    
+    nrows = math.ceil(len(categorical_f)/ncols)
 
-    _, ax = plt.subplots(
-        ncols=len(categorical_f), sharey=sharey, figsize=figsize)
-    for idx, n in enumerate(categorical_f):
-        so = sorted({v for v in df[n].values if str(v) != 'nan'})
-        if len(categorical_f) == 1:
-            axs = sns.countplot(df[n].dropna(), ax=ax, order=so)
-        else:
-            axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
-        # first y-axis label only
-        if idx != 0:
-            axs.set(ylabel='')
+    for row in range(nrows):
+
+        if row == nrows-1 and len(categorical_f) % ncols == 1: # case 1 only plot in last row
+            plt.subplots(ncols=1, figsize=figsize)
+            so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
+            sns.countplot(df[categorical_f[-1]].dropna(), order=so)
+   
+        else: # standard case
+    
+            if row == nrows-1 and len(categorical_f) % ncols != 0:  
+                ncols =   len(categorical_f) % ncols # adjust size of last row  
+                
+            _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
+
+            for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
+                so = sorted({v for v in df[n].values if str(v) != 'nan'})
+                axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+                if idx != 0:
+                    axs.set(ylabel='')
+    
+
+
 
 
 def show_target_vs_categorical(df, target, figsize=(17, 4)):
