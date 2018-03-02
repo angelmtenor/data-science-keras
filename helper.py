@@ -822,7 +822,7 @@ def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     x_train, y_train = train.drop(target, axis=1).values, train[target].values
     x_test, y_test = test.drop(target, axis=1).values, test[target].values
     
-    return  x_train, y_train, x_test, y_tes
+    return  x_train, y_train, x_test, y_test
 
 
 def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0.2, 
