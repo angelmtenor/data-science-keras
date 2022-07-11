@@ -1,0 +1,8 @@
+jupyter
+matplotlib==3.5.2
+numpy==1.23.1
+Pillow==9.2.0
+pre-commit
+py-cpuinfo==8.0.0
+seaborn==0.11.2
+tensorflow==2.9.1

@@ -13,15 +13,15 @@ This repo contains a set of data science projects solved with artificial neural 
 
 - [Spam detector](https://github.com/angelmtenor/data-science-keras/blob/master/spam_detector.ipynb) Predicts the probability that a given email is a spam email (NLP)
 
-- [Student Admissions](https://github.com/angelmtenor/data-science-keras/blob/master/student_admissions.ipynb)  Predicts student admissions to graduate school at UCLA 
+- [Student Admissions](https://github.com/angelmtenor/data-science-keras/blob/master/student_admissions.ipynb)  Predicts student admissions to graduate school at UCLA
 
 - [Titanic](https://github.com/angelmtenor/data-science-keras/blob/master/titanic.ipynb)  Predicts survival probabilities from the sinking of the RMS Titanic
 
 ## Regression models
 
-- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_rental.ipynb) Predicts daily bike rental ridership 
+- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_rental.ipynb) Predicts daily bike rental ridership
 
-- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/house_prices.ipynb) Predicts house sales prices from Ames Housing database   
+- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/house_prices.ipynb) Predicts house sales prices from Ames Housing database
 
 - [Simple tickets](https://github.com/angelmtenor/data-science-keras/blob/master/simple_tickets.ipynb)  Predicts the number of tickets requested by different clients
 
@@ -30,7 +30,7 @@ This repo contains a set of data science projects solved with artificial neural 
 
 - [Machine Translation](https://github.com/angelmtenor/data-science-keras/blob/master/machine_translation.ipynb)  Translates sentences from English to French (NLP)
 
-- [Simple Stock Prediction](https://github.com/angelmtenor/data-science-keras/blob/master/simple_stock_prediction.ipynb) Predicts Alphabet Inc. stock price 
+- [Simple Stock Prediction](https://github.com/angelmtenor/data-science-keras/blob/master/simple_stock_prediction.ipynb) Predicts Alphabet Inc. stock price
 
 - [Text generator](https://github.com/angelmtenor/data-science-keras/blob/master/text_generator.ipynb) Creates an English language sequence generator (NLP)
 
@@ -40,27 +40,27 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 ## Requirements
-- Python 3.6+, Pandas, Numpy, Matplotlib, Seaborn, and Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
+- Python 3.6+, Pandas, Numpy, Scikit-learn, Matplotlib, Seaborn, and Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
 - TensorFlow and Keras. See [Installation section from Keras](https://github.com/keras-team/keras)
 
 
 ## Instructions
 
-* Clone the repository using `git`: 
+* Clone the repository using `git`:
 ``` sh
 git clone https://github.com/angelmtenor/data-science-keras.git
 ```
 
-* Open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html) 
-``` sh 
+* Open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
+``` sh
 cd data-science-keras
-jupyter notebook 
+jupyter notebook
 ```
 
 
 ## Creator
 
-* Angel Martínez-Tenor
+* Angel Martinez-Tenor
     - [https://github.com/angelmtenor](https://github.com/angelmtenor)
 
 With the help of:

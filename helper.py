@@ -1,13 +1,11 @@
 """
 Helper module for Data-Science-Keras repository
 """
-import os, warnings
-warnings.simplefilter(action="ignore", category=FutureWarning)
-
-from time import time
-import random as rn
 import math
-
+import os
+import random as rn
+import warnings
+from time import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,54 +14,55 @@ import seaborn as sns
 
 sns.set()  # set seaborn style
 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 
 def info_gpu():
-    """ Show GPU device (if available), keras version and tensorflow version """
-    import tensorflow as tf
+    """Show GPU device (if available), keras version and tensorflow version"""
     import keras
+    import tensorflow as tf
 
     # Check for a GPU
     if not tf.test.gpu_device_name():
-        print('-- No GPU  --')
+        print("-- No GPU  --")
     else:
-        print('{}'.format(tf.test.gpu_device_name()))
+        print(f"{tf.test.gpu_device_name()}")
 
     # Check TensorFlow Version
-    print('Keras\t\tv{}'.format(keras.__version__))
-    print('TensorFlow\tv{}'.format(tf.__version__))
+    print(f"Keras\t\tv{keras.__version__}")
+    print(f"TensorFlow\tv{tf.__version__}")
 
 
 def reproducible(seed=42):
     import tensorflow as tf
-    import keras
+
     """ Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
     """
 
-    os.environ['PYTHONHASHSEED'] = '0'
+    os.environ["PYTHONHASHSEED"] = "0"
     np.random.seed(seed)
     rn.seed(seed)
     # Multiple threads are a potential source of non-reproducible results.
-    session_conf = tf.ConfigProto(
-        intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
-    tf.set_random_seed(seed)
-    sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
-    keras.backend.set_session(sess)
+    # session_conf = tf.ConfigProto(
+    #     intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    tf.random.set_seed(seed)
+
+    # sess = tf.compat.v1.Session()(graph=tf.get_default_graph(), config=session_conf)
+    # keras.backend.set_session(sess)
 
 
 # DATA PROCESSING ------------------------------------------------
 
 
 def force_categorical(df):
-    """ Force non numerical fields to pandas 'category' type """
+    """Force non numerical fields to pandas 'category' type"""
     non_numerical = list(df.select_dtypes(exclude=[np.number]))
 
-    fields_to_change = [
-        f for f in df if f in non_numerical and df[f].dtype.name != 'category'
-    ]
+    fields_to_change = [f for f in df if f in non_numerical and df[f].dtype.name != "category"]
 
     for f in fields_to_change:
-        df[f] = df[f].astype('category')
+        df[f] = df[f].astype("category")
 
     if fields_to_change:
         print("Non-numerical fields changed to 'category':", fields_to_change)
@@ -84,30 +83,29 @@ def expand_date(timeseries):
     """
     from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
-    assert type(
-        timeseries) == pd.core.series.Series, 'input must be pandas series'
-    assert timeseries.dtypes == 'datetime64[ns]', 'input must be pandas datetime'
+    assert type(timeseries) == pd.core.series.Series, "input must be pandas series"
+    assert timeseries.dtypes == "datetime64[ns]", "input must be pandas datetime"
 
     df = pd.DataFrame()
 
-    df['hour'] = timeseries.dt.hour
+    df["hour"] = timeseries.dt.hour
 
     date = timeseries.dt.date
-    df['year'] = pd.DatetimeIndex(date).year
-    df['month'] = pd.DatetimeIndex(date).month
-    df['day'] = pd.DatetimeIndex(date).day
-    df['weekday'] = pd.DatetimeIndex(date).weekday
+    df["year"] = pd.DatetimeIndex(date).year
+    df["month"] = pd.DatetimeIndex(date).month
+    df["day"] = pd.DatetimeIndex(date).day
+    df["weekday"] = pd.DatetimeIndex(date).weekday
 
     holidays = calendar().holidays(start=date.min(), end=date.max())
-    hol = date.astype('datetime64[ns]').isin(holidays)
-    df['holiday'] = hol.values.astype(int)
-    df['workingday'] = ((df['weekday'] < 5) & (df['holiday'] == 0)).astype(int)
+    hol = date.astype("datetime64[ns]").isin(holidays)
+    df["holiday"] = hol.values.astype(int)
+    df["workingday"] = ((df["weekday"] < 5) & (df["holiday"] == 0)).astype(int)
 
     return df
 
 
 def classify_data(df, target, numerical=None, categorical=None):
-    """  Return a new dataframe with categorical variables as dtype 'categorical' and sorted
+    """Return a new dataframe with categorical variables as dtype 'categorical' and sorted
     columns: numerical + categorical + target.
 
     Input: dataframe, target list, numerical list, categorical list
@@ -135,12 +133,12 @@ def classify_data(df, target, numerical=None, categorical=None):
 
     # assign category data type to categorical columns (force_categorical not needed)
     for f in df[categorical]:
-        df[f] = df[f].astype('category')
+        df[f] = df[f].astype("category")
 
-    print('Numerical features: \t{}'.format(len(numerical_f)))
-    print('Categorical features: \t{}'.format(len(categorical_f)))
+    print(f"Numerical features: \t{len(numerical_f)}")
+    print(f"Categorical features: \t{len(categorical_f)}")
     for t in target:
-        print("Target: \t\t{} ({})".format(t, df[t].dtype))
+        print(f"Target: \t\t{t} ({df[t].dtype})")
     return df
 
 
@@ -150,10 +148,7 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
     Only non-numerical columns are evaluated
     """
 
-    warnings.warn(
-        ' Use new "remove_categories" function',
-        DeprecationWarning,
-        stacklevel=2)
+    warnings.warn(' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
 
     if not inplace:
         df = df.copy()
@@ -164,11 +159,11 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
         target = []
 
     df = force_categorical(df)
-    categorical = df.select_dtypes(include=['category'])
+    categorical = df.select_dtypes(include=["category"])
     categorical_f = [c for c in categorical if c not in target]
 
     if not categorical_f:
-        print('None categorical variables found')
+        print("None categorical variables found")
 
     for f in categorical_f:
 
@@ -185,11 +180,7 @@ def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
         return df
 
 
-def remove_categories(df,
-                      target=None,
-                      ratio=0.01,
-                      show=False,
-                      dict_categories=None):
+def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=None):
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
     Only non-numerical columns are evaluated
@@ -204,11 +195,11 @@ def remove_categories(df,
         target = []
 
     df = force_categorical(df)
-    categorical = df.select_dtypes(include=['category'])
+    categorical = df.select_dtypes(include=["category"])
     categorical_f = [c for c in categorical if c not in target]
 
     if not categorical_f:
-        print('None categorical variables found')
+        print("None categorical variables found")
 
     if dict_categories:
         for f in categorical_f:
@@ -243,8 +234,7 @@ def remove_outliers(df, sigma=3, inplace=False):
 
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
-    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <=
-                                (sigma * num_df.std())]
+    df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
     print(list(num_df))
 
     if not inplace:
@@ -274,19 +264,15 @@ def missing(df, limit=None, figsize=None, plot=True):
         plt.figure(figsize=figsize)
         plt.xlim([0, 1])
         plt.xlabel("Missing / Total")
-        missing_ratio.plot(kind='barh')
+        missing_ratio.plot(kind="barh")
         if limit:
-            plt.axvline(limit, linestyle='--', color='k')
+            plt.axvline(limit, linestyle="--", color="k")
 
     if limit:
         return missing_ratio[missing_ratio > limit].index.tolist()
 
 
-def simple_fill(df,
-                target,
-                include_numerical=True,
-                include_categorical=True,
-                inplace=False):
+def simple_fill(df, target, include_numerical=True, include_categorical=True, inplace=False):
     warnings.warn('Use new "fill_simple" function', stacklevel=2)
 
     return fill_simple(
@@ -294,16 +280,19 @@ def simple_fill(df,
         target,
         include_numerical=include_numerical,
         include_categorical=include_categorical,
-        inplace=inplace)
+        inplace=inplace,
+    )
 
 
-def fill_simple(df,
-                target,
-                missing_numerical='median',
-                missing_categorical='mode',
-                include_numerical=True,
-                include_categorical=True,
-                inplace=False):
+def fill_simple(
+    df,
+    target,
+    missing_numerical="median",
+    missing_categorical="mode",
+    include_numerical=True,
+    include_categorical=True,
+    inplace=False,
+):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
     Fill missing categorical values of df with the median of the column (include_categorical=True)
@@ -315,28 +304,25 @@ def fill_simple(df,
 
     numerical = list(df.select_dtypes(include=[np.number]))
     numerical_f = [col for col in numerical if col not in target]
-    categorical_f = [
-        col for col in df if col not in numerical and col not in target
-    ]
+    categorical_f = [col for col in df if col not in numerical and col not in target]
 
     # numerical
 
     if include_numerical:
         for f in numerical_f:
-            if missing_numerical == 'median':
+            if missing_numerical == "median":
                 df[f].fillna(df[f].median(), inplace=True)
-            elif missing_numerical == 'mean':
+            elif missing_numerical == "mean":
                 df[f].fillna(df[f].mean(), inplace=True)
             else:
                 warnings.warn("missing_numerical must be 'mean' or 'median'")
-                print('Missing numerical filled with: {}'.format(
-                    missing_numerical))
+                print(f"Missing numerical filled with: {missing_numerical}")
 
     # categorical
 
     if include_categorical:
 
-        if missing_categorical == 'mode':
+        if missing_categorical == "mode":
             modes = df[categorical_f].mode()
             for idx, f in enumerate(df[categorical_f]):
                 df[f].fillna(modes.iloc[0, idx], inplace=True)
@@ -345,10 +331,9 @@ def fill_simple(df,
                 if missing_categorical not in df[f].cat.categories:
                     df[f].cat.add_categories(missing_categorical, inplace=True)
                 df[f].fillna(missing_categorical, inplace=True)
-            print('Missing categorical filled with label: "{}"'.format(
-                missing_categorical))
+            print(f'Missing categorical filled with label: "{missing_categorical}"')
 
-    #df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
+    # df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
 
     if not inplace:
         return df
@@ -356,30 +341,31 @@ def fill_simple(df,
 
 # DATA EXPLORATION ------------------------------------------------
 
+
 def is_binary(data):
-    """ Return True if the input series (column of dataframe) is binary """
+    """Return True if the input series (column of dataframe) is binary"""
     return len(data.squeeze().unique()) == 2
 
 
 def info_data(df, target=None):
-    """ Display basic information of the dataset and the target (if provided) """
+    """Display basic information of the dataset and the target (if provided)"""
     n_samples = df.shape[0]
     n_features = df.shape[1] - len(target)
-        
-    print("Samples: \t{} \nFeatures: \t{}".format(n_samples, n_features))  
+
+    print(f"Samples: \t{n_samples} \nFeatures: \t{n_features}")
 
     if target:
         for t in target:
-            print("Target: \t{}".format(t))  
+            print(f"Target: \t{t}")
             if is_binary(df[t]):
-                counts = (df[t].squeeze().value_counts(dropna=False))
-                print("Binary target: \t{}".format(counts.to_dict()))
-                print("Ratio \t\t{:.1f} : {:.1f}".format(counts[0]/min(counts), counts[1]/min(counts)))
-                print("Dummy accuracy:\t{:.2f}".format(max(counts)/sum(counts)))
+                counts = df[t].squeeze().value_counts(dropna=False)
+                print(f"Binary target: \t{counts.to_dict()}")
+                print(f"Ratio \t\t{counts[0] / min(counts):.1f} : {counts[1] / min(counts):.1f}")
+                print(f"Dummy accuracy:\t{max(counts) / sum(counts):.2f}")
 
 
 def get_types(df):
-    """ Return a dataframe with the types of dataframe df """
+    """Return a dataframe with the types of dataframe df"""
     return pd.DataFrame(dict(df.dtypes), index=["Type"])[df.columns]
 
 
@@ -389,8 +375,8 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
     If a target list is provided, their histograms will be excluded
     """
     if ncols <= 1:
-        ncols =5
-        print( "Number of columns changed to {}".format(ncols))
+        ncols = 5
+        print(f"Number of columns changed to {ncols}")
 
     if target is None:
         target = []
@@ -402,34 +388,28 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
         print("There are no numerical features")
         return
 
-    nrows = math.ceil(len(numerical_f)/ncols)
+    nrows = math.ceil(len(numerical_f) / ncols)
 
     for row in range(nrows):
 
-        if row == nrows-1 and len(numerical_f) % ncols == 1: # case 1 only plot in last row
+        if row == nrows - 1 and len(numerical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             sns.distplot(df[numerical_f[-1]].dropna(), kde=kde)
-   
-        else: # standard case
-    
-            if row == nrows-1 and len(numerical_f) % ncols != 0:  
-                ncols =   len(numerical_f) % ncols # adjust size of last row  
-                
+
+        else:  # standard case
+
+            if row == nrows - 1 and len(numerical_f) % ncols != 0:
+                ncols = len(numerical_f) % ncols  # adjust size of last row
+
             _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
 
             for idx, n in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
                 sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
 
 
-def show_target_vs_numerical(df,
-                             target,
-                             jitter=0,
-                             fit_reg=True,
-                             point_size=1,
-                             figsize=(17, 4),
-                             ncols=5):
-    """ Display histograms of binary target vs numerical variables
-    input: pandas dataframe, target list 
+def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, point_size=1, figsize=(17, 4), ncols=5):
+    """Display histograms of binary target vs numerical variables
+    input: pandas dataframe, target list
         Target values must be parsed to numbers
     """
 
@@ -437,9 +417,9 @@ def show_target_vs_numerical(df,
     numerical_f = [n for n in numerical if n not in target]
 
     if ncols <= 1:
-        ncols =5
-        print( "Number of columns changed to {}".format(ncols))
- 
+        ncols = 5
+        print(f"Number of columns changed to {ncols}")
+
     if not numerical_f:
         print("There are no numerical features")
         return
@@ -448,17 +428,15 @@ def show_target_vs_numerical(df,
 
     for t in target:
         if t not in numerical:
-            df[t] = df[t].astype(
-                np.float16
-            )  # force categorical values to numerical (booleans, ...)
+            df[t] = df[t].astype(np.float16)  # force categorical values to numerical (booleans, ...)
 
-    nrows = math.ceil(len(numerical_f)/ncols)
+    nrows = math.ceil(len(numerical_f) / ncols)
 
     for t in target:  # in case of several targets several plots will be shown
 
         for row in range(nrows):
 
-            if row == nrows-1 and len(numerical_f) % ncols == 1: # case 1 only plot in last row
+            if row == nrows - 1 and len(numerical_f) % ncols == 1:  # case 1 only plot in last row
                 plt.subplots(ncols=1, figsize=figsize)
 
                 axs = sns.regplot(
@@ -468,13 +446,14 @@ def show_target_vs_numerical(df,
                     x_jitter=jitter,
                     y_jitter=jitter,
                     marker=".",
-                    scatter_kws={'s': point_size * 2},
-                    fit_reg=fit_reg)
+                    scatter_kws={"s": point_size * 2},
+                    fit_reg=fit_reg,
+                )
 
             else:
 
-                if row == nrows-1 and len(numerical_f) % ncols != 0:  
-                    ncols =   len(numerical_f) % ncols # adjust size of last row  
+                if row == nrows - 1 and len(numerical_f) % ncols != 0:
+                    ncols = len(numerical_f) % ncols  # adjust size of last row
 
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
@@ -487,16 +466,16 @@ def show_target_vs_numerical(df,
                         y_jitter=jitter,
                         ax=ax[idx],
                         marker=".",
-                        scatter_kws={'s': point_size},
-                        fit_reg=fit_reg)
-                        
+                        scatter_kws={"s": point_size},
+                        fit_reg=fit_reg,
+                    )
+
                     # first y-axis label only
                 if idx != 0:
-                    axs.set(ylabel='')
-                    
+                    axs.set(ylabel="")
+
                 if is_binary(df[t]):
                     plt.ylim(ymin=-0.2, ymax=1.2)
-
 
 
 def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
@@ -506,61 +485,54 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
     """
     if target is None:
         target = []
-        
+
     if ncols <= 1:
-        ncols =5
-        print( "Number of columns changed to {}".format(ncols))
+        ncols = 5
+        print(f"Number of columns changed to {ncols}")
 
     numerical = list(df.select_dtypes(include=[np.number]))
-    categorical_f = [
-        col for col in df if col not in numerical and col not in target
-    ]
+    categorical_f = [col for col in df if col not in numerical and col not in target]
 
     if not categorical_f:
         print("There are no categorical variables")
         return
-    
-    
-    nrows = math.ceil(len(categorical_f)/ncols)
+
+    nrows = math.ceil(len(categorical_f) / ncols)
 
     for row in range(nrows):
 
-        if row == nrows-1 and len(categorical_f) % ncols == 1: # case 1 only plot in last row
+        if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             # so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
             sns.countplot(df[categorical_f[-1]].dropna())
-   
-        else: # standard case
-    
-            if row == nrows-1 and len(categorical_f) % ncols != 0:  
-                ncols =   len(categorical_f) % ncols # adjust size of last row  
-                
+
+        else:  # standard case
+
+            if row == nrows - 1 and len(categorical_f) % ncols != 0:
+                ncols = len(categorical_f) % ncols  # adjust size of last row
+
             _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
 
             for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
-                so = sorted({v for v in df[n].values if str(v) != 'nan'})
+                so = sorted({v for v in df[n].values if str(v) != "nan"})
                 axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
                 if idx != 0:
-                    axs.set(ylabel='')
+                    axs.set(ylabel="")
 
-                    
+
 def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
-    """ 
-    Display barplots of target vs categorical variables
+    """
+    Display bar plots of target vs categorical variables
     input: pandas dataframe, target list
-    Target values must be numerical for barplots
+    Target values must be numerical for bar plots
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
-    categorical_f = [
-        col for col in df if col not in numerical and col not in target
-    ]
-    
-    
+    categorical_f = [col for col in df if col not in numerical and col not in target]
+
     if ncols <= 1:
-        ncols =5
-        print( "Number of columns changed to {}".format(ncols))    
-    
+        ncols = 5
+        print(f"Number of columns changed to {ncols}")
 
     if not categorical_f:
         print("There are no categorical variables")
@@ -571,38 +543,38 @@ def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
         copy_df = copy_df[pd.notnull(copy_df[t])]
         if t not in numerical:
             copy_df[t] = copy_df[t].astype(np.float16)
-            
-    nrows = math.ceil(len(categorical_f)/ncols)
+
+    nrows = math.ceil(len(categorical_f) / ncols)
 
     for t in target:  # in case of several targets several plots will be shown
-        
+
         for row in range(nrows):
 
-            if row == nrows-1 and len(categorical_f) % ncols == 1: # case 1 only plot in last row
+            if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
                 plt.subplots(ncols=1, figsize=figsize)
                 # so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-                axs = sns.barplot(data=copy_df, x=f, y=t)
+                axs = sns.barplot(data=copy_df, x=categorical_f, y=t)
 
-            else:      
-                
-                if row == nrows-1 and len(categorical_f) % ncols != 0:  
-                    ncols =   len(categorical_f) % ncols # adjust size of last row  
+            else:
+
+                if row == nrows - 1 and len(categorical_f) % ncols != 0:
+                    ncols = len(categorical_f) % ncols  # adjust size of last row
 
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
                 for idx, f in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
- 
-                    so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
+
+                    so = sorted({v for v in copy_df[f].values if str(v) != "nan"})
 
                     axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
 
                     # first y-axis label only
                     if idx != 0:
-                        axs.set(ylabel='')
+                        axs.set(ylabel="")
 
 
 def correlation(df, target, limit=0, figsize=None, plot=True):
-    """ 
+    """
     Display Pearson correlation coefficient between target and numerical features
     Return a list with low-correlated features if limit is provided
 
@@ -623,44 +595,50 @@ def correlation(df, target, limit=0, figsize=None, plot=True):
     corr = copy_df.corr().loc[numerical_f, target].fillna(0).sort_values(target, ascending=False).round(2)
 
     if not figsize:
-        figsize = (8, len(numerical_f) // 2 + 1) 
+        figsize = (8, len(numerical_f) // 2 + 1)
     corr.plot.barh(figsize=figsize)
     plt.gca().invert_yaxis()
-    
-    if limit>0:
-        plt.axvline(x=-limit, color='k', linestyle='--', )
-        plt.axvline(x=limit, color='k', linestyle='--', )
-    plt.xlabel('Pearson correlation coefficient')
-    plt.ylabel('feature')
+
+    if limit > 0:
+        plt.axvline(
+            x=-limit,
+            color="k",
+            linestyle="--",
+        )
+        plt.axvline(
+            x=limit,
+            color="k",
+            linestyle="--",
+        )
+    plt.xlabel("Pearson correlation coefficient")
+    plt.ylabel("feature")
 
     if limit:
         return corr.loc[abs(corr[target[0]]) < abs(limit)].index.tolist()
 
 
 def show_correlation(df, target, limit=None, figsize=None):
-    """ 
+    """
     Display Pearson correlation coefficient between target and numerical features
     """
 
-    warnings.warn(
-        ' Use new "correlation" function', DeprecationWarning, stacklevel=2)
+    warnings.warn(' Use new "correlation" function', DeprecationWarning, stacklevel=2)
 
     return correlation(df, target, limit=limit, figsize=figsize)
-
 
 
 # DATA PROCESSING FOR ML & DL ---------------------------------------------
 
 
-def scale(data, scale_param=None, method='std'):
+def scale(data, scale_param=None, method="std"):
     """
     Standardize numerical variables (mean=0, std=1)
-    
-    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
-    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
+
+    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale
+    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]
     """
 
-    assert method == 'std' or method == 'minmax' or method == 'maxabs'
+    assert method == "std" or method == "minmax" or method == "maxabs"
 
     data = data.copy()
 
@@ -672,16 +650,15 @@ def scale(data, scale_param=None, method='std'):
         create_scale = False
 
     for f in num:
-        if method == 'std':
+        if method == "std":
             if create_scale:
                 mean, std = data[f].mean(), data[f].std()
                 data[f] = (data[f].values - mean) / std
                 scale_param[f] = [mean, std]
             else:
-                data.loc[:, f] = (
-                    data[f] - scale_param[f][0]) / scale_param[f][1]
+                data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
 
-        elif method == 'minmax':
+        elif method == "minmax":
 
             if create_scale:
                 min, max = data[f].min(), data[f].max()
@@ -691,7 +668,7 @@ def scale(data, scale_param=None, method='std'):
                 min, max = scale_param[f][0], scale_param[f][1]
                 data.loc[:, f] = (data[f].values - min) / (max - min)
 
-        elif method == 'maxabs':
+        elif method == "maxabs":
 
             if create_scale:
                 min, max = data[f].min(), data[f].max()
@@ -699,8 +676,7 @@ def scale(data, scale_param=None, method='std'):
                 scale_param[f] = [min, max]
             else:
                 min, max = scale_param[f][0], scale_param[f][1]
-                data.loc[:, f] = 0.5 * (data[f].values *
-                                        (max - min) + max + min)
+                data.loc[:, f] = 0.5 * (data[f].values * (max - min) + max + min)
 
     return data, scale_param
 
@@ -708,24 +684,23 @@ def scale(data, scale_param=None, method='std'):
 def standardize(data, use_scale=None):
     """
     Standardize numerical variables (mean=0, std=1)
-    
-    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale 
-    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]   
+
+    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale
+    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]
     """
-    warnings.warn(
-        ' Use new "scale" function', DeprecationWarning, stacklevel=2)
+    warnings.warn(' Use new "scale" function', DeprecationWarning, stacklevel=2)
 
     return scale(data, use_scale)
 
 
 def replace_by_dummies(data, target, dummies=None, drop_first=False):
-    """ 
-    Replace categorical features by dummy features (no target)  
-    If no dummy list is used, a new one is created.  
-    
+    """
+    Replace categorical features by dummy features (no target)
+    If no dummy list is used, a new one is created.
+
     Input: dataframe, target list, dummy list
     Output: dataframe with categorical replaced by dummies, dummy dictionary
-     """
+    """
 
     data = data.copy()
 
@@ -736,7 +711,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
 
     found_dummies = []
 
-    categorical = list(data.select_dtypes(include=['category']))
+    categorical = list(data.select_dtypes(include=["category"]))
     categorical_f = [col for col in categorical if col not in target]
 
     for f in categorical_f:
@@ -763,7 +738,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
 
     # set new columns to category
     for dummy in dummies:
-        data[dummy] = data[dummy].astype('category')
+        data[dummy] = data[dummy].astype("category")
 
     return data, dummies
 
@@ -776,12 +751,11 @@ def create_dummy(data, target, use_dummies=None):
 
 
 def get_class_weight(y):
-    """ Return dictionary of weight vector for imbalanced binary target """    
+    """Return dictionary of weight vector for imbalanced binary target"""
     from sklearn.utils import class_weight
 
     y_plain = np.ravel(y)
-    cw = class_weight.compute_class_weight('balanced',
-                                           np.unique(y_plain), y_plain)
+    cw = class_weight.compute_class_weight("balanced", np.unique(y_plain), y_plain)
     cw = {idx: value for idx, value in enumerate(cw)}
     print(cw)
     return cw
@@ -789,12 +763,14 @@ def get_class_weight(y):
 
 # MACHINE LEARNING & DEEP LEARNING ------------------------------------------------
 
+
 def one_hot_output(y_train, y_test=None):
-    """ 
-    Return one hot encoded output 
+    """
+    Return one hot encoded output
     If y_test is provided, both (y_train, y_test) encoded are returned
     """
     import keras
+
     num_classes = len(np.unique(y_train))
     y_train = keras.utils.to_categorical(y_train, num_classes)
     if y_test.any():
@@ -805,38 +781,36 @@ def one_hot_output(y_train, y_test=None):
 
 
 def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
-    """ 
+    """
     Separate the data intro training and test set. Also split them into features and target.
     Stratified split will use class labels when 'stratify=True'(classification).
-    Return x_train, y_train, x_test, y_test from the dataset 
+    Return x_train, y_train, x_test, y_test from the dataset
     """
 
     from sklearn.model_selection import train_test_split
 
     st = data[target] if stratify else None
-   
-    train, test = train_test_split(
-        data, test_size=test_size, random_state=random_state, stratify=st)
+
+    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=st)
 
     # Separate the data into features and targets (x=features, y=targets)
     x_train, y_train = train.drop(target, axis=1).values, train[target].values
     x_test, y_test = test.drop(target, axis=1).values, test[target].values
-    
-    return  x_train, y_train, x_test, y_test
+
+    return x_train, y_train, x_test, y_test
 
 
-def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0.2, 
-                        random_state=9):
-    """ 
+def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0.2, random_state=9):
+    """
     Separate the data intro training, validation, and test set. Also split them into features and target.
     Stratified split will use class labels when 'stratify=True'(classification).
-    Return x_train, y_train, x_val, y_val, x_test, y_test from the dataset 
+    Return x_train, y_train, x_val, y_val, x_test, y_test from the dataset
     """
- 
+
     from sklearn.model_selection import train_test_split
 
     st = data[target] if stratify else None
-    
+
     train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=st)
     train, val = train_test_split(train, test_size=val_size, random_state=random_state, stratify=st)
 
@@ -845,42 +819,49 @@ def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0
     x_val, y_val = val.drop(target, axis=1).values, val[target].values
     x_test, y_test = test.drop(target, axis=1).values, test[target].values
 
-    print("train size \t X:{} \t Y:{}".format(x_train.shape, y_train.shape))
-    print("validation size\t X:{} \t Y:{}".format(x_val.shape, y_val.shape))
-    print("test size  \t X:{} \t Y:{} ".format(x_test.shape, y_test.shape))
-    
-    return x_train, y_train, x_val, y_val, x_test, y_test 
+    print(f"train size \t X:{x_train.shape} \t Y:{y_train.shape}")
+    print(f"validation size\t X:{x_val.shape} \t Y:{y_val.shape}")
+    print(f"test size  \t X:{x_test.shape} \t Y:{y_test.shape} ")
 
+    return x_train, y_train, x_val, y_val, x_test, y_test
 
 
 def dummy_clf(x_train, y_train, x_test, y_test):
-    """ 
-    Build a dummy classsifier, print the confusion matrix and return a 
+    """
+    Build a dummy classsifier, print the confusion matrix and return a
     dataframe with the binary classification scores
     """
     from sklearn.dummy import DummyClassifier
 
-    clf = DummyClassifier(strategy='most_frequent').fit(x_train, np.ravel(y_train))
+    clf = DummyClassifier(strategy="most_frequent").fit(x_train, np.ravel(y_train))
     # The dummy 'most_frequent' classifier always predicts class 0 (NO SPAM)
     y_pred = clf.predict(x_test).reshape([-1, 1])
 
     return binary_classification_scores(y_test[:, 1], y_pred, return_dataframe=True, index="Dummy")
 
 
-def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_nodes=None, summary=False,
-    kernel_initializer='glorot_uniform',  bias_initializer='zeros', 
-    kernel_regularizer=None, bias_regularizer=None):
-    """ Build an universal DNN for classification"""
+def build_nn_clf(
+    input_size,
+    output_size,
+    hidden_layers=1,
+    dropout=0,
+    input_nodes=None,
+    summary=False,
+    kernel_initializer="glorot_uniform",
+    bias_initializer="zeros",
+    kernel_regularizer=None,
+    bias_regularizer=None,
+):
+    """Build an universal DNN for classification"""
 
     import keras
-    from keras.models import Sequential
     from keras.layers.core import Dense, Dropout
-    from keras import regularizers
- 
+    from keras.models import Sequential
+
     if not input_nodes:
         input_nodes = input_size
 
-        # weights = keras.initializers.RandomNormal(stddev=0.00001) 
+        # weights = keras.initializers.RandomNormal(stddev=0.00001)
 
     model = Sequential()
 
@@ -889,53 +870,66 @@ def build_nn_clf(input_size, output_size, hidden_layers=1, dropout=0, input_node
         Dense(
             input_nodes,
             input_dim=input_size,
-            activation='relu',
+            activation="relu",
             kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer))
+            bias_initializer=bias_initializer,
+        )
+    )
     model.add(Dropout(dropout))
 
     # additional hidden layers
     for i in range(1, hidden_layers):
         model.add(
             Dense(
-                input_nodes//i+1,
-                activation='relu',
+                input_nodes // i + 1,
+                activation="relu",
                 kernel_initializer=kernel_initializer,
-                bias_initializer=bias_initializer))
+                bias_initializer=bias_initializer,
+            )
+        )
         model.add(Dropout(dropout))
 
     # output layer
     model.add(
         Dense(
             2,
-            activation='softmax',
+            activation="softmax",
             kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer))
+            bias_initializer=bias_initializer,
+        )
+    )
 
     opt = keras.optimizers.adam()
-    model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
-    
+    model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+
     if summary:
         model.summary()
 
     return model
 
 
+def build_nn_reg(
+    input_size,
+    output_size,
+    hidden_layers=1,
+    dropout=0,
+    input_nodes=None,
+    summary=False,
+    kernel_initializer="glorot_uniform",
+    bias_initializer="zeros",
+    kernel_regularizer=None,
+    bias_regularizer=None,
+    optimizer="rmsprop",
+):
+    """Build an universal DNN for regression"""
 
-def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_nodes=None, summary=False,
-    kernel_initializer='glorot_uniform',  bias_initializer='zeros', 
-    kernel_regularizer=None, bias_regularizer=None, optimizer='rmsprop'):
-    """ Build an universal DNN for regression"""
-
-    import keras
-    from keras.models import Sequential
     from keras.layers.core import Dense, Dropout
-    from keras import regularizers
- 
+    from keras.models import Sequential
+
     if not input_nodes:
         input_nodes = input_size
 
-        # weights = keras.initializers.RandomNormal(stddev=0.00001) 
+        # weights = keras.initializers.RandomNormal(stddev=0.00001)
 
     model = Sequential()
 
@@ -944,19 +938,23 @@ def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_node
         Dense(
             input_nodes,
             input_dim=input_size,
-            activation='relu',
+            activation="relu",
             kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer))
+            bias_initializer=bias_initializer,
+        )
+    )
     model.add(Dropout(dropout))
 
     # additional hidden layers
     for i in range(1, hidden_layers):
         model.add(
             Dense(
-                input_nodes//i+1,
-                activation='relu',
+                input_nodes // i + 1,
+                activation="relu",
                 kernel_initializer=kernel_initializer,
-                bias_initializer=bias_initializer))
+                bias_initializer=bias_initializer,
+            )
+        )
         model.add(Dropout(dropout))
 
     # output layer
@@ -964,50 +962,63 @@ def build_nn_reg(input_size, output_size, hidden_layers=1, dropout=0, input_node
         Dense(
             output_size,
             kernel_initializer=kernel_initializer,
-            bias_initializer=bias_initializer))
+            bias_initializer=bias_initializer,
+        )
+    )
 
-    model.compile(loss='mean_squared_error', optimizer=optimizer)
-    
+    model.compile(loss="mean_squared_error", optimizer=optimizer)
+
     if summary:
         model.summary()
 
     return model
 
 
-
-def train_nn(model, x_train, y_train, class_weight=None,epochs=100, batch_size=128, verbose=0, 
-    callbacks=None, validation_split=0.0, validation_data=None, path=False, show=True):
-    """ 
+def train_nn(
+    model,
+    x_train,
+    y_train,
+    class_weight=None,
+    epochs=100,
+    batch_size=128,
+    verbose=0,
+    callbacks=None,
+    validation_split=0.0,
+    validation_data=None,
+    path=False,
+    show=True,
+):
+    """
     Train a neural network model. If no validation_data is provided, a split for validation
     will be used
     """
-    
+
     if show:
-        print('Training ....')
-    
-    #callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=0)]
+        print("Training ....")
+
+    # callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=0)]
     t0 = time()
 
     history = model.fit(
         x_train,
         y_train,
         epochs=epochs,
-        batch_size=batch_size,              
+        batch_size=batch_size,
         verbose=verbose,
         class_weight=class_weight,
         validation_split=validation_split,
-        validation_data = validation_data,
-        callbacks=callbacks
+        validation_data=validation_data,
+        callbacks=callbacks,
     )
 
     if show:
-        print("time: \t {:.1f} s".format(time() - t0))
+        print(f"time: \t {time() - t0:.1f} s")
         show_training(history)
 
     if path:
         model.save(path)
         print("\nModel saved at", path)
-    
+
     return history
 
 
@@ -1020,57 +1031,48 @@ def show_training(history):
     """
     hist = history.history
 
-    if 'loss' not in hist:
+    if "loss" not in hist:
         print("Error: 'loss' values not found in the history")
         return
 
     # plot training
     plt.figure(figsize=(14, 4))
     plt.subplot(121)
-    plt.plot(hist['loss'], label='Training')
-    if 'val_loss' in hist:
-        plt.plot(hist['val_loss'], label='Validation')
-    plt.xlabel('epoch')
-    plt.ylabel('loss')
+    plt.plot(hist["loss"], label="Training")
+    if "val_loss" in hist:
+        plt.plot(hist["val_loss"], label="Validation")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
     plt.legend()
 
-    if 'acc' in hist:
+    if "acc" in hist:
         plt.subplot(122)
-        plt.plot(hist['acc'], label='Training')
-        if 'val_acc' in hist:
-            plt.plot(hist['val_acc'], label='Validation')
-        plt.xlabel('epoch')
-        plt.ylabel('accuracy')
+        plt.plot(hist["acc"], label="Training")
+        if "val_acc" in hist:
+            plt.plot(hist["val_acc"], label="Validation")
+        plt.xlabel("epoch")
+        plt.ylabel("accuracy")
         plt.legend()
 
     plt.show()
 
     # show final results
-    print("\nTraining loss:  \t{:.4f}".format(hist['loss'][-1]))
-    if 'val_loss' in hist:
-        print("Validation loss: \t{:.4f}".format(hist['val_loss'][-1]))
-    if 'acc' in hist:
-        print("\nTraining accuracy: \t{:.3f}".format(hist['acc'][-1]))
-    if 'val_acc' in hist:
-        print("Validation accuracy:\t{:.3f}".format(hist['val_acc'][-1]))
+    print("\nTraining loss:  \t{:.4f}".format(hist["loss"][-1]))
+    if "val_loss" in hist:
+        print("Validation loss: \t{:.4f}".format(hist["val_loss"][-1]))
+    if "acc" in hist:
+        print("\nTraining accuracy: \t{:.3f}".format(hist["acc"][-1]))
+    if "val_acc" in hist:
+        print("Validation accuracy:\t{:.3f}".format(hist["val_acc"][-1]))
 
 
-def XGBClassifier(x_train,
-                  y_train,
-                  x_test,
-                  y_test,
-                  max_depth=3,
-                  learning_rate=0.1,
-                  n_estimators=100):
-    """ Custom XGBoost classifier """
+def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0.1, n_estimators=100):
+    """Custom XGBoost classifier"""
 
     import xgboost as xgb
     from sklearn.metrics import accuracy_score
 
-    clf = xgb.XGBClassifier(
-        max_depth=max_depth,
-        n_estimators=n_estimators,
-        learning_rate=learning_rate)
+    clf = xgb.XGBClassifier(max_depth=max_depth, n_estimators=n_estimators, learning_rate=learning_rate)
 
     t0 = time()
 
@@ -1080,42 +1082,42 @@ def XGBClassifier(x_train,
     accuracy = accuracy_score(y_test, y_pred)
 
     print("\n", "XGBoost", "\n", "-" * 20)
-    print("Test Accuracy:  \t {:.3f}".format(accuracy))
-    print("Training Time:  \t {:.1f} ms".format(train_time * 1000))
+    print(f"Test Accuracy:  \t {accuracy:.3f}")
+    print(f"Training Time:  \t {train_time * 1000:.1f} ms")
     return clf
 
 
-def ml_classification(x_train,
-                      y_train,
-                      x_test,
-                      y_test,
-                      cross_validation=False,
-                      show=False):
+def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
-    from sklearn.tree import DecisionTreeClassifier
+
+    from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
     from sklearn.naive_bayes import GaussianNB
-    from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier, ExtraTreesClassifier
+    from sklearn.tree import DecisionTreeClassifier
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
-    classifiers = (GaussianNB(), AdaBoostClassifier(),
-                   DecisionTreeClassifier(), RandomForestClassifier(100),
-                   ExtraTreesClassifier(100))
+    classifiers = (
+        GaussianNB(),
+        AdaBoostClassifier(),
+        DecisionTreeClassifier(),
+        RandomForestClassifier(100),
+        ExtraTreesClassifier(100),
+    )
 
     names = [
-        "Naive Bayes", "AdaBoost", "Decision Tree", "Random Forest",
-        "Extremely Randomized Trees"
+        "Naive Bayes",
+        "AdaBoost",
+        "Decision Tree",
+        "Random Forest",
+        "Extremely Randomized Trees",
     ]
 
-    col = [
-        'Time (s)', 'Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC',
-        'F1-score'
-    ]
+    col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
     results = pd.DataFrame(columns=col)
 
     for idx, clf in enumerate(classifiers):
@@ -1128,18 +1130,16 @@ def ml_classification(x_train,
         t0 = time()
         # Fitting the model without cross validation
 
-        warnings.filterwarnings(
-            "ignore", message="overflow encountered in reduce")
+        warnings.filterwarnings("ignore", message="overflow encountered in reduce")
 
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
 
-        loss, acc, pre, rec, roc, f1 = binary_classification_scores(
-            y_test, y_pred[:, 1], show=show)
+        loss, acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:, 1], show=show)
 
         if cross_validation:
-            warnings.warn('Cross-validation removed')
+            warnings.warn("Cross-validation removed")
 
             # k_fold = KFold(n_splits=10)
 
@@ -1155,45 +1155,45 @@ def ml_classification(x_train,
             # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(
-            pd.DataFrame(
-                [[train_time, loss, acc, pre, rec, roc, f1]],
-                columns=col,
-                index=[name]))
+        results = results.append(pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name]))
 
-    return results.sort_values('Accuracy', ascending=False).round(2)
+    return results.sort_values("Accuracy", ascending=False).round(2)
 
 
-def ml_regression(x_train,
-                  y_train,
-                  x_test,
-                  y_test,
-                  cross_validation=False,
-                  show=False):
+def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning regression models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
     from time import time
-    from sklearn.linear_model import LinearRegression
-    from sklearn.linear_model import BayesianRidge
-    from sklearn.tree import DecisionTreeRegressor
-    from sklearn.neighbors import KNeighborsRegressor
+
     from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
+    from sklearn.linear_model import BayesianRidge, LinearRegression
+    from sklearn.neighbors import KNeighborsRegressor
+    from sklearn.tree import DecisionTreeRegressor
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
-    regressors = (LinearRegression(), BayesianRidge(), DecisionTreeRegressor(),
-                  KNeighborsRegressor(n_neighbors=10), AdaBoostRegressor(),
-                  RandomForestRegressor(100))
+    regressors = (
+        LinearRegression(),
+        BayesianRidge(),
+        DecisionTreeRegressor(),
+        KNeighborsRegressor(n_neighbors=10),
+        AdaBoostRegressor(),
+        RandomForestRegressor(100),
+    )
 
     names = [
-        "Linear", "Bayesian Ridge", "Decision Tree", "KNeighbors", "AdaBoost",
-        "Random Forest"
+        "Linear",
+        "Bayesian Ridge",
+        "Decision Tree",
+        "KNeighbors",
+        "AdaBoost",
+        "Random Forest",
     ]
 
-    col = ['Time (s)', 'Test loss', 'Test R2 score']
+    col = ["Time (s)", "Test loss", "Test R2 score"]
     results = pd.DataFrame(columns=col)
 
     for idx, clf in enumerate(regressors):
@@ -1212,7 +1212,7 @@ def ml_regression(x_train,
         loss, r2 = regression_scores(y_test, y_pred, show=show)
 
         if cross_validation:
-            warnings.warn('Cross-validation removed')
+            warnings.warn("Cross-validation removed")
 
             # k_fold = KFold(n_splits=10)
             # t0 = time()
@@ -1228,40 +1228,43 @@ def ml_regression(x_train,
             # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
             # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(
-            pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
+        results = results.append(pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
 
         if show:
             print("-" * 20)
-            print("Training Time:  \t {:.1f} s".format(train_time))
-            print("Test loss:  \t\t {:.4f}".format(loss))
-            print("Test R2-score:  \t {:.3f}\n".format(r2))
+            print(f"Training Time:  \t {train_time:.1f} s")
+            print(f"Test loss:  \t\t {loss:.4f}")
+            print(f"Test R2-score:  \t {r2:.3f}\n")
 
-    return results.sort_values('Test loss').round(2)
+    return results.sort_values("Test loss").round(2)
 
 
 def binary_classification_scores(y_test, y_pred, return_dataframe=False, index=" ", show=True):
-    """ Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score """
+    """Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score"""
 
-    from sklearn.metrics import log_loss, accuracy_score, precision_score, recall_score
-    from sklearn.metrics import roc_auc_score, f1_score, confusion_matrix
+    from sklearn.metrics import (
+        accuracy_score,
+        confusion_matrix,
+        f1_score,
+        log_loss,
+        precision_score,
+        recall_score,
+        roc_auc_score,
+    )
 
     rec, roc, f1 = 0, 0, 0
 
     y_pred_b = (y_pred > 0.5).astype(int)
 
-    warnings.filterwarnings(
-        "ignore", message="divide by zero encountered in log")
-    warnings.filterwarnings(
-        "ignore", message="invalid value encountered in multiply")
+    warnings.filterwarnings("ignore", message="divide by zero encountered in log")
+    warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
     loss = log_loss(y_test, y_pred)
 
     acc = accuracy_score(y_test, y_pred_b)
 
     warnings.filterwarnings(
         "ignore",
-        message=
-        "Precision is ill-defined and being set to 0.0 due to no predicted samples"
+        message="Precision is ill-defined and being set to 0.0 due to no predicted samples",
     )
     pre = precision_score(y_test, y_pred_b)
 
@@ -1271,54 +1274,54 @@ def binary_classification_scores(y_test, y_pred, return_dataframe=False, index="
         f1 = f1_score(y_test, y_pred_b)
 
     if show:
-    #     print('Scores:\n' + '-' * 11)
-    #     print('Log_Loss: \t{:.4f}'.format(loss))
-    #     print('Accuracy: \t{:.2f}'.format(acc))
-    #     print('Precision: \t{:.2f}'.format(pre))
-    #     print('Recall: \t{:.2f}'.format(rec))
-    #     print('ROC AUC: \t{:.2f}'.format(roc))
-    #     print('F1-score: \t{:.2f}'.format(f1))
-        print('\nConfusion matrix: \n', confusion_matrix(y_test, y_pred_b))
+        #     print('Scores:\n' + '-' * 11)
+        #     print('Log_Loss: \t{:.4f}'.format(loss))
+        #     print('Accuracy: \t{:.2f}'.format(acc))
+        #     print('Precision: \t{:.2f}'.format(pre))
+        #     print('Recall: \t{:.2f}'.format(rec))
+        #     print('ROC AUC: \t{:.2f}'.format(roc))
+        #     print('F1-score: \t{:.2f}'.format(f1))
+        print("\nConfusion matrix: \n", confusion_matrix(y_test, y_pred_b))
 
     if return_dataframe:
-        col = ['Loss', 'Accuracy', 'Precision', 'Recall', 'ROC-AUC','F1-score']
-        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)   
+        col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
+        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)
         return scores
 
     return loss, acc, pre, rec, roc, f1
 
 
 def regression_scores(y_test, y_pred, show=False, return_dataframe=False, index=" "):
-    """ Return regression metrics: (loss, R2 Score) """
+    """Return regression metrics: (loss, R2 Score)"""
 
-    from sklearn.metrics import r2_score, mean_squared_error
+    from sklearn.metrics import mean_squared_error, r2_score
 
     r2 = r2_score(y_test, y_pred)
     loss = mean_squared_error(y_test, y_pred)
 
     if show:
-        print('Scores:\n' + '-' * 11)
-        print('Loss (mse): \t{:.4f}'.format(loss))
-        print('R2 Score: \t{:.2f}'.format(r2))
+        print("Scores:\n" + "-" * 11)
+        print(f"Loss (mse): \t{loss:.4f}")
+        print(f"R2 Score: \t{r2:.2f}")
 
     if return_dataframe:
-        col = ['Loss', 'R2 Score']
-        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)   
+        col = ["Loss", "R2 Score"]
+        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)
         return scores
 
     return loss, r2
 
 
-def feature_importances(features, model, top=10, plot=True):
-    """ Return a dataframe with the most relevant features from a trained tree-based model """
+def feature_importance(features, model, top=10, plot=True):
+    """Return a dataframe with the most relevant features from a trained tree-based model"""
 
-    n = len(features) 
+    n = len(features)
     if n < top:
         top = n
 
-    #print("\n Top contributing features:\n", "-" * 26)
-    importances = pd.DataFrame(data={'Importances':model.feature_importances_}, index=features)
-    importances = importances.sort_values('Importances', ascending=False).round(2).head(top)
+    # print("\n Top contributing features:\n", "-" * 26)
+    importances = pd.DataFrame(data={"Importances": model.feature_importance_}, index=features)
+    importances = importances.sort_values("Importances", ascending=False).round(2).head(top)
 
     if plot:
         figsize = (8, top // 2 + 1)
