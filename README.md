@@ -1,8 +1,23 @@
 # Data science projects with Keras
 
+**Disclaimer: This project contains obsolete modules (2018). It is currently under maintenance / update (July 2022)**
+
 This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/)
 
-## Classification models
+[Angel Martinez-Tenor](https://profile.angelmtenor.com/)
+
+Based on use cases from: 
+* [Udacity](https://www.udacity.com/)
+* [Coursera](https://www.coursera.org/)
+* [Kaggle](https://www.kaggle.com/)
+
+January 2018 # (last maintenance: July 2022) [Github repo](https://github.com/angelmtenor/data-science-keras)
+<br>
+
+
+
+## Scenarios
+### Classification models
 
 - [Enron Scandal](https://github.com/angelmtenor/data-science-keras/blob/master/enron_scandal.ipynb) Identifies Enron employees who may have committed fraud
 
@@ -17,7 +32,7 @@ This repo contains a set of data science projects solved with artificial neural 
 
 - [Titanic](https://github.com/angelmtenor/data-science-keras/blob/master/titanic.ipynb)  Predicts survival probabilities from the sinking of the RMS Titanic
 
-## Regression models
+### Regression models
 
 - [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/bike_rental.ipynb) Predicts daily bike rental ridership
 
@@ -26,7 +41,7 @@ This repo contains a set of data science projects solved with artificial neural 
 - [Simple tickets](https://github.com/angelmtenor/data-science-keras/blob/master/simple_tickets.ipynb)  Predicts the number of tickets requested by different clients
 
 
-## Recurrent models
+### Recurrent models
 
 - [Machine Translation](https://github.com/angelmtenor/data-science-keras/blob/master/machine_translation.ipynb)  Translates sentences from English to French (NLP)
 
@@ -34,37 +49,44 @@ This repo contains a set of data science projects solved with artificial neural 
 
 - [Text generator](https://github.com/angelmtenor/data-science-keras/blob/master/text_generator.ipynb) Creates an English language sequence generator (NLP)
 
-## Social network models
+### Social network models
 
 - [Network](https://github.com/angelmtenor/data-science-keras/blob/master/network.ipynb)  Predicts missing salaries and new email connections from a company's email network
 
 
-## Requirements
-- Python 3.6+, Pandas, Numpy, Scikit-learn, Matplotlib, Seaborn, and Jupyter notebook. I recommend [Anaconda](https://www.anaconda.com/what-is-anaconda/)
-- TensorFlow and Keras. See [Installation section from Keras](https://github.com/keras-team/keras)
 
 
 ## Instructions
-
-* Clone the repository using `git`:
-``` sh
-git clone https://github.com/angelmtenor/data-science-keras.git
-```
-
-* Open the desired project with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
-``` sh
-cd data-science-keras
-jupyter notebook
-```
+*Python 3.7+ required. Conda environment with Python 3.10 suggested*
 
 
-## Creator
+1. Clone the repository using `git`:
+    ```
+    git clone https://github.com/angelmtenor/data-science-keras.git
+    ```
 
-* Angel Martinez-Tenor
-    - [https://github.com/angelmtenor](https://github.com/angelmtenor)
+2. Create a virtual/conda environment (optional):
+    ```
+    conda create -n ds-keras python=3.10
+    conda activate ds-keras
+    ```
 
-With the help of:
+3. In the folder of the cloned repository, install the dependencies (Numpy, Matplotlib, Seaborn, Pillow, TensorFlow, and Keras):
+    ```
+    cd data-science-keras
+    pip install -r requirements.txt
+    ```
 
-* [Udacity](https://www.udacity.com/)
-* [Coursera](https://www.coursera.org/)
-* [Kaggle](https://www.kaggle.com/)
+    To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt). 
+
+
+4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
+    ``` 
+    cd data-science-keras
+    jupyter notebook
+    ```
+
+# *Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2080 on WSL (Windows 11)*
+
+
+
