@@ -394,7 +394,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
 
         if row == nrows - 1 and len(numerical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
-            sns.distplot(df[numerical_f[-1]].dropna(), kde=kde)
+            sns.histplot(df[numerical_f[-1]].dropna(), kde=kde)
 
         else:  # standard case
 
@@ -404,7 +404,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
             _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
 
             for idx, n in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
-                sns.distplot(df[n].dropna(), ax=ax[idx], kde=kde)
+                sns.histplot(df[n].dropna(), ax=ax[idx], kde=kde)
 
 
 def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, point_size=1, figsize=(17, 4), ncols=5):
@@ -504,7 +504,7 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
         if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             # so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
-            sns.countplot(df[categorical_f[-1]].dropna())
+            sns.countplot(x=df[categorical_f[-1]].dropna())
 
         else:  # standard case
 
@@ -515,7 +515,7 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
 
             for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
                 so = sorted({v for v in df[n].values if str(v) != "nan"})
-                axs = sns.countplot(df[n].dropna(), ax=ax[idx], order=so)
+                axs = sns.countplot(x=df[n].dropna(), ax=ax[idx], order=so)
                 if idx != 0:
                     axs.set(ylabel="")
 
@@ -1155,7 +1155,8 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
             # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name]))
+        results = pd.concat([results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], 
+            columns=col, index=[name])])
 
     return results.sort_values("Accuracy", ascending=False).round(2)
 
@@ -1228,7 +1229,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
             # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
             # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = results.append(pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name]))
+        results = pd.concat([results, pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name])])
 
         if show:
             print("-" * 20)
@@ -1320,12 +1321,12 @@ def feature_importance(features, model, top=10, plot=True):
         top = n
 
     # print("\n Top contributing features:\n", "-" * 26)
-    importances = pd.DataFrame(data={"Importances": model.feature_importance_}, index=features)
-    importances = importances.sort_values("Importances", ascending=False).round(2).head(top)
+    importance = pd.DataFrame(data={"Importance": model.feature_importances_}, index=features)
+    importance = importance.sort_values("Importance", ascending=False).round(2).head(top)
 
     if plot:
         figsize = (8, top // 2 + 1)
-        importances.plot.barh(figsize=figsize)
+        importance.plot.barh(figsize=figsize)
         plt.gca().invert_yaxis()
 
-    return importances
+    return importance
