@@ -10,16 +10,15 @@ import os
 import platform
 import random as python_random
 import sys
-from time import time, ctime
 import warnings
 from pathlib import Path
+from time import ctime, time
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pkg_resources
 import seaborn as sns
-
 
 sns.set()  # set seaborn style
 
@@ -1098,9 +1097,9 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
+    from lightgbm import LGBMClassifier
     from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
     from sklearn.naive_bayes import GaussianNB
-    from lightgbm import LGBMClassifier
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
@@ -1167,10 +1166,10 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     """
     from time import time
 
+    from lightgbm import LGBMRegressor
     from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
     from sklearn.linear_model import BayesianRidge, LinearRegression
     from sklearn.neighbors import KNeighborsRegressor
-    from lightgbm import LGBMRegressor
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
