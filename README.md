@@ -1,20 +1,13 @@
 # Data science projects with Keras
 
-**Disclaimer: This project contains obsolete modules (2018). It is currently under maintenance / update (July 2022)**
+[Angel Martinez-Tenor](https://profile.angelmtenor.com/). 
 
-This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/)
+**Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist**
 
-[Angel Martinez-Tenor](https://profile.angelmtenor.com/)
+This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). It is based on a set of use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/) & [Kaggle](https://www.kaggle.com/)
 
-Based on use cases from:
-* [Udacity](https://www.udacity.com/)
-* [Coursera](https://www.coursera.org/)
-* [Kaggle](https://www.kaggle.com/)
-
-January 2018 # (last maintenance: July 2022) [Github repo](https://github.com/angelmtenor/data-science-keras)
+[Github repo](https://github.com/angelmtenor/data-science-keras)
 <br>
-
-
 
 ## Scenarios
 ### Classification models
