@@ -6,3 +6,6 @@ ztemplate.ipynb
 data/maintenance_training_filtered.csv
 data/maintenance_categorical_values.npy
 helper (copy).py
+*.pyc
+*.h5
+models
