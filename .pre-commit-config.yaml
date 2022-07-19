@@ -2,7 +2,7 @@
 # Update versions: 'pre-commit autoupdate'
 # Manual check: 'pre-commit run --all-files'
 # Angel Martinez Tenor - July 2022
-
+exclude: 'data/'
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
@@ -73,4 +73,4 @@ repos:
 #     files: \.ipynb$
 #     stages: [commit]
 #     language: system
-#     entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace # notebooks/test_exp*
+#     entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
