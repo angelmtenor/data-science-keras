@@ -1,6 +1,6 @@
 # Data science projects with Keras
 
-[Angel Martinez-Tenor](https://profile.angelmtenor.com/). 
+[Angel Martinez-Tenor](https://profile.angelmtenor.com/).
 
 **Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist**
 
