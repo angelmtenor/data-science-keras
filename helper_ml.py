@@ -1,5 +1,7 @@
 """
 Helper module for Data-Science-Keras repository
+Angel Martinez-Tenor 2018
+TODO: Update with best practices 2022 (ethics & green code)
 """
 from __future__ import annotations
 
@@ -17,9 +19,6 @@ import numpy as np
 import pandas as pd
 import pkg_resources
 import seaborn as sns
-
-
-
 
 
 sns.set()  # set seaborn style
@@ -137,8 +136,6 @@ def reproducible(seed: int = 0) -> None:
     tf.random.set_seed(seed)
 
 
-
-
 # DATA PROCESSING ------------------------------------------------
 
 
@@ -229,44 +226,6 @@ def classify_data(df, target, numerical=None, categorical=None):
     return df
 
 
-def remove_lowfreq(df, target=None, ratio=0.01, show=False, inplace=False):
-    """
-    Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
-    Only non-numerical columns are evaluated
-    """
-
-    warnings.warn(' Use new "remove_categories" function', DeprecationWarning, stacklevel=2)
-
-    if not inplace:
-        df = df.copy()
-
-    threshold = df.shape[0] * ratio
-
-    if not target:
-        target = []
-
-    df = force_categorical(df)
-    categorical = df.select_dtypes(include=["category"])
-    categorical_f = [c for c in categorical if c not in target]
-
-    if not categorical_f:
-        print("None categorical variables found")
-
-    for f in categorical_f:
-
-        count = df[f].value_counts()
-        low_freq = list(count[count < threshold].index)
-        if len(low_freq) > 0:
-            df[f] = df[f].replace(low_freq, np.nan)
-            df[f].cat.remove_unused_categories(inplace=True)
-            # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
-        if show:
-            print(f, dict(df[f].value_counts()))
-
-    if not inplace:
-        return df
-
-
 def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=None):
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
@@ -301,16 +260,14 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
             low_freq = set(count[count < threshold].index)
             # high_freq = list(count[count >= threshold].index)
             if low_freq:
-                print(f'Removing {len(low_freq)} categories from feature {f}')
+                print(f"Removing {len(low_freq)} categories from feature {f}")
                 df.loc[df[f].isin(low_freq), f] = np.nan
 
             # Slow:
             #     df[f] = df[f].replace(low_freq, np.nan)
             #     df[f] = df[f].cat.remove_unused_categories()
-            
 
-
-                # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
+            # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
 
             dict_categories[f] = df[f].cat.categories
 
@@ -320,20 +277,18 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
     return df, dict_categories
 
 
-def remove_outliers(df, sigma=3, inplace=False):
+def remove_outliers(df, sigma=3):
     """
     Remove outliers from numerical variables
     """
-    if not inplace:
-        df = df.copy()
+    df = df.copy()
 
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
     df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
     print(list(num_df))
 
-    if not inplace:
-        return df
+    return df
 
 
 def missing(df, limit=None, figsize=None, plot=True):
@@ -367,18 +322,6 @@ def missing(df, limit=None, figsize=None, plot=True):
         return missing_ratio[missing_ratio > limit].index.tolist()
 
 
-def simple_fill(df, target, include_numerical=True, include_categorical=True, inplace=False):
-    warnings.warn('Use new "fill_simple" function', stacklevel=2)
-
-    return fill_simple(
-        df,
-        target,
-        include_numerical=include_numerical,
-        include_categorical=include_categorical,
-        inplace=inplace,
-    )
-
-
 def fill_simple(
     df,
     target,
@@ -386,7 +329,6 @@ def fill_simple(
     missing_categorical="mode",
     include_numerical=True,
     include_categorical=True,
-    inplace=False,
 ):
     """
     Fill missing numerical values of df with the median of the column ((include_numerical=True)
@@ -394,8 +336,7 @@ def fill_simple(
     Target column is not evaluated
     """
 
-    if not inplace:
-        df = df.copy()
+    df = df.copy()
 
     numerical = list(df.select_dtypes(include=[np.number]))
     numerical_f = [col for col in numerical if col not in target]
@@ -406,9 +347,9 @@ def fill_simple(
     if include_numerical:
         for f in numerical_f:
             if missing_numerical == "median":
-                df[f].fillna(df[f].median(), inplace=True)
+                df[f] = df[f].fillna(df[f].median())
             elif missing_numerical == "mean":
-                df[f].fillna(df[f].mean(), inplace=True)
+                df[f] = df[f].fillna(df[f].mean())
             else:
                 warnings.warn("missing_numerical must be 'mean' or 'median'")
                 print(f"Missing numerical filled with: {missing_numerical}")
@@ -420,18 +361,15 @@ def fill_simple(
         if missing_categorical == "mode":
             modes = df[categorical_f].mode()
             for idx, f in enumerate(df[categorical_f]):
-                df[f].fillna(modes.iloc[0, idx], inplace=True)
+                df[f] = df[f].fillna(modes.iloc[0, idx])
         else:
             for f in categorical_f:
                 if missing_categorical not in df[f].cat.categories:
-                    df[f].cat.add_categories(missing_categorical, inplace=True)
-                df[f].fillna(missing_categorical, inplace=True)
+                    df[f] = df[f].cat.add_categories(missing_categorical)
+                df[f] = df[f].fillna(missing_categorical)
             print(f'Missing categorical filled with label: "{missing_categorical}"')
 
-    # df[categorical_f].apply(lambda x:x.fillna(x.value_counts().index[0], inplace=True))
-
-    if not inplace:
-        return df
+    return df
 
 
 # DATA EXPLORATION ------------------------------------------------
@@ -712,14 +650,14 @@ def correlation(df, target, limit=0, figsize=None, plot=True):
         return corr.loc[abs(corr[target[0]]) < abs(limit)].index.tolist()
 
 
-def show_correlation(df, target, limit=None, figsize=None):
-    """
-    Display Pearson correlation coefficient between target and numerical features
-    """
+# def show_correlation(df, target, limit=None, figsize=None):
+#     """
+#     Display Pearson correlation coefficient between target and numerical features
+#     """
 
-    warnings.warn(' Use new "correlation" function', DeprecationWarning, stacklevel=2)
+#     warnings.warn(' Use new "correlation" function', DeprecationWarning, stacklevel=2)
 
-    return correlation(df, target, limit=limit, figsize=figsize)
+#     return correlation(df, target, limit=limit, figsize=figsize)
 
 
 # DATA PROCESSING FOR ML & DL ---------------------------------------------
@@ -790,6 +728,7 @@ def standardize(data, use_scale=None):
 
 def replace_by_dummies(data, target, dummies=None, drop_first=False):
     """
+    TODO: Optimize (high computation).  Replace by scikit-learn Pipelines
     Replace categorical features by dummy features (no target)
     If no dummy list is used, a new one is created.
 
@@ -812,7 +751,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
     for f in categorical_f:
         dummy = pd.get_dummies(data[f], prefix=f, drop_first=drop_first)
         data = pd.concat([data, dummy], axis=1)
-        data.drop(f, axis=1, inplace=True)
+        data = data.drop(f, axis=1)
 
         found_dummies.extend(dummy)
 
@@ -821,7 +760,7 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
         # remove new dummies not in given dummies
         new = set(found_dummies) - set(dummies)
         for n in new:
-            data.drop(n, axis=1, inplace=True)
+            data = data.drop(n, axis=1)
 
         # fill missing dummies with empty values (0)
         missing = set(dummies) - set(found_dummies)
@@ -836,13 +775,6 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
         data[dummy] = data[dummy].astype("category")
 
     return data, dummies
-
-
-def create_dummy(data, target, use_dummies=None):
-
-    warnings.warn('Use new "replace_by_dummies" function', stacklevel=2)
-
-    return replace_by_dummies(data, target, dummies=use_dummies)
 
 
 def get_class_weight(y):
@@ -1161,7 +1093,6 @@ def show_training(history):
         print("Validation accuracy:\t{:.3f}".format(hist["val_acc"][-1]))
 
 
-
 def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
@@ -1170,6 +1101,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
     from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
     from sklearn.naive_bayes import GaussianNB
     from lightgbm import LGBMClassifier
+
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
@@ -1178,17 +1110,10 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
         AdaBoostClassifier(),
         RandomForestClassifier(100),
         ExtraTreesClassifier(100),
-        LGBMClassifier(n_jobs=-1, n_estimators=30, max_depth=17)
-
+        LGBMClassifier(n_jobs=-1, n_estimators=30, max_depth=17),
     )
 
-    names = [
-        "Naive Bayes",
-        "AdaBoost",
-        "Random Forest",
-        "Extremely Randomized Trees",
-        "LGBM"
-    ]
+    names = ["Naive Bayes", "AdaBoost", "Random Forest", "Extremely Randomized Trees", "LGBM"]
 
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
     results = pd.DataFrame(columns=col)
@@ -1212,7 +1137,7 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
         loss, acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:, 1], show=show)
 
         if cross_validation:
-            warnings.warn("Cross-validation removed")
+            warnings.warn("Cross-validation removed")  # TODO: Update with best practices 2022 (ethics & green code)
 
             # k_fold = KFold(n_splits=10)
 
@@ -1256,17 +1181,10 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         KNeighborsRegressor(n_neighbors=10),
         AdaBoostRegressor(),
         RandomForestRegressor(max_depth=17),
-        LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17)
+        LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17),
     )
 
-    names = [
-        "Linear",
-        "Bayesian Ridge",
-        "KNeighbors",
-        "AdaBoost", 
-        "Random Forest",
-        "LGBM"
-    ]
+    names = ["Linear", "Bayesian Ridge", "KNeighbors", "AdaBoost", "Random Forest", "LGBM"]
 
     col = ["Time (s)", "Test loss", "Test R2 score"]
     results = pd.DataFrame(columns=col)
@@ -1287,7 +1205,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         loss, r2 = regression_scores(y_test, y_pred, show=show)
 
         if cross_validation:
-            warnings.warn("Cross-validation removed")
+            warnings.warn("Cross-validation removed")  # TODO: Update with best practices 2022 (ethics & green code)
 
             # k_fold = KFold(n_splits=10)
             # t0 = time()
