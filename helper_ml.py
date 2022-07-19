@@ -1,55 +1,142 @@
 """
 Helper module for Data-Science-Keras repository
 """
+from __future__ import annotations
+
 import math
 import os
-import random as rn
+import platform
+import random as python_random
+import sys
+from time import time, ctime
 import warnings
-from time import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pkg_resources
 import seaborn as sns
+
+
+
+
 
 sns.set()  # set seaborn style
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
+import tensorflow as tf
 
-def info_gpu():
-    """Show GPU device (if available), keras version and tensorflow version"""
-    import keras
-    import tensorflow as tf
+INSTALLED_PACKAGES = pkg_resources.working_set
+installed_packages_dict = {i.key: i.version for i in INSTALLED_PACKAGES}  # pylint: disable=not-an-iterable
 
-    # Check for a GPU
+DEFAULT_MODULES = ("tensorflow", "numpy")
+
+# ------------------   SYSTEM FUNCTIONS   ------------------
+
+
+def info_os():
+    """Print OS version"""
+    print(f"\nOS:\t{platform.platform()}")
+    # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
+
+
+def info_software(modules: list[str] = DEFAULT_MODULES):
+    """Print version of Python and Python modules using pkg_resources
+        note: not all modules can be obtained with pkg_resources: e.g: pytorch, mlflow ..
+    Args:
+        modules (list[str], optional): list of python libraries. Defaults to DEFAULT_MODULES.
+    Usage Sample:
+        modules = ['pandas', 'scikit-learn', 'flask', 'fastapi', 'shap', 'pycaret', 'tensorflow', 'streamlit']
+        ds.info_system(hardware=True, modules=modules)
+    """
+
+    # Python Environment
+    env = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
+    print(f"\nENV:\t{env}")
+
+    python_version = sys.version
+    print(f"\nPYTHON:\t{python_version}")
+
+    if modules is None:
+        modules = DEFAULT_MODULES
+
+    for i in modules:
+        if i in installed_packages_dict:
+            print(f"{i:<25}{installed_packages_dict.get(i):>10}")
+        else:
+            print(f"{i:<25}: {'--NO--':>10}")
+    print()
+
+
+def info_hardware():
+    """Show CPU, RAM, and GPU info"""
+
+    print("\nHARDWARE:")
+
+    # CPU INFO
+    try:
+        import cpuinfo  # pip py-cpuinfo
+
+        cpu = cpuinfo.get_cpu_info().get("brand_raw")
+        print(f"CPU:\t{cpu}")
+    except ImportError:
+        print("cpuinfo not found. (pip/conda: py-cpuinfo)")
+
+    # RAM INFO
+    try:
+        import psutil  # pip py-cpuinfo
+
+        ram = round(psutil.virtual_memory().total / (1024.0**3))
+        print(f"RAM:\t{ram} GB")
+    except ImportError:
+        print("psutil not found. (pip/conda psutil)")
+
+    # GPU INFO
     if not tf.test.gpu_device_name():
         print("-- No GPU  --")
     else:
-        print(f"{tf.test.gpu_device_name()}")
+        gpu_devices = tf.config.list_physical_devices("GPU")
+        details = tf.config.experimental.get_device_details(gpu_devices[0])
+        gpu_name = details.get("device_name", "CUDA-GPU found")
+        print(f"GPU:\t{gpu_name}")
+        # print(f"{tf.test.gpu_device_name()[1:]}")
 
-    # Check TensorFlow Version
-    print(f"Keras\t\tv{keras.__version__}")
-    print(f"TensorFlow\tv{tf.__version__}")
+
+def info_system(hardware: bool = True, modules: list[str] = None):
+    """Print Complete system info:
+        - Show CPU & RAM hardware=True (it can take a few seconds)
+        - Show OS version.
+        - Show versions of Python & Python modules
+        - Default list of Python modules:  ['pandas', 'scikit-learn']
+    Args:
+        hardware (bool, optional): Include hardware info. Defaults to True.
+        modules (list[str], optional): list of python libraries. Defaults to None.
+    """
+    if hardware:
+        info_hardware()
+    info_os()
+    info_software(modules=modules)
+
+    print(f"EXECUTION PATH: {Path().absolute()}")
+    print(f"EXECUTION DATE: {ctime()}")
 
 
-def reproducible(seed=42):
-    import tensorflow as tf
-
-    """ Setup reproducible results from run to run using Keras
+def reproducible(seed: int = 0) -> None:
+    """Setup reproducible results from run to run using Keras
     https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
+    Args:
+        seed (int): Seed value for reproducible results. Default to 0.
     """
 
     os.environ["PYTHONHASHSEED"] = "0"
+
     np.random.seed(seed)
-    rn.seed(seed)
-    # Multiple threads are a potential source of non-reproducible results.
-    # session_conf = tf.ConfigProto(
-    #     intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    python_random.seed(seed)
     tf.random.set_seed(seed)
 
-    # sess = tf.compat.v1.Session()(graph=tf.get_default_graph(), config=session_conf)
-    # keras.backend.set_session(sess)
+
 
 
 # DATA PROCESSING ------------------------------------------------
@@ -203,7 +290,7 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
 
     if dict_categories:
         for f in categorical_f:
-            df[f].cat.set_categories(dict_categories[f], inplace=True)
+            df[f] = df[f].cat.set_categories(dict_categories[f])
 
     else:
         dict_categories = dict()
@@ -211,10 +298,18 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
         for f in categorical_f:
 
             count = df[f].value_counts()
-            low_freq = list(count[count < threshold].index)
+            low_freq = set(count[count < threshold].index)
+            # high_freq = list(count[count >= threshold].index)
             if low_freq:
-                df[f] = df[f].replace(low_freq, np.nan)
-                df[f].cat.remove_unused_categories(inplace=True)
+                print(f'Removing {len(low_freq)} categories from feature {f}')
+                df.loc[df[f].isin(low_freq), f] = np.nan
+
+            # Slow:
+            #     df[f] = df[f].replace(low_freq, np.nan)
+            #     df[f] = df[f].cat.remove_unused_categories()
+            
+
+
                 # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
 
             dict_categories[f] = df[f].cat.categories
@@ -769,12 +864,12 @@ def one_hot_output(y_train, y_test=None):
     Return one hot encoded output
     If y_test is provided, both (y_train, y_test) encoded are returned
     """
-    import keras
+    import tensorflow as tf
 
     num_classes = len(np.unique(y_train))
-    y_train = keras.utils.to_categorical(y_train, num_classes)
+    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
     if y_test.any():
-        y_test = keras.utils.to_categorical(y_test, num_classes)
+        y_test = tf.keras.utils.to_categorical(y_test, num_classes)
         return y_train, y_test
     else:
         return y_train
@@ -1066,55 +1161,33 @@ def show_training(history):
         print("Validation accuracy:\t{:.3f}".format(hist["val_acc"][-1]))
 
 
-def XGBClassifier(x_train, y_train, x_test, y_test, max_depth=3, learning_rate=0.1, n_estimators=100):
-    """Custom XGBoost classifier"""
-
-    import xgboost as xgb
-    from sklearn.metrics import accuracy_score
-
-    clf = xgb.XGBClassifier(max_depth=max_depth, n_estimators=n_estimators, learning_rate=learning_rate)
-
-    t0 = time()
-
-    clf.fit(x_train, y_train)
-    train_time = time() - t0
-    y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_test, y_pred)
-
-    print("\n", "XGBoost", "\n", "-" * 20)
-    print(f"Test Accuracy:  \t {accuracy:.3f}")
-    print(f"Training Time:  \t {train_time * 1000:.1f} ms")
-    return clf
-
 
 def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
-    from time import time
-
     from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
     from sklearn.naive_bayes import GaussianNB
-    from sklearn.tree import DecisionTreeClassifier
-
+    from lightgbm import LGBMClassifier
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
 
     classifiers = (
         GaussianNB(),
         AdaBoostClassifier(),
-        DecisionTreeClassifier(),
         RandomForestClassifier(100),
         ExtraTreesClassifier(100),
+        LGBMClassifier(n_jobs=-1, n_estimators=30, max_depth=17)
+
     )
 
     names = [
         "Naive Bayes",
         "AdaBoost",
-        "Decision Tree",
         "Random Forest",
         "Extremely Randomized Trees",
+        "LGBM"
     ]
 
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
@@ -1155,8 +1228,9 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
             # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
 
-        results = pd.concat([results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], 
-            columns=col, index=[name])])
+        results = pd.concat(
+            [results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name])]
+        )
 
     return results.sort_values("Accuracy", ascending=False).round(2)
 
@@ -1171,7 +1245,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
     from sklearn.linear_model import BayesianRidge, LinearRegression
     from sklearn.neighbors import KNeighborsRegressor
-    from sklearn.tree import DecisionTreeRegressor
+    from lightgbm import LGBMRegressor
 
     # from sklearn.model_selection import KFold
     # from sklearn.base import clone
@@ -1179,19 +1253,19 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     regressors = (
         LinearRegression(),
         BayesianRidge(),
-        DecisionTreeRegressor(),
         KNeighborsRegressor(n_neighbors=10),
         AdaBoostRegressor(),
-        RandomForestRegressor(100),
+        RandomForestRegressor(max_depth=17),
+        LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17)
     )
 
     names = [
         "Linear",
         "Bayesian Ridge",
-        "Decision Tree",
         "KNeighbors",
-        "AdaBoost",
+        "AdaBoost", 
         "Random Forest",
+        "LGBM"
     ]
 
     col = ["Time (s)", "Test loss", "Test R2 score"]
