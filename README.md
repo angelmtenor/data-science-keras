@@ -6,7 +6,7 @@ This repo contains a set of data science projects solved with artificial neural 
 
 [Angel Martinez-Tenor](https://profile.angelmtenor.com/)
 
-Based on use cases from: 
+Based on use cases from:
 * [Udacity](https://www.udacity.com/)
 * [Coursera](https://www.coursera.org/)
 * [Kaggle](https://www.kaggle.com/)
@@ -77,16 +77,13 @@ January 2018 # (last maintenance: July 2022) [Github repo](https://github.com/an
     pip install -r requirements.txt
     ```
 
-    To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt). 
+    To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt).
 
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
-    ``` 
+    ```
     cd data-science-keras
     jupyter notebook
     ```
 
-# *Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2080 on WSL (Windows 11)*
-
-
-
+*Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2080 on WSL (Windows 11)*
