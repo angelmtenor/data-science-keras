@@ -21,6 +21,7 @@ import pkg_resources
 import seaborn as sns
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
+EXECUTION_PATH = "data-science-keras"
 
 sns.set()  # set seaborn style
 
@@ -34,7 +35,7 @@ installed_packages_dict = {i.key: i.version for i in INSTALLED_PACKAGES}  # pyli
 DEFAULT_MODULES = ("tensorflow", "numpy")
 
 
-def info_os():
+def info_os() -> None:
     """Print OS version"""
     print(f"\nOS:\t{platform.platform()}")
     # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
@@ -68,8 +69,8 @@ def info_software(modules: list[str] = DEFAULT_MODULES):
     print()
 
 
-def info_hardware():
-    """Show CPU, RAM, and GPU info"""
+def info_hardware() -> None:
+    """Print CPU, RAM, and GPU info"""
 
     print("\nHARDWARE:")
 
@@ -102,7 +103,7 @@ def info_hardware():
         # print(f"{tf.test.gpu_device_name()[1:]}")
 
 
-def info_system(hardware: bool = True, modules: list[str] = None):
+def info_system(hardware: bool = True, modules: list[str] = None) -> None:
     """Print Complete system info:
         - Show CPU & RAM hardware=True (it can take a few seconds)
         - Show OS version.
@@ -135,21 +136,34 @@ def reproducible(seed: int = 0) -> None:
     tf.random.set_seed(seed)
 
 
-def set_dir(execution_path: Path | str):
-    """Set the execution path. Used to execute notebooks located in a subfolder
+def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH):
+    """Set the execution path to a parent directory (up to 3 levels). Used to execute notebooks located in a subfolder
+    of the main path (e.g.: notebooks) as if they were in their parent main path (useful to reproduce production scripts)
     Args:
-        execution_path (Path or str): Execution path. e.g.: 'my-cloned-repo/'
+        execution_path (Path or str): Execution path. e.g.: 'my-repo'. Default to EXECUTION_PATH
+    TODO: Update by using environment variables with python-dotenv
     """
-    execution_path = Path(execution_path)
-    desired_folder = execution_path.stem
-    current_folder = Path().absolute().stem
-    if current_folder != desired_folder:
-        app_dir = Path().absolute() / execution_path
-        os.chdir(app_dir)
-        current_folder = Path().absolute().stem
+    target_path = Path(target_path)
+    current_path = Path().absolute()
+
+    assert str(target_path) in str(current_path), "target_path must be part of the current_path"
+
+    if current_path.stem == target_path.stem:
+        print(f"Already in target path {current_path}")
+        return
+    else:
+        new_path = current_path
+        for i in range(3):
+            new_path = new_path.parent
+            if new_path.stem == target_path.stem:
+                os.chdir(new_path)
+                print(f"Path changed to {new_path}")
+                return
+
+    assert False, f"{target_path} not found"
 
 
-# DATA PROCESSING ------------------------------------------------
+# DATA PROCESSING ------------------------------------------------ TODO: Add docstring
 
 
 def force_categorical(df):
