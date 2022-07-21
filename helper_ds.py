@@ -20,6 +20,8 @@ import pandas as pd
 import pkg_resources
 import seaborn as sns
 
+# SETUP ----------------------------------------------------------------------------------------------------------------
+
 sns.set()  # set seaborn style
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -30,8 +32,6 @@ INSTALLED_PACKAGES = pkg_resources.working_set
 installed_packages_dict = {i.key: i.version for i in INSTALLED_PACKAGES}  # pylint: disable=not-an-iterable
 
 DEFAULT_MODULES = ("tensorflow", "numpy")
-
-# ------------------   SYSTEM FUNCTIONS   ------------------
 
 
 def info_os():
@@ -133,6 +133,20 @@ def reproducible(seed: int = 0) -> None:
     np.random.seed(seed)
     python_random.seed(seed)
     tf.random.set_seed(seed)
+
+
+def set_dir(execution_path: Path | str):
+    """Set the execution path. Used to execute notebooks located in a subfolder
+    Args:
+        execution_path (Path or str): Execution path. e.g.: 'my-cloned-repo/'
+    """
+    execution_path = Path(execution_path)
+    desired_folder = execution_path.stem
+    current_folder = Path().absolute().stem
+    if current_folder != desired_folder:
+        app_dir = Path().absolute() / execution_path
+        os.chdir(app_dir)
+        current_folder = Path().absolute().stem
 
 
 # DATA PROCESSING ------------------------------------------------
