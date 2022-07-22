@@ -21,18 +21,19 @@ import pkg_resources
 import seaborn as sns
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
-EXECUTION_PATH = "data-science-keras"
-
-sns.set()  # set seaborn style
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import tensorflow as tf
 
+EXECUTION_PATH = "data-science-keras"
+
 INSTALLED_PACKAGES = pkg_resources.working_set
 installed_packages_dict = {i.key: i.version for i in INSTALLED_PACKAGES}  # pylint: disable=not-an-iterable
 
 DEFAULT_MODULES = ("tensorflow", "numpy")
+
+sns.set()  # set seaborn style
 
 
 def info_os() -> None:
@@ -136,7 +137,7 @@ def reproducible(seed: int = 0) -> None:
     tf.random.set_seed(seed)
 
 
-def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH):
+def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
     """Set the execution path to a parent directory (up to 3 levels). Used to execute notebooks located in a subfolder
     of the main path (e.g.: notebooks) as if they were in their parent main path (useful to reproduce production scripts)
     Args:
@@ -163,109 +164,95 @@ def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH):
     assert False, f"{target_path} not found"
 
 
-# DATA PROCESSING ------------------------------------------------ TODO: Add docstring
+# DATA PROCESSING ------------------------------------------------------------------------------------------------------
 
 
-def force_categorical(df):
-    """Force non numerical fields to pandas 'category' type"""
-    non_numerical = list(df.select_dtypes(exclude=[np.number]))
-
-    fields_to_change = [f for f in df if f in non_numerical and df[f].dtype.name != "category"]
-
-    for f in fields_to_change:
-        df[f] = df[f].astype("category")
-
-    if fields_to_change:
-        print("Non-numerical fields changed to 'category':", fields_to_change)
-
-    return df
-
-
-def expand_date(timeseries):
-    """
-    Expand a pandas datetime series returning a dataframe with these columns:
-    - hour : 0 - 23
-    - year:
-    - month: 1 - 12
-    - weekday : 0 Monday - 6 Sunday
-    - holiday : 0 - 1 holiday
-    - workingday : 0 weekend or holiday - 1 workingday
-
-    """
-    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
-
-    assert type(timeseries) == pd.core.series.Series, "input must be pandas series"
-    assert timeseries.dtypes == "datetime64[ns]", "input must be pandas datetime"
-
-    df = pd.DataFrame()
-
-    df["hour"] = timeseries.dt.hour
-
-    date = timeseries.dt.date
-    df["year"] = pd.DatetimeIndex(date).year
-    df["month"] = pd.DatetimeIndex(date).month
-    df["day"] = pd.DatetimeIndex(date).day
-    df["weekday"] = pd.DatetimeIndex(date).weekday
-
-    holidays = calendar().holidays(start=date.min(), end=date.max())
-    hol = date.astype("datetime64[ns]").isin(holidays)
-    df["holiday"] = hol.values.astype(int)
-    df["workingday"] = ((df["weekday"] < 5) & (df["holiday"] == 0)).astype(int)
-
-    return df
-
-
-def classify_data(df, target, numerical=None, categorical=None):
-    """Return a new dataframe with categorical variables as dtype 'categorical' and sorted
-    columns: numerical + categorical + target.
-
-    Input: dataframe, target list, numerical list, categorical list
-    Output: classified and sorted dataframe
+def sort_columns_by_type(df: pd.DataFrame, target: str | list = None, numerical: list = None, categorical: list = None):
+    """Return a dataframe with sorted columns: numerical + categorical + target. The categorical variables are also
+    converted to pandas 'category' type.
+    Args:
+        df (pd.DataFrame): Dataframe to sort
+        target (str|list, optional): Target variable. Defaults to None.
+        numerical (list, optional): List of numerical variables. Defaults to None.
+        categorical (list, optional): List of categorical variables. Defaults to None.
+    Returns:
+        pd.DataFrame: Dataframe with sorted columns Numerical + Categorical + Target
     """
 
     df = df.copy()
 
     assert numerical or categorical, "Numerical or categorical variable list must be provided"
 
+    if not target:
+        target = []
+    elif isinstance(target, str):
+        target = [target]
+
     if not categorical:
-        categorical = [col for col in df if col not in numerical]
+        categorical = list({col for col in df if col not in numerical + target})
     if not numerical:
-        numerical = [col for col in df if col not in categorical]
-
-    numerical_f = [col for col in numerical if col not in target]
-    categorical_f = [col for col in categorical if col not in target]
-
-    # sort columns of dataframe
-    df = df[numerical_f + categorical_f + target]
+        numerical = list({col for col in df if col not in categorical + target})
 
     # assign float data type to numerical columns
-    for n in df[numerical]:
-        df[n] = df[n].astype(np.float32)
+    df[numerical] = df[numerical].astype(np.float32)
 
     # assign category data type to categorical columns (force_categorical not needed)
-    for f in df[categorical]:
-        df[f] = df[f].astype("category")
+    df[categorical] = df[categorical].astype("category")
 
-    print(f"Numerical features: \t{len(numerical_f)}")
-    print(f"Categorical features: \t{len(categorical_f)}")
+    # sort columns of dataframe
+    numerical_features = [col for col in numerical if col not in target]
+    categorical_features = [col for col in categorical if col not in target]
+
+    df = df[numerical_features + categorical_features + target]
+    print(f"{len(numerical_features)} numerical features: \t {numerical_features}")
+    print(f"{len(categorical_features)} categorical features: \t {categorical_features}")
     for t in target:
         print(f"Target: \t\t{t} ({df[t].dtype})")
     return df
 
 
-def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=None):
+def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFrame:
+    """Force variables to pandas 'category' type. If columns is None, all non-numerical variables are converted"""
+
+    if columns is None:
+        columns = df.select_dtypes(exclude=["number"]).columns
+
+    # categorical columns don't need conversion
+    columns_to_convert = df[columns].select_dtypes(exclude=["category"]).columns
+
+    for f in columns_to_convert:
+        df[f] = df[f].astype("category")
+
+    if columns_to_convert:
+        print("Variables changed to 'category':", columns_to_convert)
+
+    return df
+
+
+def remove_categories(
+    df: pd.DataFrame, target: str | list = None, ratio: float = 0.01, show: bool = False, dict_categories: dict = None
+) -> tuple(pd.DataFrame, dict):
     """
-    Remove low frequency categorical values appearing less than 'ratio' in its column of the dataframe 'df'
-    Only non-numerical columns are evaluated
-    Return: modified df, dict_categories
+    Remove low frequency categorical values appearing less than 'ratio' in its column of the input dataframe.
+    Only non-numerical columns are evaluated.
+    Args:
+        df (pd.DataFrame): Dataframe to remove categories from
+        target (str|list, optional): Target variable. Defaults to None.
+        ratio (float, optional): Ratio of categories to remove. Defaults to 0.01.
+        show (bool, optional): Show removed categories. Defaults to False.
+        dict_categories (dict, optional): Dictionary with categories to remove. Defaults to None.
+    Returns:
+        pd.DataFrame: Dataframe with updated categories (after removal)
+        dict: Dictionary with updated categories (key: variable, value: list of categories)
     """
 
     df = df.copy()
-
     threshold = df.shape[0] * ratio
 
     if not target:
         target = []
+    elif isinstance(target, str):
+        target = [target]
 
     df = force_categorical(df)
     categorical = df.select_dtypes(include=["category"])
@@ -304,9 +291,14 @@ def remove_categories(df, target=None, ratio=0.01, show=False, dict_categories=N
     return df, dict_categories
 
 
-def remove_outliers(df, sigma=3):
+def remove_outliers(df: pd.DataFrame, sigma: float = 3) -> pd.DataFrame:
     """
     Remove outliers from numerical variables
+    Args:
+        df (pd.DataFrame): Dataframe to remove outliers from
+        sigma (float, optional): Sigma value to remove outliers. Defaults to 3.
+    Returns:
+        pd.DataFrame: Dataframe with updated outliers (after removal)
     """
     df = df.copy()
 
@@ -318,11 +310,121 @@ def remove_outliers(df, sigma=3):
     return df
 
 
-def missing(df, limit=None, figsize=None, plot=True):
+def fill_simple(
+    df: pd.DataFrame,
+    target: str | list = None,
+    missing_numerical: str = "median",
+    missing_categorical: str = "mode",
+    include_numerical: bool = True,
+    include_categorical: bool = True,
+) -> pd.DataFrame:
     """
-    Display the ratio of missing values (NaN) for each column of df
-    Only columns with missing values are shown
-    If limit_ratio is provided, return column names exceeding the ratio (features with little data)
+    Fill missing numerical values of df with the median of the column (include_numerical=True)
+    Fill missing categorical values of df with the median of the column (include_categorical=True)
+    Target column, if provided, is not evaluated
+    Args:
+        df (pd.DataFrame): Dataframe to fill missing values of
+        target (str|list, optional): Target variable. Defaults to None.
+        missing_numerical (str, optional): Method to fill missing numerical values. Defaults to "median".
+        missing_categorical (str, optional): Method to fill missing categorical values. Defaults to "mode".
+        include_numerical (bool, optional): Include numerical columns. Defaults to True.
+        include_categorical (bool, optional): Include categorical columns. Defaults to True.
+    Returns:
+        pd.DataFrame: Dataframe with filled missing values
+    TODO: Update with scikit-learn Pipelines
+    """
+
+    df = df.copy()
+
+    if not target:
+        target = []
+    elif isinstance(target, str):
+        target = [target]
+
+    numerical = list(df.select_dtypes(include=[np.number]))
+    numerical_f = [col for col in numerical if col not in target]
+    categorical_f = [col for col in df if col not in numerical and col not in target]
+
+    # numerical variables
+
+    if include_numerical:
+        for f in numerical_f:
+            if missing_numerical == "median":
+                df[f] = df[f].fillna(df[f].median())
+            elif missing_numerical == "mean":
+                df[f] = df[f].fillna(df[f].mean())
+            else:
+                warnings.warn("missing_numerical must be 'mean' or 'median'")
+                print(f"Missing numerical filled with: {missing_numerical}")
+
+    # categorical variables
+
+    if include_categorical:
+
+        if missing_categorical == "mode":
+            modes = df[categorical_f].mode()
+            for idx, f in enumerate(df[categorical_f]):
+                df[f] = df[f].fillna(modes.iloc[0, idx])
+        else:
+            for f in categorical_f:
+                if missing_categorical not in df[f].cat.categories:
+                    df[f] = df[f].cat.add_categories(missing_categorical)
+                df[f] = df[f].fillna(missing_categorical)
+            print(f'Missing categorical filled with label: "{missing_categorical}"')
+
+    return df
+
+
+def expand_date(timeseries: pd.Series) -> pd.DataFrame:
+    """
+    Expand a datetime series to a dataframe with the following columns:
+    - hour : 0 - 23
+    - year
+    - month: 1 - 12
+    - day
+    - weekday : 0 Monday - 6 Sunday
+    - holiday : 0 - 1 holiday (US Federal Holiday Calendar)
+    - workingday : 0 weekend or holiday - 1 workingday
+    """
+    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+
+    assert type(timeseries) == pd.core.series.Series, "input must be pandas series"
+    assert timeseries.dtypes == "datetime64[ns]", "input must be pandas datetime"
+
+    df = pd.DataFrame()
+
+    df["hour"] = timeseries.dt.hour
+
+    date = timeseries.dt.dateUSFederalHolUSFederalHolidayCalendaridayCalendar
+    df["year"] = pd.DatetimeIndex(date).year
+    df["month"] = pd.DatetimeIndex(date).month
+    df["day"] = pd.DatetimeIndex(date).day
+    df["weekday"] = pd.DatetimeIndex(date).weekday
+
+    holidays = calendar().holidays(start=date.min(), end=date.max())
+    hol = date.astype("datetime64[ns]").isin(holidays)
+    df["holiday"] = hol.values.astype(int)
+    df["workingday"] = ((df["weekday"] < 5) & (df["holiday"] == 0)).astype(int)
+
+    return df
+
+
+# DATA EXPLORATION ----------------------------------------------------------------------------------------------------
+
+# TODO: Add docstring
+
+
+def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: bool = True) -> None | list:
+    """
+    Display the ratio of missing values (NaN) for each column of df. Only columns with missing values are shown
+    If limit (limit ratio) is provided, return the column names exceeding the ratio (too much missing data)
+    Args:
+        df (pd.DataFrame): Dataframe to evaluate
+        limit (float, optional): Limit ratio of missing values. Defaults to None.
+        figsize (tuple, optional): Figure size. Defaults to None.
+        plot (bool, optional): Plot missing values. Defaults to True.
+    Returns:
+        None: If limit is not provided or list: column names exceeding the limit ratio of missing values
     """
 
     size = df.shape[0]
@@ -347,59 +449,6 @@ def missing(df, limit=None, figsize=None, plot=True):
 
     if limit:
         return missing_ratio[missing_ratio > limit].index.tolist()
-
-
-def fill_simple(
-    df,
-    target,
-    missing_numerical="median",
-    missing_categorical="mode",
-    include_numerical=True,
-    include_categorical=True,
-):
-    """
-    Fill missing numerical values of df with the median of the column ((include_numerical=True)
-    Fill missing categorical values of df with the median of the column (include_categorical=True)
-    Target column is not evaluated
-    """
-
-    df = df.copy()
-
-    numerical = list(df.select_dtypes(include=[np.number]))
-    numerical_f = [col for col in numerical if col not in target]
-    categorical_f = [col for col in df if col not in numerical and col not in target]
-
-    # numerical
-
-    if include_numerical:
-        for f in numerical_f:
-            if missing_numerical == "median":
-                df[f] = df[f].fillna(df[f].median())
-            elif missing_numerical == "mean":
-                df[f] = df[f].fillna(df[f].mean())
-            else:
-                warnings.warn("missing_numerical must be 'mean' or 'median'")
-                print(f"Missing numerical filled with: {missing_numerical}")
-
-    # categorical
-
-    if include_categorical:
-
-        if missing_categorical == "mode":
-            modes = df[categorical_f].mode()
-            for idx, f in enumerate(df[categorical_f]):
-                df[f] = df[f].fillna(modes.iloc[0, idx])
-        else:
-            for f in categorical_f:
-                if missing_categorical not in df[f].cat.categories:
-                    df[f] = df[f].cat.add_categories(missing_categorical)
-                df[f] = df[f].fillna(missing_categorical)
-            print(f'Missing categorical filled with label: "{missing_categorical}"')
-
-    return df
-
-
-# DATA EXPLORATION ------------------------------------------------
 
 
 def is_binary(data):
