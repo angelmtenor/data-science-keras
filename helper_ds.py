@@ -22,13 +22,10 @@ import pandas as pd
 import pkg_resources
 import psutil
 import seaborn as sns
-
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-from keras.layers import Dense, Dropout
-from keras.models import Sequential
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+
+# scikit learn
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import (  # AdaBoostClassifier,; AdaBoostRegressor,
     ExtraTreesClassifier,
@@ -51,6 +48,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
+
+# tensorflow
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
+from keras.layers import Dense, Dropout
+from keras.models import Sequential
 from tensorflow import keras
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
@@ -1263,13 +1266,13 @@ def show_training(history):
     plt.show()
 
     # show final results
-    print("\nTraining loss:  \t{:.4f}".format(hist["loss"][-1]))
+    print(f"\nTraining loss:  \t{hist['loss'][-1]:.4f}")
     if "val_loss" in hist:
-        print("Validation loss: \t{:.4f}".format(hist["val_loss"][-1]))
+        print(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
     if "acc" in hist:
-        print("\nTraining accuracy: \t{:.3f}".format(hist["acc"][-1]))
+        print(f"\nTraining accuracy: \t{hist['acc'][-1]:.3f}")
     if "val_acc" in hist:
-        print("Validation accuracy:\t{:.3f}".format(hist["val_acc"][-1]))
+        print(f"Validation accuracy:\t{hist['val_acc'][-1]:.3f}")
 
 
 def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
