@@ -73,7 +73,7 @@ def info_os() -> None:
     # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
 
 
-def info_software(modules: list[str] = DEFAULT_MODULES)-> None:
+def info_software(modules: list[str] = DEFAULT_MODULES) -> None:
     """Print version of Python and Python modules using pkg_resources
         note: not all modules can be obtained with pkg_resources: e.g: pytorch, mlflow ..
     Args:
@@ -253,7 +253,7 @@ def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFra
     for f in columns_to_convert:
         df[f] = df[f].astype("category")
 
-    if columns_to_convert:
+    if len(columns_to_convert) > 0:
         print("Variables changed to 'category':", columns_to_convert)
 
     return df
@@ -484,7 +484,7 @@ def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: 
         return missing_ratio[missing_ratio > limit].index.tolist()
 
 
-def is_binary(data:pd.Series) -> bool:
+def is_binary(data: pd.Series) -> bool:
     """Return True if the input series (column of dataframe) has only 2 values
     Args:
         data (pd.Series): Series to evaluate
@@ -495,7 +495,7 @@ def is_binary(data:pd.Series) -> bool:
     return len(data.squeeze().unique()) == 2
 
 
-def info_data(df:pd.DataFrame, target=None)->None:
+def info_data(df: pd.DataFrame, target=None) -> None:
     """Display basic information of the dataset and the target (if provided)
     Args:
         df (pd.DataFrame): Dataframe to display information from
@@ -515,7 +515,7 @@ def info_data(df:pd.DataFrame, target=None)->None:
                 print(f"Dummy accuracy:\t{max(counts) / sum(counts):.2f}")
 
 
-def get_types(df:pd.DataFrame)->pd.DataFrame:
+def get_types(df: pd.DataFrame) -> pd.DataFrame:
     """Return a dataframe with the types of the input dataframe
     Args:
         df (pd.DataFrame): Input dataframe
@@ -527,8 +527,7 @@ def get_types(df:pd.DataFrame)->pd.DataFrame:
 
 def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), ncols=5):
     """
-    Display histograms of numerical features
-    If a target list is provided, their histograms will be excluded
+    Display histograms of numerical features. If a target list is provided, their histograms will be excluded
     """
     if ncols <= 1:
         ncols = 5
@@ -982,6 +981,62 @@ def dummy_clf(x_train, y_train, x_test, y_test):
     return binary_classification_scores(y_test, y_pred, return_dataframe=True, index="Dummy")
 
 
+def build_nn_binary_clf(
+    input_size,
+    # output_size,
+    hidden_layers=1,
+    dropout=0,
+    input_nodes=None,
+    summary=False,
+    kernel_initializer="glorot_uniform",
+    bias_initializer="zeros",
+    # kernel_regularizer=None,
+    # bias_regularizer=None,
+):
+    """Build a DNN for binary classification with sigmoid activation function"""
+
+    if not input_nodes:
+        input_nodes = input_size
+
+        # weights = keras.initializers.RandomNormal(stddev=0.00001)
+
+    model = Sequential()
+
+    # input + first hidden layer
+    model.add(
+        Dense(
+            input_nodes,
+            input_dim=input_size,
+            activation="relu",
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+        )
+    )
+    model.add(Dropout(dropout))
+
+    # additional hidden layers
+    for i in range(1, hidden_layers):
+        model.add(
+            Dense(
+                input_nodes // i + 1,
+                activation="relu",
+                kernel_initializer=kernel_initializer,
+                bias_initializer=bias_initializer,
+            )
+        )
+        model.add(Dropout(dropout))
+
+    # output layer
+    model.add(
+        Dense(
+            1,
+            activation="sigmoid",
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+        )
+    )
+
+
 def build_nn_clf(
     input_size,
     # output_size,
@@ -991,6 +1046,7 @@ def build_nn_clf(
     summary=False,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
+    output_nodes=2  # default for binary classification (softmax)
     # kernel_regularizer=None,
     # bias_regularizer=None,
 ):
@@ -1030,7 +1086,7 @@ def build_nn_clf(
     # output layer
     model.add(
         Dense(
-            2,
+            output_nodes,
             activation="softmax",
             kernel_initializer=kernel_initializer,
             bias_initializer=bias_initializer,
@@ -1268,16 +1324,18 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     If cross_validation=True an additional training with cross validation will be performed.
     """
 
-    regressors = (
+    regressors = [
         LinearRegression(),
-        BayesianRidge(),
         KNeighborsRegressor(n_neighbors=10),
-        AdaBoostRegressor(),
+        # AdaBoostRegressor(),
         RandomForestRegressor(max_depth=17),
-        LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17),
-    )
+    ]
 
-    names = ["Linear", "Bayesian Ridge", "KNeighbors", "AdaBoost", "Random Forest", "LGBM"]
+    names = ["Linear", "KNeighbors", "Random Forest"]
+
+    if y_train.shape[1] == 1:
+        regressors.append(LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17))
+        names.append("LGBM")
 
     col = ["Time (s)", "Test loss", "Test R2 score"]
     results = pd.DataFrame(columns=col)
