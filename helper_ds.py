@@ -22,6 +22,11 @@ import pandas as pd
 import pkg_resources
 import psutil
 import seaborn as sns
+
+# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf
+from keras.layers import Dense, Dropout
+from keras.models import Sequential
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from sklearn.dummy import DummyClassifier
@@ -46,12 +51,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
-import tensorflow as tf
-from keras.layers import Dense, Dropout
-from keras.models import Sequential
 from tensorflow import keras
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
@@ -444,8 +443,6 @@ def expand_date(timeseries: pd.Series) -> pd.DataFrame:
 
 # DATA EXPLORATION ----------------------------------------------------------------------------------------------------
 
-# TODO: Finish docstrings
-
 
 def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: bool = True) -> None | list:
     """
@@ -490,7 +487,6 @@ def is_binary(data: pd.Series) -> bool:
         data (pd.Series): Series to evaluate
     Returns:
         bool: True if the input has only 2 values
-
     """
     return len(data.squeeze().unique()) == 2
 
@@ -562,10 +558,24 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
                 sns.histplot(df[n].dropna(), ax=ax[idx], kde=kde)
 
 
-def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, point_size=1, figsize=(17, 4), ncols=5):
-    """Display histograms of binary target vs numerical variables
-    input: pandas dataframe, target list
-        Target values must be parsed to numbers
+def show_target_vs_numerical(
+    df: pd.DataFrame,
+    target: list[str],
+    jitter: float = 0,
+    fit_reg: bool = True,
+    point_size: int = 1,
+    figsize: tuple = (17, 4),
+    ncols: int = 5,
+) -> None:
+    """Display scatter plots of the targets vs numerical variables.
+    Args:
+        df (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables to display of the input dataframe
+        jitter (float, optional): Jitter value for the scatter plot. Defaults to 0.
+        fit_reg (bool, optional): Fit a regression line to the scatter plot. Defaults to True.
+        point_size (int, optional): Size of the size of the points in the scatter plot. Defaults to 1.
+        figsize (tuple, optional): Figure size. Defaults to (17, 4).
+        ncols (int, optional): Max number of subplots in a row of plots. Defaults to 5.
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
@@ -634,10 +644,17 @@ def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, point_size=1, f
                     plt.ylim(ymin=-0.2, ymax=1.2)
 
 
-def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
+def show_categorical(
+    df: pd.DataFrame, target: list[str] = None, sharey: bool = False, figsize: tuple = (17, 2), ncols: int = 5
+) -> None:
     """
-    Display histograms of categorical features
-    If a target list is provided, their histograms will be excluded
+    Display histograms of categorical features. If a target list is provided, their histograms will be excluded.
+    Args:
+        df (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables to not display. Defaults to None.
+        sharey (bool, optional): Share the y-axis. Defaults to False.
+        figsize (tuple, optional): Figure size. Defaults to (17, 2).
+        ncols (int, optional): Max number of subplots in a row of plots. Defaults to 5.
     """
     if target is None:
         target = []
@@ -676,11 +693,14 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
                     axs.set(ylabel="")
 
 
-def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
+def show_target_vs_categorical(df: pd.DataFrame, target: list[str], figsize: tuple = (17, 4), ncols: int = 5) -> None:
     """
-    Display bar plots of target vs categorical variables
-    input: pandas dataframe, target list
-    Target values must be numerical for bar plots
+    Display bar plots of target vs categorical variables. Target values must be numerical for bar plots.
+    Args:
+        df (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables of the input dataframe
+        figsize (tuple, optional): Figure size. Defaults to (17, 4).
+        ncols (int, optional): Max number of subplots in a row of plots. Defaults to 5.
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
@@ -729,11 +749,17 @@ def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
                         axs.set(ylabel="")
 
 
-def correlation(df, target, limit=0, figsize=None):  # plot=True):
+def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsize: tuple = None) -> list[str]:
     """
-    Display Pearson correlation coefficient between target and numerical features
-    Return a list with low-correlated features if limit is provided
-
+    Plot the Pearson correlation coefficient between target and numerical features. Return a list with low-correlated
+    features.
+    Args:
+        df (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables of the input dataframe
+        threshold (float, optional): Correlation coefficient threshold. Defaults to 0.
+        figsize (tuple, optional): Figure size. Defaults to None.
+    Returns:
+        list[str]: List of low-correlated features (below threshold)
     """
 
     numerical = list(df.select_dtypes(include=[np.number]))
@@ -755,35 +781,26 @@ def correlation(df, target, limit=0, figsize=None):  # plot=True):
     corr.plot.barh(figsize=figsize)
     plt.gca().invert_yaxis()
 
-    if limit > 0:
+    if threshold > 0:
         plt.axvline(
-            x=-limit,
+            x=-threshold,
             color="k",
             linestyle="--",
         )
         plt.axvline(
-            x=limit,
+            x=threshold,
             color="k",
             linestyle="--",
         )
     plt.xlabel("Pearson correlation coefficient")
     plt.ylabel("feature")
 
-    if limit:
-        return corr.loc[abs(corr[target[0]]) < abs(limit)].index.tolist()
-
-
-# def show_correlation(df, target, limit=None, figsize=None):
-#     """
-#     Display Pearson correlation coefficient between target and numerical features
-#     """
-
-#     warnings.warn(' Use new "correlation" function', DeprecationWarning, stacklevel=2)
-
-#     return correlation(df, target, limit=limit, figsize=figsize)
+    return corr.loc[abs(corr[target[0]]) < abs(threshold)].index.tolist()
 
 
 # DATA PROCESSING FOR ML & DL ---------------------------------------------
+
+# TODO: Finish docstrings
 
 
 def scale(data, scale_param=None, method="std"):
