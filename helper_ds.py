@@ -983,7 +983,6 @@ def dummy_clf(x_train, y_train, x_test, y_test):
 
 def build_nn_binary_clf(
     input_size,
-    # output_size,
     hidden_layers=1,
     dropout=0,
     input_nodes=None,
@@ -1039,14 +1038,13 @@ def build_nn_binary_clf(
 
 def build_nn_clf(
     input_size,
-    # output_size,
+    output_size,
     hidden_layers=1,
     dropout=0,
     input_nodes=None,
     summary=False,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
-    output_nodes=2  # default for binary classification (softmax)
     # kernel_regularizer=None,
     # bias_regularizer=None,
 ):
@@ -1086,7 +1084,7 @@ def build_nn_clf(
     # output layer
     model.add(
         Dense(
-            output_nodes,
+            output_size,
             activation="softmax",
             kernel_initializer=kernel_initializer,
             bias_initializer=bias_initializer,
