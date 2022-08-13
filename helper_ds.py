@@ -1,7 +1,9 @@
 """
 Helper module for Data-Science-Keras repository
 Angel Martinez-Tenor 2018
+TODO: Update with newer functions from personal private repositories (2018-2022)
 TODO: Update with best practices 2022 (ethics & green code)
+TODO: Separate in different modules
 """
 from __future__ import annotations
 
@@ -23,14 +25,12 @@ import seaborn as sns
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import (
-    AdaBoostClassifier,
-    AdaBoostRegressor,
+from sklearn.ensemble import (  # AdaBoostClassifier,; AdaBoostRegressor,
     ExtraTreesClassifier,
     RandomForestClassifier,
     RandomForestRegressor,
 )
-from sklearn.linear_model import BayesianRidge, LinearRegression
+from sklearn.linear_model import LinearRegression
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -178,7 +178,7 @@ def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
         return
     else:
         new_path = current_path
-        for i in range(3):
+        for _ in range(3):
             new_path = new_path.parent
             if new_path.stem == target_path.stem:
                 os.chdir(new_path)
@@ -612,6 +612,7 @@ def show_target_vs_numerical(df, target, jitter=0, fit_reg=True, point_size=1, f
 
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
+                idx = 0
                 for idx, f in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
                     axs = sns.regplot(
                         x=f,
@@ -728,7 +729,7 @@ def show_target_vs_categorical(df, target, figsize=(17, 4), ncols=5):
                         axs.set(ylabel="")
 
 
-def correlation(df, target, limit=0, figsize=None, plot=True):
+def correlation(df, target, limit=0, figsize=None):  # plot=True):
     """
     Display Pearson correlation coefficient between target and numerical features
     Return a list with low-correlated features if limit is provided
@@ -816,22 +817,22 @@ def scale(data, scale_param=None, method="std"):
         elif method == "minmax":
 
             if create_scale:
-                min, max = data[f].min(), data[f].max()
-                data[f] = (data[f].values - min) / (max - min)
-                scale_param[f] = [min, max]
+                min_value, max_value = data[f].min(), data[f].max()
+                data[f] = (data[f].values - min_value) / (max_value - min_value)
+                scale_param[f] = [min_value, max_value]
             else:
-                min, max = scale_param[f][0], scale_param[f][1]
-                data.loc[:, f] = (data[f].values - min) / (max - min)
+                min_value, max_value = scale_param[f][0], scale_param[f][1]
+                data.loc[:, f] = (data[f].values - min_value) / (max_value - min_value)
 
         elif method == "maxabs":
 
             if create_scale:
-                min, max = data[f].min(), data[f].max()
-                data[f] = 2 * (data[f].values - min) / (max - min) - 1
-                scale_param[f] = [min, max]
+                min_value, max_value = data[f].min(), data[f].max()
+                data[f] = 2 * (data[f].values - min_value) / (max_value - min_value) - 1
+                scale_param[f] = [min_value, max_value]
             else:
-                min, max = scale_param[f][0], scale_param[f][1]
-                data.loc[:, f] = 0.5 * (data[f].values * (max - min) + max + min)
+                min_value, max_value = scale_param[f][0], scale_param[f][1]
+                data.loc[:, f] = 0.5 * (data[f].values * (max_value - min_value) + max_value + min_value)
 
     return data, scale_param
 
@@ -1052,7 +1053,6 @@ def build_nn_clf(
 
     if not input_nodes:
         input_nodes = input_size
-
         # weights = keras.initializers.RandomNormal(stddev=0.00001)
 
     model = Sequential()
@@ -1109,8 +1109,8 @@ def build_nn_reg(
     summary=False,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
-    kernel_regularizer=None,
-    bias_regularizer=None,
+    # kernel_regularizer=None,
+    # bias_regularizer=None,
     optimizer="rmsprop",
 ):
     """Build an universal DNN for regression"""
@@ -1263,13 +1263,12 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
 
     classifiers = (
         GaussianNB(),
-        AdaBoostClassifier(),
         RandomForestClassifier(100),
         ExtraTreesClassifier(100),
         LGBMClassifier(n_jobs=-1, n_estimators=30, max_depth=17),
     )
 
-    names = ["Naive Bayes", "AdaBoost", "Random Forest", "Extremely Randomized Trees", "LGBM"]
+    names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LGBM"]
 
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
     results = pd.DataFrame(columns=col)
