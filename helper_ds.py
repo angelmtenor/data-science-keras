@@ -1172,7 +1172,7 @@ def train_nn(
     batch_size=128,
     verbose=0,
     callbacks=None,
-    validation_split=0.0,
+    validation_split=0.2,
     validation_data=None,
     path=False,
     show=True,
