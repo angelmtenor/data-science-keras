@@ -18,20 +18,51 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pkg_resources
+import psutil
 import seaborn as sns
-
-# SETUP ----------------------------------------------------------------------------------------------------------------
+from lightgbm import LGBMClassifier, LGBMRegressor
+from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+from sklearn.dummy import DummyClassifier
+from sklearn.ensemble import (
+    AdaBoostClassifier,
+    AdaBoostRegressor,
+    ExtraTreesClassifier,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
+from sklearn.linear_model import BayesianRidge, LinearRegression
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    log_loss,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+    roc_auc_score,
+)
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.utils import class_weight
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import tensorflow as tf
+from keras.layers import Dense, Dropout
+from keras.models import Sequential
+from tensorflow import keras
+
+# SETUP ----------------------------------------------------------------------------------------------------------------
+
 
 EXECUTION_PATH = "data-science-keras"
 
 INSTALLED_PACKAGES = pkg_resources.working_set
 installed_packages_dict = {i.key: i.version for i in INSTALLED_PACKAGES}  # pylint: disable=not-an-iterable
 
-DEFAULT_MODULES = ("tensorflow", "numpy")
+DEFAULT_MODULES = ("tensorflow", "pandas", "numpy")
 
 sns.set()  # set seaborn style
 
@@ -42,7 +73,7 @@ def info_os() -> None:
     # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
 
 
-def info_software(modules: list[str] = DEFAULT_MODULES):
+def info_software(modules: list[str] = DEFAULT_MODULES)-> None:
     """Print version of Python and Python modules using pkg_resources
         note: not all modules can be obtained with pkg_resources: e.g: pytorch, mlflow ..
     Args:
@@ -85,13 +116,8 @@ def info_hardware() -> None:
         print("cpuinfo not found. (pip/conda: py-cpuinfo)")
 
     # RAM INFO
-    try:
-        import psutil  # pip py-cpuinfo
-
-        ram = round(psutil.virtual_memory().total / (1024.0**3))
-        print(f"RAM:\t{ram} GB")
-    except ImportError:
-        print("psutil not found. (pip/conda psutil)")
+    ram = round(psutil.virtual_memory().total / (1024.0**3))
+    print(f"RAM:\t{ram} GB")
 
     # GPU INFO
     if not tf.test.gpu_device_name():
@@ -129,9 +155,7 @@ def reproducible(seed: int = 0) -> None:
     Args:
         seed (int): Seed value for reproducible results. Default to 0.
     """
-
     os.environ["PYTHONHASHSEED"] = "0"
-
     np.random.seed(seed)
     python_random.seed(seed)
     tf.random.set_seed(seed)
@@ -139,7 +163,7 @@ def reproducible(seed: int = 0) -> None:
 
 def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
     """Set the execution path to a parent directory (up to 3 levels). Used to execute notebooks located in a subfolder
-    of the main path (e.g.: notebooks) as if they were in their parent main path (useful to reproduce production scripts)
+    of the main path (e.g.: notebooks) as if they were in their parent main path (useful to reproduce prod scripts)
     Args:
         execution_path (Path or str): Execution path. e.g.: 'my-repo'. Default to EXECUTION_PATH
     TODO: Update by using environment variables with python-dotenv
@@ -212,7 +236,13 @@ def sort_columns_by_type(df: pd.DataFrame, target: str | list = None, numerical:
 
 
 def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFrame:
-    """Force variables to pandas 'category' type. If columns is None, all non-numerical variables are converted"""
+    """Force variables to pandas 'category' type. If columns is None, all non-numerical variables are converted
+    Args:
+        df (pd.DataFrame): Dataframe to convert
+        columns (list[str], optional): List of columns to convert to categorical type. Defaults to None.
+    Returns:
+        pd.DataFrame: Dataframe with selected variables converted to 'category' type
+    """
 
     if columns is None:
         columns = df.select_dtypes(exclude=["number"]).columns
@@ -331,7 +361,7 @@ def fill_simple(
         include_categorical (bool, optional): Include categorical columns. Defaults to True.
     Returns:
         pd.DataFrame: Dataframe with filled missing values
-    TODO: Update with scikit-learn Pipelines
+    TODO: Update with scikit-learn Pipelines (from personal private repos)
     """
 
     df = df.copy()
@@ -385,10 +415,13 @@ def expand_date(timeseries: pd.Series) -> pd.DataFrame:
     - weekday : 0 Monday - 6 Sunday
     - holiday : 0 - 1 holiday (US Federal Holiday Calendar)
     - workingday : 0 weekend or holiday - 1 workingday
+    Args:
+        timeseries (pd.Series): Datetime series to expand
+    Returns:
+        pd.DataFrame: Expanded dataframe
     """
-    from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 
-    assert type(timeseries) == pd.core.series.Series, "input must be pandas series"
+    assert isinstance(timeseries, pd.core.series.Series), "input must be pandas series"
     assert timeseries.dtypes == "datetime64[ns]", "input must be pandas datetime"
 
     df = pd.DataFrame()
@@ -411,7 +444,7 @@ def expand_date(timeseries: pd.Series) -> pd.DataFrame:
 
 # DATA EXPLORATION ----------------------------------------------------------------------------------------------------
 
-# TODO: Add docstring
+# TODO: Finish docstrings
 
 
 def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: bool = True) -> None | list:
@@ -451,13 +484,22 @@ def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: 
         return missing_ratio[missing_ratio > limit].index.tolist()
 
 
-def is_binary(data):
-    """Return True if the input series (column of dataframe) is binary"""
+def is_binary(data:pd.Series) -> bool:
+    """Return True if the input series (column of dataframe) has only 2 values
+    Args:
+        data (pd.Series): Series to evaluate
+    Returns:
+        bool: True if the input has only 2 values
+
+    """
     return len(data.squeeze().unique()) == 2
 
 
-def info_data(df, target=None):
-    """Display basic information of the dataset and the target (if provided)"""
+def info_data(df:pd.DataFrame, target=None)->None:
+    """Display basic information of the dataset and the target (if provided)
+    Args:
+        df (pd.DataFrame): Dataframe to display information from
+    """
     n_samples = df.shape[0]
     n_features = df.shape[1] - len(target)
 
@@ -473,8 +515,13 @@ def info_data(df, target=None):
                 print(f"Dummy accuracy:\t{max(counts) / sum(counts):.2f}")
 
 
-def get_types(df):
-    """Return a dataframe with the types of dataframe df"""
+def get_types(df:pd.DataFrame)->pd.DataFrame:
+    """Return a dataframe with the types of the input dataframe
+    Args:
+        df (pd.DataFrame): Input dataframe
+    Returns:
+        pd.DataFrame: Dataframe with the types of the input dataframe
+    """
     return pd.DataFrame(dict(df.dtypes), index=["Type"])[df.columns]
 
 
@@ -612,7 +659,7 @@ def show_categorical(df, target=None, sharey=False, figsize=(17, 2), ncols=5):
 
         if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
-            # so = sorted({v for v in df[nnrows-1].values if str(v) != 'nan'})
+            # so = sorted({v for v in df[nrows-1].values if str(v) != 'nan'})
             sns.countplot(x=df[categorical_f[-1]].dropna())
 
         else:  # standard case
@@ -855,10 +902,9 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
 
 def get_class_weight(y):
     """Return dictionary of weight vector for imbalanced binary target"""
-    from sklearn.utils import class_weight
 
     y_plain = np.ravel(y)
-    cw = class_weight.compute_class_weight("balanced", np.unique(y_plain), y_plain)
+    cw = class_weight.compute_class_weight("balanced", classes=np.unique(y_plain), y=y_plain)
     cw = {idx: value for idx, value in enumerate(cw)}
     print(cw)
     return cw
@@ -872,12 +918,11 @@ def one_hot_output(y_train, y_test=None):
     Return one hot encoded output
     If y_test is provided, both (y_train, y_test) encoded are returned
     """
-    import tensorflow as tf
 
     num_classes = len(np.unique(y_train))
-    y_train = tf.keras.utils.to_categorical(y_train, num_classes)
+    y_train = keras.utils.to_categorical(y_train, num_classes)
     if y_test.any():
-        y_test = tf.keras.utils.to_categorical(y_test, num_classes)
+        y_test = keras.utils.to_categorical(y_test, num_classes)
         return y_train, y_test
     else:
         return y_train
@@ -889,8 +934,6 @@ def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     Stratified split will use class labels when 'stratify=True'(classification).
     Return x_train, y_train, x_test, y_test from the dataset
     """
-
-    from sklearn.model_selection import train_test_split
 
     st = data[target] if stratify else None
 
@@ -909,8 +952,6 @@ def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0
     Stratified split will use class labels when 'stratify=True'(classification).
     Return x_train, y_train, x_val, y_val, x_test, y_test from the dataset
     """
-
-    from sklearn.model_selection import train_test_split
 
     st = data[target] if stratify else None
 
@@ -931,35 +972,29 @@ def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0
 
 def dummy_clf(x_train, y_train, x_test, y_test):
     """
-    Build a dummy classsifier, print the confusion matrix and return a
+    Build a dummy classifier, print the confusion matrix and return a
     dataframe with the binary classification scores
     """
-    from sklearn.dummy import DummyClassifier
 
-    clf = DummyClassifier(strategy="most_frequent").fit(x_train, np.ravel(y_train))
-    # The dummy 'most_frequent' classifier always predicts class 0 (NO SPAM)
-    y_pred = clf.predict(x_test).reshape([-1, 1])
+    clf = DummyClassifier(strategy="most_frequent").fit(x_train, y_train)
+    y_pred = clf.predict(x_test)  # .reshape([-1, 1])
 
-    return binary_classification_scores(y_test[:, 1], y_pred, return_dataframe=True, index="Dummy")
+    return binary_classification_scores(y_test, y_pred, return_dataframe=True, index="Dummy")
 
 
 def build_nn_clf(
     input_size,
-    output_size,
+    # output_size,
     hidden_layers=1,
     dropout=0,
     input_nodes=None,
     summary=False,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
-    kernel_regularizer=None,
-    bias_regularizer=None,
+    # kernel_regularizer=None,
+    # bias_regularizer=None,
 ):
     """Build an universal DNN for classification"""
-
-    import keras
-    from keras.layers.core import Dense, Dropout
-    from keras.models import Sequential
 
     if not input_nodes:
         input_nodes = input_size
@@ -1002,7 +1037,7 @@ def build_nn_clf(
         )
     )
 
-    opt = keras.optimizers.adam()
+    opt = keras.optimizers.Adam()
     model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
 
     if summary:
@@ -1025,9 +1060,6 @@ def build_nn_reg(
     optimizer="rmsprop",
 ):
     """Build an universal DNN for regression"""
-
-    from keras.layers.core import Dense, Dropout
-    from keras.models import Sequential
 
     if not input_nodes:
         input_nodes = input_size
@@ -1081,7 +1113,7 @@ def train_nn(
     model,
     x_train,
     y_train,
-    class_weight=None,
+    cw=None,
     epochs=100,
     batch_size=128,
     verbose=0,
@@ -1108,7 +1140,7 @@ def train_nn(
         epochs=epochs,
         batch_size=batch_size,
         verbose=verbose,
-        class_weight=class_weight,
+        class_weight=cw,
         validation_split=validation_split,
         validation_data=validation_data,
         callbacks=callbacks,
@@ -1174,12 +1206,6 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
     Build, train, and test the data set with classical machine learning classification models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
-    from lightgbm import LGBMClassifier
-    from sklearn.ensemble import AdaBoostClassifier, ExtraTreesClassifier, RandomForestClassifier
-    from sklearn.naive_bayes import GaussianNB
-
-    # from sklearn.model_selection import KFold
-    # from sklearn.base import clone
 
     classifiers = (
         GaussianNB(),
@@ -1241,15 +1267,6 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     Build, train, and test the data set with classical machine learning regression models.
     If cross_validation=True an additional training with cross validation will be performed.
     """
-    from time import time
-
-    from lightgbm import LGBMRegressor
-    from sklearn.ensemble import AdaBoostRegressor, RandomForestRegressor
-    from sklearn.linear_model import BayesianRidge, LinearRegression
-    from sklearn.neighbors import KNeighborsRegressor
-
-    # from sklearn.model_selection import KFold
-    # from sklearn.base import clone
 
     regressors = (
         LinearRegression(),
@@ -1311,16 +1328,6 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
 def binary_classification_scores(y_test, y_pred, return_dataframe=False, index=" ", show=True):
     """Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score"""
 
-    from sklearn.metrics import (
-        accuracy_score,
-        confusion_matrix,
-        f1_score,
-        log_loss,
-        precision_score,
-        recall_score,
-        roc_auc_score,
-    )
-
     rec, roc, f1 = 0, 0, 0
 
     y_pred_b = (y_pred > 0.5).astype(int)
@@ -1362,8 +1369,6 @@ def binary_classification_scores(y_test, y_pred, return_dataframe=False, index="
 
 def regression_scores(y_test, y_pred, show=False, return_dataframe=False, index=" "):
     """Return regression metrics: (loss, R2 Score)"""
-
-    from sklearn.metrics import mean_squared_error, r2_score
 
     r2 = r2_score(y_test, y_pred)
     loss = mean_squared_error(y_test, y_pred)
