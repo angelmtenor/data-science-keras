@@ -14,3 +14,6 @@ setuptools==61.2.0
 tensorflow==2.9.1
 tensorflow==2.9.1
 # Pillow==9.2.0
+
+# Notes for setup.py / setup.cfg / Dockerfile
+# export TF_CPP_MIN_LOG_LEVEL=3
