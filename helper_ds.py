@@ -554,7 +554,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
 
             _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
 
-            for idx, n in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
+            for idx, n in enumerate(numerical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
                 sns.histplot(df[n].dropna(), ax=ax[idx], kde=kde)
 
 
@@ -623,7 +623,7 @@ def show_target_vs_numerical(
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
                 idx = 0
-                for idx, f in enumerate(numerical_f[row * ncols : row * ncols + ncols]):
+                for idx, f in enumerate(numerical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
                     axs = sns.regplot(
                         x=f,
                         y=t,
@@ -686,7 +686,7 @@ def show_categorical(
 
             _, ax = plt.subplots(ncols=ncols, sharey=sharey, figsize=figsize)
 
-            for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
+            for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
                 so = sorted({v for v in df[n].values if str(v) != "nan"})
                 axs = sns.countplot(x=df[n].dropna(), ax=ax[idx], order=so)
                 if idx != 0:
@@ -738,7 +738,7 @@ def show_target_vs_categorical(df: pd.DataFrame, target: list[str], figsize: tup
 
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
-                for idx, f in enumerate(categorical_f[row * ncols : row * ncols + ncols]):
+                for idx, f in enumerate(categorical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
 
                     so = sorted({v for v in copy_df[f].values if str(v) != "nan"})
 
