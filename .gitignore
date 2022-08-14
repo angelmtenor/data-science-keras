@@ -8,3 +8,4 @@ data/maintenance_categorical_values.npy
 *.pyc
 *.h5
 models
+*.bin
