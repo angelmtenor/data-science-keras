@@ -1519,7 +1519,7 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
 
         t0 = time()
         # Fitting the model without cross validation
-        clf.fit(x_train, y_train)
+        clf.fit(x_train, y_train.ravel())
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
 
