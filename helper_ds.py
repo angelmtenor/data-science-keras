@@ -899,12 +899,10 @@ def replace_by_dummies(
         found_dummies.extend(dummy)
 
     if not create_dummies:
-
         # remove new dummies not in given dummies
         new = set(found_dummies) - set(dummies)
         for n in new:
             data = data.drop(n, axis=1)
-
         # fill missing dummies with empty values (0)
         missing = set(dummies) - set(found_dummies)
         for m in missing:
@@ -1126,6 +1124,50 @@ def regression_scores(
         return scores
 
     return loss, r2
+
+
+def show_training(history):
+    """
+    Print the final loss and plot its evolution in the training process.
+    The same applies to 'validation loss', 'accuracy', and 'validation accuracy' if available
+    :param history: Keras history object (model.fit return)
+    :return:
+    """
+    hist = history.history
+
+    if "loss" not in hist:
+        print("Error: 'loss' values not found in the history")
+        return
+
+    # plot training
+    plt.figure(figsize=(14, 4))
+    plt.subplot(121)
+    plt.plot(hist["loss"], label="Training")
+    if "val_loss" in hist:
+        plt.plot(hist["val_loss"], label="Validation")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.legend()
+
+    if "accuracy" in hist:
+        plt.subplot(122)
+        plt.plot(hist["accuracy"], label="Training")
+        if "val_accuracy" in hist:
+            plt.plot(hist["val_accuracy"], label="Validation")
+        plt.xlabel("epoch")
+        plt.ylabel("accuracy")
+        plt.legend()
+
+    plt.show()
+
+    # show final results
+    print(f"\nTraining loss:  \t{hist['loss'][-1]:.4f}")
+    if "val_loss" in hist:
+        print(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
+    if "accuracy" in hist:
+        print(f"\nTraining accuracy: \t{hist['accuracy'][-1]:.3f}")
+    if "val_accuracy" in hist:
+        print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
 
 
 # ML/DL MODELING TODO: Finish docstrings
@@ -1384,50 +1426,6 @@ def train_nn(
     return history
 
 
-def show_training(history):
-    """
-    Print the final loss and plot its evolution in the training process.
-    The same applies to 'validation loss', 'accuracy', and 'validation accuracy' if available
-    :param history: Keras history object (model.fit return)
-    :return:
-    """
-    hist = history.history
-
-    if "loss" not in hist:
-        print("Error: 'loss' values not found in the history")
-        return
-
-    # plot training
-    plt.figure(figsize=(14, 4))
-    plt.subplot(121)
-    plt.plot(hist["loss"], label="Training")
-    if "val_loss" in hist:
-        plt.plot(hist["val_loss"], label="Validation")
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
-    plt.legend()
-
-    if "accuracy" in hist:
-        plt.subplot(122)
-        plt.plot(hist["accuracy"], label="Training")
-        if "val_accuracy" in hist:
-            plt.plot(hist["val_accuracy"], label="Validation")
-        plt.xlabel("epoch")
-        plt.ylabel("accuracy")
-        plt.legend()
-
-    plt.show()
-
-    # show final results
-    print(f"\nTraining loss:  \t{hist['loss'][-1]:.4f}")
-    if "val_loss" in hist:
-        print(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
-    if "accuracy" in hist:
-        print(f"\nTraining accuracy: \t{hist['accuracy'][-1]:.3f}")
-    if "val_accuracy" in hist:
-        print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
-
-
 def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
     """
     Build, train, and test the data set with classical machine learning classification models.
@@ -1436,9 +1434,9 @@ def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, 
 
     classifiers = (
         GaussianNB(),
-        RandomForestClassifier(100),
-        ExtraTreesClassifier(100),
-        LGBMClassifier(n_jobs=-1, n_estimators=30, max_depth=17),
+        RandomForestClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
+        ExtraTreesClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
+        LGBMClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
     )
 
     names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LGBM"]
@@ -1498,13 +1496,13 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         LinearRegression(),
         KNeighborsRegressor(n_neighbors=10),
         # AdaBoostRegressor(),
-        RandomForestRegressor(max_depth=17),
+        RandomForestRegressor(n_jobs=-1, max_depth=17, n_estimators=50, random_state=9),
     ]
 
     names = ["Linear", "KNeighbors", "Random Forest"]
 
     if y_train.shape[1] == 1:
-        regressors.append(LGBMRegressor(n_jobs=-1, n_estimators=30, max_depth=17))
+        regressors.append(LGBMRegressor(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9))
         names.append("LGBM")
 
     col = ["Time (s)", "Test loss", "Test R2 score"]
@@ -1519,7 +1517,10 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
 
         t0 = time()
         # Fitting the model without cross validation
-        clf.fit(x_train, y_train.ravel())
+        if len(y_train.shape) > 1:
+            if y_train.shape[1] == 1:
+                y_train = np.ravel(y_train)
+        clf.fit(x_train, y_train)
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
 
