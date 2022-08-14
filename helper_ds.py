@@ -803,15 +803,20 @@ def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsi
 
 # DATA PROCESSING FOR ML & DL ---------------------------------------------
 
-# TODO: Finish docstrings
 
-
-def scale(data, scale_param=None, method="std"):
+def scale(data: pd.DataFrame, scale_param: dict = None, method: str = "std") -> tuple[pd.DataFrame, dict]:
     """
-    Standardize numerical variables (mean=0, std=1)
-
-    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale
-    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]
+    Scale/Standardize the numerical variables of the input dataset using a given dictionary of mean and standard
+    deviation for each numerical variable or a default method.
+    Args:
+        data (pd.DataFrame): Input dataframe to standardize
+        scale_param (dict, optional): Dictionary with parameters for scaling. Structure: {'var_name': [mean, std]}.
+        Defaults to None.
+        method (str, optional): Method for scaling. Defaults to "std" (normal distribution), "minmax" or "maxabs".
+    Returns:
+        pd.DataFrame: Dataframe with numerical values standardized
+        dict: Dictionary with parameters for scaling. Structure: {'var_name': [mean, std]}.
+    # TODO: Replace scalers with those from sklearn.preprocessing
     """
 
     assert method == "std" or method == "minmax" or method == "maxabs"
@@ -857,26 +862,21 @@ def scale(data, scale_param=None, method="std"):
     return data, scale_param
 
 
-def standardize(data, use_scale=None):
+def replace_by_dummies(
+    data: pd.DataFrame, target: list[str], dummies: list[str] = None, drop_first: bool = False
+) -> tuple[pd.DataFrame, list[str]]:
     """
-    Standardize numerical variables (mean=0, std=1)
-
-    Input: dataframe to standardize, dict(numerical_feature: [mean, std]) for use a preexistent scale
-    Output:  normal-distributed dataframe, dict(numerical_feature: [mean, std]
-    """
-    warnings.warn(' Use new "scale" function', DeprecationWarning, stacklevel=2)
-
-    return scale(data, use_scale)
-
-
-def replace_by_dummies(data, target, dummies=None, drop_first=False):
-    """
-    TODO: Optimize (high computation).  Replace by scikit-learn Pipelines
-    Replace categorical features by dummy features (no target)
-    If no dummy list is used, a new one is created.
-
-    Input: dataframe, target list, dummy list
-    Output: dataframe with categorical replaced by dummies, dummy dictionary
+    Replace categorical features by dummy features (target variables excludes).
+    If no dummy list is used, a new one is generated.
+    Args:
+        data (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables of the input dataframe
+        dummies (list[str], optional): List of dummy features. Defaults to None.
+        drop_first (bool, optional): Drop first dummy feature. Defaults to False.
+    Returns:
+        pd.DataFrame: Dataframe with dummy features
+        list[str]: List of dummy features of the new dataframe
+    TODO: Replace by scikit-learn Pipelines
     """
 
     data = data.copy()
@@ -920,44 +920,65 @@ def replace_by_dummies(data, target, dummies=None, drop_first=False):
     return data, dummies
 
 
-def get_class_weight(y):
-    """Return dictionary of weight vector for imbalanced binary target"""
-
-    y_plain = np.ravel(y)
-    cw = class_weight.compute_class_weight("balanced", classes=np.unique(y_plain), y=y_plain)
-    cw = {idx: value for idx, value in enumerate(cw)}
-    print(cw)
-    return cw
-
-
-# MACHINE LEARNING & DEEP LEARNING ------------------------------------------------
-
-
-def one_hot_output(y_train, y_test=None):
-    """
-    Return one hot encoded output
-    If y_test is provided, both (y_train, y_test) encoded are returned
+def get_class_weight(input_array: np.Array | pd.Series) -> dict:
+    """Return a dictionary of weights of the input array. Used for unbalanced data
+    Args:
+        input_array (np.Array|pd.Series): Input array
+    Returns:
+        dict: Dictionary of weights of the input array structure: {idx: weight} (idx= 0,1,2...)
     """
 
-    num_classes = len(np.unique(y_train))
-    y_train = keras.utils.to_categorical(y_train, num_classes)
-    if y_test.any():
-        y_test = keras.utils.to_categorical(y_test, num_classes)
-        return y_train, y_test
+    input_array = np.ravel(input_array)
+    weight = class_weight.compute_class_weight("balanced", classes=np.unique(input_array), y=input_array)
+    weight = dict(enumerate(weight))
+    # print(weight)
+    return weight
+
+
+def one_hot_output(
+    input_array: np.Array | pd.Series, input_array_2: np.Array | pd.Series = None
+) -> np.Array | tuple(np.Array, np.Array):
+    """
+    Return the one-hot-encoded output of the input array. If a second input_array is provided, both encoded output
+    are returned (usual for y_train, y_test)
+    Args:
+        input_array (np.Array|pd.Series): Input array
+        input_array_2 (np.Array|pd.Series, optional): Second input array. Defaults to None.
+    Returns:
+        np.Array: One-hot-encoded output of the input array
+        (optional)  np.Array: One-hot-encoded output of the second input array if provided
+    """
+    num_classes = len(np.unique(input_array))
+    encoded_array = keras.utils.to_categorical(input_array, num_classes)
+    if input_array_2.any():
+        encoded_array_2 = keras.utils.to_categorical(input_array_2, num_classes)
+        return encoded_array, encoded_array_2
     else:
-        return y_train
+        return encoded_array
 
 
-def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
+def data_split_for_ml(
+    data: pd.DataFrame, target: list[str], stratify: bool = False, test_size: float = 0.2, random_state: int = 9
+) -> tuple(np.Array, np.Array, np.Array, np.Array):
     """
-    Separate the data intro training and test set. Also split them into features and target.
-    Stratified split will use class labels when 'stratify=True'(classification).
-    Return x_train, y_train, x_test, y_test from the dataset
+    Separate the data intro training and test set. Also split them into features and target. Stratified split will use
+    class labels when 'stratify=True'(classification).
+    Args:
+        data (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables of the input dataframe
+        stratify (bool, optional): Use class labels when 'stratify=True'(classification). Defaults to False.
+        test_size (float, optional): Test size. Defaults to 0.2.
+        random_state (int, optional): Random state. Defaults to 9.
+    Returns:
+        np.Array: x_train
+        np.Array: y_train
+        np.Array: x_test
+        np.Array: y_test
     """
 
-    st = data[target] if stratify else None
+    label_data = data[target] if stratify else None
 
-    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=st)
+    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=label_data)
 
     # Separate the data into features and targets (x=features, y=targets)
     x_train, y_train = train.drop(target, axis=1).values, train[target].values
@@ -966,17 +987,36 @@ def simple_split(data, target, stratify=False, test_size=0.2, random_state=9):
     return x_train, y_train, x_test, y_test
 
 
-def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0.2, random_state=9):
+def data_split_for_ml_with_val(
+    data: pd.DataFrame,
+    target: list[str],
+    stratify: bool = False,
+    test_size: float = 0.2,
+    val_size: float = 0.2,
+    random_state: int = 9,
+) -> tuple(np.Array, np.Array, np.Array, np.Array, np.Array, np.Array):
     """
-    Separate the data intro training, validation, and test set. Also split them into features and target.
-    Stratified split will use class labels when 'stratify=True'(classification).
-    Return x_train, y_train, x_val, y_val, x_test, y_test from the dataset
+    Separate the data intro training and test set. Also split them into features and target. Stratified split will use
+    class labels when 'stratify=True'(classification).
+    Args:
+        data (pd.DataFrame): Input dataframe
+        target (list[str]): List of target variables of the input dataframe
+        stratify (bool, optional): Use class labels when 'stratify=True'(classification). Defaults to False.
+        test_size (float, optional): Test size. Defaults to 0.2.
+        random_state (int, optional): Random state. Defaults to 9.
+    Returns:
+        np.Array: x_train
+        np.Array: y_train
+        np.Array: x_val
+        np.Array: y_val
+        np.Array: x_test
+        np.Array: y_test
     """
 
-    st = data[target] if stratify else None
+    label_data = data[target] if stratify else None
 
-    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=st)
-    train, val = train_test_split(train, test_size=val_size, random_state=random_state, stratify=st)
+    train, test = train_test_split(data, test_size=test_size, random_state=random_state, stratify=label_data)
+    train, val = train_test_split(train, test_size=val_size, random_state=random_state, stratify=label_data)
 
     # Separate the data into features and target (x=features, y=target)
     x_train, y_train = train.drop(target, axis=1).values, train[target].values
@@ -988,6 +1028,9 @@ def train_val_test_split(data, target, stratify=False, test_size=0.2, val_size=0
     print(f"test size  \t X:{x_test.shape} \t Y:{y_test.shape} ")
 
     return x_train, y_train, x_val, y_val, x_test, y_test
+
+
+# ML/DL MODELING TODO: Finish docstrings
 
 
 def dummy_clf(x_train, y_train, x_test, y_test):
