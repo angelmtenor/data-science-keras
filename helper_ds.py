@@ -970,10 +970,10 @@ def data_split_for_ml(
         test_size (float, optional): Test size. Defaults to 0.2.
         random_state (int, optional): Random state. Defaults to 9.
     Returns:
-        np.Array: x_train
-        np.Array: y_train
-        np.Array: x_test
-        np.Array: y_test
+        np.Array: x_train - train features
+        np.Array: y_train - train target
+        np.Array: x_test - test features
+        np.Array: y_test - test target
     """
 
     label_data = data[target] if stratify else None
@@ -1005,12 +1005,12 @@ def data_split_for_ml_with_val(
         test_size (float, optional): Test size. Defaults to 0.2.
         random_state (int, optional): Random state. Defaults to 9.
     Returns:
-        np.Array: x_train
-        np.Array: y_train
-        np.Array: x_val
-        np.Array: y_val
-        np.Array: x_test
-        np.Array: y_test
+        np.Array: x_train - train features
+        np.Array: y_train - train target
+        np.Array: x_val - validation features
+        np.Array: y_val - validation target
+        np.Array: x_test - test features
+        np.Array: y_test - test target
     """
 
     label_data = data[target] if stratify else None
@@ -1030,13 +1030,124 @@ def data_split_for_ml_with_val(
     return x_train, y_train, x_val, y_val, x_test, y_test
 
 
+# ML Metrics
+
+
+def binary_classification_scores(
+    y_test: np.Array | pd.Series,
+    y_pred: np.Array | pd.Series,
+    return_dataframe: bool = False,
+    index: str = " ",
+    show: bool = True,
+) -> tuple[float, float, float, float, float, float] | pd.DataFrame:
+    """Get ML classification metrics from test & predicted arrays: log_loss, acc, precision, recall, roc_auc, & F1 score
+    Args:
+        y_test (np.Array|pd.Series): Test target
+        y_pred (np.Array|pd.Series): Predicted target
+        return_dataframe (bool, optional): Return metrics in a dataframe. Defaults to False.
+        index (str, optional): Index of the dataframe for visualization. Defaults to " "
+        show (bool, optional): Show the dataframe. Defaults to True.
+    Returns:
+        tuple[float, float, float, float, float, float]: log_loss, acc, precision, recall, roc_auc, & F1 score
+        or
+        pd.DataFrame: Above metrics in Dataframe format (return_dataframe=True)
+        # TODO extend to multiclass classification
+    """
+
+    rec, roc, f1 = 0, 0, 0
+
+    y_pred_b = (y_pred > 0.5).astype(int)
+
+    warnings.filterwarnings("ignore", message="divide by zero encountered in log")
+    warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
+    loss = log_loss(y_test, y_pred)
+
+    acc = accuracy_score(y_test, y_pred_b)
+
+    warnings.filterwarnings(
+        "ignore",
+        message="Precision is ill-defined and being set to 0.0 due to no predicted samples",
+    )
+    pre = precision_score(y_test, y_pred_b)
+
+    if acc > 0 and pre > 0:
+        rec = recall_score(y_test, y_pred_b)
+        roc = roc_auc_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred_b)
+
+    if show:
+        #     print('Scores:\n' + '-' * 11)
+        #     print('Log_Loss: \t{:.4f}'.format(loss))
+        #     print('Accuracy: \t{:.2f}'.format(acc))
+        #     print('Precision: \t{:.2f}'.format(pre))
+        #     print('Recall: \t{:.2f}'.format(rec))
+        #     print('ROC AUC: \t{:.2f}'.format(roc))
+        #     print('F1-score: \t{:.2f}'.format(f1))
+        print("\nConfusion matrix: \n", confusion_matrix(y_test, y_pred_b))
+
+    if return_dataframe:
+        col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
+        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)
+        return scores
+
+    return loss, acc, pre, rec, roc, f1
+
+
+def regression_scores(
+    y_test: np.Array | pd.Series,
+    y_pred: np.Array | pd.Series,
+    return_dataframe: bool = False,
+    index: str = " ",
+    show: bool = False,
+) -> tuple[float, float] | pd.DataFrame:
+    """Get ML regression metrics from test & predicted arrays: loss & R2 Score
+    Args:
+        y_test (np.Array|pd.Series): Test target
+        y_pred (np.Array|pd.Series): Predicted target
+        return_dataframe (bool, optional): Return metrics in a dataframe. Defaults to False.
+        index (str, optional): Index of the dataframe for visualization. Defaults to " "
+        show (bool, optional): Show the dataframe. Defaults to True.
+    Returns:
+        tuple[float, float]: loss & R2 Score
+        or
+        pd.DataFrame: Above metrics in Dataframe format (return_dataframe=True)
+    """
+    r2 = r2_score(y_test, y_pred)
+    loss = mean_squared_error(y_test, y_pred)
+
+    if show:
+        print("Scores:\n" + "-" * 11)
+        print(f"Loss (mse): \t{loss:.4f}")
+        print(f"R2 Score: \t{r2:.2f}")
+
+    if return_dataframe:
+        col = ["Loss", "R2 Score"]
+        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)
+        return scores
+
+    return loss, r2
+
+
 # ML/DL MODELING TODO: Finish docstrings
 
 
-def dummy_clf(x_train, y_train, x_test, y_test):
+def dummy_clf(
+    x_train: np.Array | pd.Series,
+    y_train: np.Array | pd.Series,
+    x_test: np.Array | pd.Series,
+    y_test: np.Array | pd.Series,
+) -> tuple[float, float, float, float, float, float] | pd.DataFrame:
     """
-    Build a dummy classifier, print the confusion matrix and return a
-    dataframe with the binary classification scores
+    Build a dummy classifier, print the confusion matrix and return the binary classification scores
+    Args:
+        x_train (np.Array|pd.Series): Training features
+        y_train (np.Array|pd.Series): Training target
+        x_test (np.Array|pd.Series): Test features
+        y_test (np.Array|pd.Series): Test target
+    Returns:
+        tuple[float, float, float, float, float, float]: log_loss, acc, precision, recall, roc_auc, & F1 score
+        or
+        pd.DataFrame: Above metrics in Dataframe format (return_dataframe=True)
     """
 
     clf = DummyClassifier(strategy="most_frequent").fit(x_train, y_train)
@@ -1050,7 +1161,6 @@ def build_nn_binary_clf(
     hidden_layers=1,
     dropout=0,
     input_nodes=None,
-    summary=False,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
     # kernel_regularizer=None,
@@ -1297,11 +1407,11 @@ def show_training(history):
     plt.ylabel("loss")
     plt.legend()
 
-    if "acc" in hist:
+    if "accuracy" in hist:
         plt.subplot(122)
-        plt.plot(hist["acc"], label="Training")
-        if "val_acc" in hist:
-            plt.plot(hist["val_acc"], label="Validation")
+        plt.plot(hist["accuracy"], label="Training")
+        if "val_accuracy" in hist:
+            plt.plot(hist["val_accuracy"], label="Validation")
         plt.xlabel("epoch")
         plt.ylabel("accuracy")
         plt.legend()
@@ -1312,10 +1422,10 @@ def show_training(history):
     print(f"\nTraining loss:  \t{hist['loss'][-1]:.4f}")
     if "val_loss" in hist:
         print(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
-    if "acc" in hist:
-        print(f"\nTraining accuracy: \t{hist['acc'][-1]:.3f}")
-    if "val_acc" in hist:
-        print(f"Validation accuracy:\t{hist['val_acc'][-1]:.3f}")
+    if "accuracy" in hist:
+        print(f"\nTraining accuracy: \t{hist['accuracy'][-1]:.3f}")
+    if "val_accuracy" in hist:
+        print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
 
 
 def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
@@ -1441,67 +1551,6 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
             print(f"Test R2-score:  \t {r2:.3f}\n")
 
     return results.sort_values("Test loss").round(2)
-
-
-def binary_classification_scores(y_test, y_pred, return_dataframe=False, index=" ", show=True):
-    """Return classification metrics: log_loss, acc, precision, recall, roc_auc, F1 score"""
-
-    rec, roc, f1 = 0, 0, 0
-
-    y_pred_b = (y_pred > 0.5).astype(int)
-
-    warnings.filterwarnings("ignore", message="divide by zero encountered in log")
-    warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
-    loss = log_loss(y_test, y_pred)
-
-    acc = accuracy_score(y_test, y_pred_b)
-
-    warnings.filterwarnings(
-        "ignore",
-        message="Precision is ill-defined and being set to 0.0 due to no predicted samples",
-    )
-    pre = precision_score(y_test, y_pred_b)
-
-    if acc > 0 and pre > 0:
-        rec = recall_score(y_test, y_pred_b)
-        roc = roc_auc_score(y_test, y_pred)
-        f1 = f1_score(y_test, y_pred_b)
-
-    if show:
-        #     print('Scores:\n' + '-' * 11)
-        #     print('Log_Loss: \t{:.4f}'.format(loss))
-        #     print('Accuracy: \t{:.2f}'.format(acc))
-        #     print('Precision: \t{:.2f}'.format(pre))
-        #     print('Recall: \t{:.2f}'.format(rec))
-        #     print('ROC AUC: \t{:.2f}'.format(roc))
-        #     print('F1-score: \t{:.2f}'.format(f1))
-        print("\nConfusion matrix: \n", confusion_matrix(y_test, y_pred_b))
-
-    if return_dataframe:
-        col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
-        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)
-        return scores
-
-    return loss, acc, pre, rec, roc, f1
-
-
-def regression_scores(y_test, y_pred, show=False, return_dataframe=False, index=" "):
-    """Return regression metrics: (loss, R2 Score)"""
-
-    r2 = r2_score(y_test, y_pred)
-    loss = mean_squared_error(y_test, y_pred)
-
-    if show:
-        print("Scores:\n" + "-" * 11)
-        print(f"Loss (mse): \t{loss:.4f}")
-        print(f"R2 Score: \t{r2:.2f}")
-
-    if return_dataframe:
-        col = ["Loss", "R2 Score"]
-        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)
-        return scores
-
-    return loss, r2
 
 
 def feature_importance(features, model, top=10, plot=True):
