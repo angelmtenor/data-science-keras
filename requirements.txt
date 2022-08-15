@@ -1,19 +1,16 @@
 jupyter
-lightgbm==3.3.2
-matplotlib==3.5.2
-nltk==3.7
-# networkx==2.8.5
-numpy==1.23.1
-pandas==1.4.3
-pre-commit
-psutil==5.9.1
-py-cpuinfo==8.0.0
+lightgbm
+matplotlib
+nltk
+numpy
+pandas
+psutil
+py-cpuinfo
 pyarrow
-scikit_learn==1.1.1
-seaborn==0.11.2
-setuptools==61.2.0
-tensorflow==2.9.1
-# Pillow==9.2.0
+scikit_learn
+seaborn
+setuptools
+tensorflow
 
 # Notes for setup.py / setup.cfg / Dockerfile
 # export TF_CPP_MIN_LOG_LEVEL=3

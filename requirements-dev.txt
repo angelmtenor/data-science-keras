@@ -1,0 +1,19 @@
+-r requirements.txt
+black
+flake8
+isort
+nbqa
+pipreqs
+pre-commit
+pylint
+snakeviz
+# profilehooks
+# line_profiler
+# memory_profiler
+
+# Usage of the Visual Profiling tool 'snakeviz':
+# 1- create a 'log' folder in the project root directory if not exists.
+# 2- execute: `python -m cProfile -o log/precedence.profile precedence_caller.py`.
+# 3- execute: `snakeviz log/precedence.profile`.
+# 4- Click the output link provided to open the snakeviz web interface.
+# 5- Change Cutoff to 1/100 to avoid any visualization error if needed
