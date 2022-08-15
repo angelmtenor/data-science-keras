@@ -24,14 +24,26 @@ import psutil
 import seaborn as sns
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+
 # scikit learn
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import (  # AdaBoostClassifier,; AdaBoostRegressor,
-    ExtraTreesClassifier, RandomForestClassifier, RandomForestRegressor)
+    ExtraTreesClassifier,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score,
-                             log_loss, mean_squared_error, precision_score,
-                             r2_score, recall_score, roc_auc_score)
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    log_loss,
+    mean_squared_error,
+    precision_score,
+    r2_score,
+    recall_score,
+    roc_auc_score,
+)
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
@@ -303,7 +315,6 @@ def remove_categories(
 
             # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
             df[f] = df[f].cat.remove_unused_categories()
-
 
             dict_categories[f] = df[f].cat.categories
 
@@ -1117,12 +1128,12 @@ def regression_scores(
     return loss, r2
 
 
-def show_training(history):
+def show_training(history: tf.keras.callbacks.History) -> None:
     """
-    Print the final loss and plot its evolution in the training process.
-    The same applies to 'validation loss', 'accuracy', and 'validation accuracy' if available
-    :param history: Keras history object (model.fit return)
-    :return:
+    Show the final loss and Plot its evolution in the training process. The same applies to 'validation loss',
+    'accuracy', and 'validation accuracy' if available
+    Args:
+        history (tf.keras.callbacks.History): History of the training process. Return of model.fit
     """
     hist = history.history
 
@@ -1190,16 +1201,28 @@ def dummy_clf(
 
 
 def build_nn_binary_clf(
-    input_size,
-    hidden_layers=1,
-    dropout=0,
-    input_nodes=None,
-    kernel_initializer="glorot_uniform",
-    bias_initializer="zeros",
+    input_size: int,
+    hidden_layers: int = 1,
+    dropout: float = 0,
+    input_nodes: int = None,
+    kernel_initializer: str = "glorot_uniform",
+    bias_initializer: str = "zeros",
+    summary=False,
     # kernel_regularizer=None,
     # bias_regularizer=None,
-):
-    """Build a DNN for binary classification with sigmoid activation function"""
+) -> tf.keras.Sequential:
+    """Build a DNN for binary classification with sigmoid activation function
+    Args:
+        input_size (int): Number of features
+        hidden_layers (int, optional): Number of hidden layers. Defaults to 1.
+        dropout (float, optional): Dropout rate. Defaults to 0.
+        input_nodes (int, optional): Number of nodes of the first layer. Defaults to None ( = input_size).
+        kernel_initializer (str, optional): Kernel initializer. Defaults to "glorot_uniform".
+        bias_initializer (str, optional): Bias initializer. Defaults to "zeros".
+        summary (bool, optional): Show the model summary. Defaults to False.
+    Returns:
+        tf.keras.Sequential: Binary Classifier. DNN model with sigmoid activation function
+    """
 
     if not input_nodes:
         input_nodes = input_size
@@ -1242,20 +1265,40 @@ def build_nn_binary_clf(
         )
     )
 
+    opt = keras.optimizers.Adam()
+    model.compile(loss="categorical_crossentropy", optimizer=opt, metrics=["accuracy"])
+
+    if summary:
+        model.summary()
+
+    return model
+
 
 def build_nn_clf(
-    input_size,
-    output_size,
-    hidden_layers=1,
-    dropout=0,
-    input_nodes=None,
-    summary=False,
+    input_size: int,
+    output_size: int,
+    hidden_layers: int = 1,
+    dropout: float = 0,
+    input_nodes: int = None,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
+    summary=False,
     # kernel_regularizer=None,
     # bias_regularizer=None,
 ):
-    """Build an universal DNN for classification"""
+    """Build an universal DNN for classification (softmax activation function
+    Args:
+        input_size (int): Number of features
+        output_size (int): Number of classes (target)
+        hidden_layers (int, optional): Number of hidden layers. Defaults to 1.
+        dropout (float, optional): Dropout rate. Defaults to 0.
+        input_nodes (int, optional): Number of nodes of the first layer. Defaults to None ( = input_size).
+        kernel_initializer (str, optional): Kernel initializer. Defaults to "glorot_uniform".
+        bias_initializer (str, optional): Bias initializer. Defaults to "zeros".
+        summary (bool, optional): Print model summary. Defaults to False.
+    Returns:
+        tf.keras.Sequential: Classifier. DNN model with softmax activation function
+    """
 
     if not input_nodes:
         input_nodes = input_size
