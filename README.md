@@ -79,4 +79,4 @@ This repo contains a set of data science projects solved with artificial neural 
     jupyter notebook
     ```
 
-*Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2080 on WSL (Windows 11)*
+*Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2070 on WSL (Windows 11)*
