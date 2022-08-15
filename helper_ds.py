@@ -24,26 +24,14 @@ import psutil
 import seaborn as sns
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
-
 # scikit learn
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import (  # AdaBoostClassifier,; AdaBoostRegressor,
-    ExtraTreesClassifier,
-    RandomForestClassifier,
-    RandomForestRegressor,
-)
+    ExtraTreesClassifier, RandomForestClassifier, RandomForestRegressor)
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import (
-    accuracy_score,
-    confusion_matrix,
-    f1_score,
-    log_loss,
-    mean_squared_error,
-    precision_score,
-    r2_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import (accuracy_score, confusion_matrix, f1_score,
+                             log_loss, mean_squared_error, precision_score,
+                             r2_score, recall_score, roc_auc_score)
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
@@ -314,6 +302,8 @@ def remove_categories(
             #     df[f] = df[f].cat.remove_unused_categories()
 
             # df.loc[:,f] = df.loc[:,f].replace(np.low_freq, np.nan)
+            df[f] = df[f].cat.remove_unused_categories()
+
 
             dict_categories[f] = df[f].cat.categories
 
@@ -880,6 +870,7 @@ def replace_by_dummies(
     """
 
     data = data.copy()
+    target = target.copy()
 
     if not dummies:
         create_dummies = True
