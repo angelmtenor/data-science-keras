@@ -24,6 +24,7 @@ import psutil
 import seaborn as sns
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
+from sklearn.base import BaseEstimator
 
 # scikit learn
 from sklearn.dummy import DummyClassifier
@@ -1282,7 +1283,7 @@ def build_nn_clf(
     input_nodes: int = None,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
-    summary:bool=False,
+    summary: bool = False,
     # kernel_regularizer=None,
     # bias_regularizer=None,
 ):
@@ -1350,19 +1351,18 @@ def build_nn_clf(
 
 
 def build_nn_reg(
-    input_size:int,
-    output_size:int,
-    hidden_layers:int=1,
-    dropout:float=0,
-    input_nodes:int=None,
-    kernel_initializer:str="glorot_uniform",
-    bias_initializer:str="zeros",
+    input_size: int,
+    output_size: int,
+    hidden_layers: int = 1,
+    dropout: float = 0,
+    input_nodes: int = None,
+    kernel_initializer: str = "glorot_uniform",
+    bias_initializer: str = "zeros",
     # kernel_regularizer=None,
     # bias_regularizer=None,
-    optimizer:str="rmsprop",
-    summary:bool=False,
-
-)->tf.keras.Sequential:
+    optimizer: str = "rmsprop",
+    summary: bool = False,
+) -> tf.keras.Sequential:
     """Build an universal DNN for regression
     Args:
         input_size (int): Number of features
@@ -1427,22 +1427,36 @@ def build_nn_reg(
 
 
 def train_nn(
-    model,
-    x_train,
-    y_train,
-    cw=None,
-    epochs=100,
-    batch_size=128,
-    verbose=0,
-    callbacks=None,
-    validation_split=0.2,
-    validation_data=None,
-    path=False,
-    show=True,
-):
-    """
-    Train a neural network model. If no validation_data is provided, a split for validation
-    will be used
+    model: tf.keras.Sequential,
+    x_train: np.ndarray | pd.Series,
+    y_train: np.ndarray | pd.Series,
+    cw: dict[int] = None,
+    epochs: int = 100,
+    batch_size: int = 128,
+    verbose: int = 0,
+    callbacks: keras.callbacks.EarlyStopping = None,
+    validation_split: float = 0.2,
+    validation_data: tuple = None,
+    path: Path | str = None,
+    show: bool = True,
+) -> tf.keras.callbacks.History:
+    """Train a neural network model. If no validation_data is provided, a random split defined by validation_split will
+     be used
+    Args:
+        model (tf.keras.Sequential): Neural network model
+        x_train (np.ndarray|pd.Series): Training features
+        y_train (np.ndarray|pd.Series): Training target
+        cw (dict[int], optional): Class weights. Defaults to None.
+        epochs (int, optional): Number of epochs. Defaults to 100.
+        batch_size (int, optional): Batch size. Defaults to 128.
+        verbose (int, optional): Keras Verbosity mode. Defaults to 0 (silent).
+        callbacks (keras.callbacks.EarlyStopping, optional): Callbacks. Defaults to None.
+        validation_split (float, optional): Validation split. Defaults to 0.2.
+        validation_data (tuple, optional): Validation data. Defaults to None.
+        path (Path|str, optional): Path to save the model. Defaults to None (no saved).
+        show (bool, optional): Show a plot of the training process. Defaults to True.
+    Returns:
+        tf.keras.Sequential: Trained model
     """
 
     if show:
@@ -1462,91 +1476,97 @@ def train_nn(
         validation_data=validation_data,
         callbacks=callbacks,
     )
-
     if show:
         print(f"time: \t {time() - t0:.1f} s")
         show_training(history)
-
     if path:
         model.save(path)
         print("\nModel saved at", path)
-
     return history
 
 
-def ml_classification(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
+def ml_classification(
+    x_train: np.Array | pd.Series,
+    y_train: np.Array | pd.Series,
+    x_test: np.Array | pd.Series,
+    y_test: np.Array | pd.Series,
+    cross_validation: bool = False,
+    show: bool = False,
+) -> pd.DataFrame:
+    """Build, train, and test the data set with non-NN machine learning classification models.
+    Args:
+        x_train (np.Array|pd.Series): Training features
+        y_train (np.Array|pd.Series): Training target
+        x_test (np.Array|pd.Series): Test features
+        y_test (np.Array|pd.Series): Test target
+        cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
+        show (bool, optional): Show a plot of the training process. Defaults to False.
+    Returns:
+        pd.DataFrame: Results of the classification models
     """
-    Build, train, and test the data set with classical machine learning classification models.
-    If cross_validation=True an additional training with cross validation will be performed.
-    """
-
     classifiers = (
         GaussianNB(),
         RandomForestClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
         ExtraTreesClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
         LGBMClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
     )
-
     names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LGBM"]
-
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
     results = pd.DataFrame(columns=col)
-
     for idx, clf in enumerate(classifiers):
-
-        # clf_cv = clone(clf)
-
         name = names[idx]
         print(name)
-
         t0 = time()
         # Fitting the model without cross validation
-
         warnings.filterwarnings("ignore", message="overflow encountered in reduce")
-
         clf.fit(x_train, y_train)
         train_time = time() - t0
         y_pred = clf.predict_proba(x_test)
-
         loss, acc, pre, rec, roc, f1 = binary_classification_scores(y_test, y_pred[:, 1], show=show)
-
         if cross_validation:
             warnings.warn("Cross-validation removed")  # TODO: Update with best practices 2022 (ethics & green code)
-
             # k_fold = KFold(n_splits=10)
-
             # t0 = time()
             # # Fitting the model with cross validation
             # for id_train, id_test in k_fold.split(x_train):
             #     # print(y_train[id_train, 0].shape)
             #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             # train_time_cv = time() - t0
-
             # y_pred_cv = clf_cv.predict_proba(x_test)
             # accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
             # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
-
         results = pd.concat(
             [results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name])]
         )
-
     return results.sort_values("Accuracy", ascending=False).round(2)
 
 
-def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show=False):
+def ml_regression(
+    x_train: np.Array | pd.Series,
+    y_train: np.Array | pd.Series,
+    x_test: np.Array | pd.Series,
+    y_test: np.Array | pd.Series,
+    cross_validation=False,
+    show=False,
+) -> pd.DataFrame:
     """
-    Build, train, and test the data set with classical machine learning regression models.
-    If cross_validation=True an additional training with cross validation will be performed.
+    Build, train, and test the data set with non-NN machine learning regression models.
+    Args:
+        x_train (np.Array|pd.Series): Training features
+        y_train (np.Array|pd.Series): Training target
+        x_test (np.Array|pd.Series): Test features
+        y_test (np.Array|pd.Series): Test target
+        cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
+        show (bool, optional): Show a plot of the training process. Defaults to False.
+    Returns:
+        pd.DataFrame: Results of the regression models
     """
-
     regressors = [
         LinearRegression(),
         KNeighborsRegressor(n_neighbors=10),
-        # AdaBoostRegressor(),
         RandomForestRegressor(n_jobs=-1, max_depth=17, n_estimators=50, random_state=9),
     ]
-
     names = ["Linear", "KNeighbors", "Random Forest"]
 
     if y_train.shape[1] == 1:
@@ -1557,12 +1577,8 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
     results = pd.DataFrame(columns=col)
 
     for idx, clf in enumerate(regressors):
-
         name = names[idx]
-        # clf_cv = clone(clf)
-
         print(name)
-
         t0 = time()
         # Fitting the model without cross validation
         if len(y_train.shape) > 1:
@@ -1571,12 +1587,9 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
         clf.fit(x_train, y_train)
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
-
         loss, r2 = regression_scores(y_test, y_pred, show=show)
-
         if cross_validation:
             warnings.warn("Cross-validation removed")  # TODO: Update with best practices 2022 (ethics & green code)
-
             # k_fold = KFold(n_splits=10)
             # t0 = time()
             # # Fitting the model with cross validation
@@ -1584,38 +1597,40 @@ def ml_regression(x_train, y_train, x_test, y_test, cross_validation=False, show
             #     # print(y_train[id_train, 0].shape)
             #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             # train_time_cv = time() - t0
-
             # y_pred_cv = clf_cv.predict(x_test)
             # r2_cv = r2_score(y_test, y_pred_cv[:,1])
 
             # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
             # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
-
         results = pd.concat([results, pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name])])
-
         if show:
             print("-" * 20)
             print(f"Training Time:  \t {train_time:.1f} s")
             print(f"Test loss:  \t\t {loss:.4f}")
             print(f"Test R2-score:  \t {r2:.3f}\n")
-
     return results.sort_values("Test loss").round(2)
 
 
-def feature_importance(features, model, top=10, plot=True):
-    """Return a dataframe with the most relevant features from a trained tree-based model"""
-
+def feature_importance(
+    features: list, model: BaseEstimator | LGBMClassifier | LGBMRegressor, top: int = 10, plot: bool = True
+) -> pd.DataFrame:
+    """Return a dataframe with the most relevant features from a trained tree-based model
+    Args:
+        features (list): List of features
+        model (BaseEstimator|LGBMClassifier|LGBMRegressor): Trained model
+        top (int, optional): Number of top features to return. Defaults to 10.
+        plot (bool, optional): Plot the importances of the top features (barplot). Defaults to True.
+    Returns:
+        pd.DataFrame: Dataframe with the most relevant features
+    """
     n = len(features)
     if n < top:
         top = n
-
     # print("\n Top contributing features:\n", "-" * 26)
     importance = pd.DataFrame(data={"Importance": model.feature_importances_}, index=features)
     importance = importance.sort_values("Importance", ascending=False).round(2).head(top)
-
     if plot:
         figsize = (8, top // 2 + 1)
         importance.plot.barh(figsize=figsize)
         plt.gca().invert_yaxis()
-
     return importance
