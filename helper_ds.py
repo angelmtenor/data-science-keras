@@ -1282,7 +1282,7 @@ def build_nn_clf(
     input_nodes: int = None,
     kernel_initializer="glorot_uniform",
     bias_initializer="zeros",
-    summary=False,
+    summary:bool=False,
     # kernel_regularizer=None,
     # bias_regularizer=None,
 ):
@@ -1350,19 +1350,33 @@ def build_nn_clf(
 
 
 def build_nn_reg(
-    input_size,
-    output_size,
-    hidden_layers=1,
-    dropout=0,
-    input_nodes=None,
-    summary=False,
-    kernel_initializer="glorot_uniform",
-    bias_initializer="zeros",
+    input_size:int,
+    output_size:int,
+    hidden_layers:int=1,
+    dropout:float=0,
+    input_nodes:int=None,
+    kernel_initializer:str="glorot_uniform",
+    bias_initializer:str="zeros",
     # kernel_regularizer=None,
     # bias_regularizer=None,
-    optimizer="rmsprop",
-):
-    """Build an universal DNN for regression"""
+    optimizer:str="rmsprop",
+    summary:bool=False,
+
+)->tf.keras.Sequential:
+    """Build an universal DNN for regression
+    Args:
+        input_size (int): Number of features
+        output_size (int): Number of outputs
+        hidden_layers (int, optional): Number of hidden layers. Defaults to 1.
+        dropout (float, optional): Dropout rate. Defaults to 0.
+        input_nodes (int, optional): Number of nodes of the first layer. Defaults to None ( = input_size).
+        kernel_initialize (str, optional): Kernel initializer. Defaults to "glorot_uniform".
+        bias_initializer (str, optional): Bias initializer. Defaults to "zeros".
+        optimizer (str, optional): Optimizer. Defaults to "rmsprop".
+        summary (bool, optional): Print model summary. Defaults to False.
+    Returns:
+        tf.keras.Sequential: Regressor. DNN model with linear activation function
+    """
 
     if not input_nodes:
         input_nodes = input_size
