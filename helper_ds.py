@@ -734,7 +734,7 @@ def show_target_vs_categorical(df: pd.DataFrame, target: list[str], figsize: tup
             if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
                 plt.subplots(ncols=1, figsize=figsize)
                 # so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
-                axs = sns.barplot(data=copy_df, x=categorical_f, y=t)
+                axs = sns.barplot(data=copy_df, x=categorical_f, y=t) # TODO: fix this
 
             else:
 
