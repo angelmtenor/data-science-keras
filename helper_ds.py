@@ -52,10 +52,10 @@ from sklearn.utils import class_weight
 
 # tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-from keras.layers import Dense, Dropout
-from keras.models import Sequential
-from tensorflow import keras
+import tensorflow as tf  # noqa: E402
+from keras.layers import Dense, Dropout  # noqa: E402
+from keras.models import Sequential  # noqa: E402
+from tensorflow import keras  # noqa: E402
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
 
