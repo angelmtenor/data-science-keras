@@ -299,7 +299,7 @@ def remove_categories(
             df[f] = df[f].cat.set_categories(dict_categories[f])
 
     else:
-        dict_categories = dict()
+        dict_categories = {}
 
         for f in categorical_f:
 
@@ -821,7 +821,7 @@ def scale(data: pd.DataFrame, scale_param: dict = None, method: str = "std") -> 
     # TODO: Replace scalers with those from sklearn.preprocessing
     """
 
-    assert method == "std" or method == "minmax" or method == "maxabs"
+    assert method in ("std", "minmax", "maxabs")
 
     data = data.copy()
 
@@ -951,11 +951,12 @@ def one_hot_output(
     """
     num_classes = len(np.unique(input_array))
     encoded_array = keras.utils.to_categorical(input_array, num_classes)
+
     if input_array_2.any():
         encoded_array_2 = keras.utils.to_categorical(input_array_2, num_classes)
         return encoded_array, encoded_array_2
-    else:
-        return encoded_array
+
+    return encoded_array
 
 
 def data_split_for_ml(

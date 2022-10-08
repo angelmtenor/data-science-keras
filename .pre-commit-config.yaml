@@ -66,10 +66,10 @@ repos:
     args: ['--max-line-length=120']
 
 
-#  - repo: https://github.com/dosisod/refurb
-#     rev: REVISION
-#     hooks:
-#       - id: refurb
+- repo: https://github.com/dosisod/refurb
+  rev: v1.3.0
+  hooks:
+    - id: refurb
 
 # - repo: local
 #   hooks:
@@ -78,4 +78,4 @@ repos:
 #     files: \.ipynb$
 #     stages: [commit]
 #     language: system
-#     entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace
+#     entry: jupyter nbconvert --ClearOutputPreprocessor.enabled=True --inplace # noqa: E402
