@@ -52,13 +52,12 @@ from sklearn.utils import class_weight
 
 # tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf
-from keras.layers import Dense, Dropout
-from keras.models import Sequential
-from tensorflow import keras
+import tensorflow as tf  # noqa: E402
+from keras.layers import Dense, Dropout  # noqa: E402
+from keras.models import Sequential  # noqa: E402
+from tensorflow import keras  # noqa: E402
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
-
 
 EXECUTION_PATH = "data-science-keras"
 
@@ -299,14 +298,12 @@ def remove_categories(
             df[f] = df[f].cat.set_categories(dict_categories[f])
 
     else:
-        dict_categories = dict()
+        dict_categories = {}
 
         for f in categorical_f:
 
             count = df[f].value_counts()
-            low_freq = set(count[count < threshold].index)
-            # high_freq = list(count[count >= threshold].index)
-            if low_freq:
+            if low_freq := set(count[count < threshold].index):
                 print(f"Removing {len(low_freq)} categories from feature {f}")
                 df.loc[df[f].isin(low_freq), f] = np.nan
 
@@ -676,7 +673,6 @@ def show_categorical(
         return
 
     nrows = math.ceil(len(categorical_f) / ncols)
-
     for row in range(nrows):
 
         if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
@@ -821,7 +817,7 @@ def scale(data: pd.DataFrame, scale_param: dict = None, method: str = "std") -> 
     # TODO: Replace scalers with those from sklearn.preprocessing
     """
 
-    assert method == "std" or method == "minmax" or method == "maxabs"
+    assert method in {"std", "minmax", "maxabs"}
 
     data = data.copy()
 
@@ -884,11 +880,7 @@ def replace_by_dummies(
     data = data.copy()
     target = target.copy()
 
-    if not dummies:
-        create_dummies = True
-    else:
-        create_dummies = False
-
+    create_dummies = not dummies
     found_dummies = []
 
     categorical = list(data.select_dtypes(include=["category"]))
@@ -951,11 +943,12 @@ def one_hot_output(
     """
     num_classes = len(np.unique(input_array))
     encoded_array = keras.utils.to_categorical(input_array, num_classes)
+
     if input_array_2.any():
         encoded_array_2 = keras.utils.to_categorical(input_array_2, num_classes)
         return encoded_array, encoded_array_2
-    else:
-        return encoded_array
+
+    return encoded_array
 
 
 def data_split_for_ml(
@@ -1056,13 +1049,13 @@ def binary_classification_scores(
     """
 
     rec, roc, f1 = 0, 0, 0
-
     y_pred_b = (y_pred > 0.5).astype(int)
 
     warnings.filterwarnings("ignore", message="divide by zero encountered in log")
     warnings.filterwarnings("ignore", message="invalid value encountered in multiply")
     loss = log_loss(y_test, y_pred)
-
+    # TODO
+    # a
     acc = accuracy_score(y_test, y_pred_b)
 
     warnings.filterwarnings(
@@ -1088,8 +1081,7 @@ def binary_classification_scores(
 
     if return_dataframe:
         col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
-        scores = pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)
-        return scores
+        return pd.DataFrame([[loss, acc, pre, rec, roc, f1]], columns=col, index=[index]).round(2)
 
     return loss, acc, pre, rec, roc, f1
 
@@ -1123,8 +1115,7 @@ def regression_scores(
 
     if return_dataframe:
         col = ["Loss", "R2 Score"]
-        scores = pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)
-        return scores
+        return pd.DataFrame([[loss, r2]], columns=col, index=[index]).round(2)
 
     return loss, r2
 
@@ -1144,23 +1135,9 @@ def show_training(history: tf.keras.callbacks.History) -> None:
 
     # plot training
     plt.figure(figsize=(14, 4))
-    plt.subplot(121)
-    plt.plot(hist["loss"], label="Training")
-    if "val_loss" in hist:
-        plt.plot(hist["val_loss"], label="Validation")
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
-    plt.legend()
-
+    plot_training_metric(121, hist, "loss", "val_loss")
     if "accuracy" in hist:
-        plt.subplot(122)
-        plt.plot(hist["accuracy"], label="Training")
-        if "val_accuracy" in hist:
-            plt.plot(hist["val_accuracy"], label="Validation")
-        plt.xlabel("epoch")
-        plt.ylabel("accuracy")
-        plt.legend()
-
+        plot_training_metric(122, hist, "accuracy", "val_accuracy")
     plt.show()
 
     # show final results
@@ -1171,6 +1148,16 @@ def show_training(history: tf.keras.callbacks.History) -> None:
         print(f"\nTraining accuracy: \t{hist['accuracy'][-1]:.3f}")
     if "val_accuracy" in hist:
         print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
+
+
+def plot_training_metric(arg0, hist, arg2, arg3):
+    plt.subplot(arg0)
+    plt.plot(hist[arg2], label="Training")
+    if arg3 in hist:
+        plt.plot(hist[arg3], label="Validation")
+    plt.xlabel("epoch")
+    plt.ylabel(arg2)
+    plt.legend()
 
 
 # ML/DL MODELING TODO: Finish docstrings
@@ -1581,9 +1568,8 @@ def ml_regression(
         print(name)
         t0 = time()
         # Fitting the model without cross validation
-        if len(y_train.shape) > 1:
-            if y_train.shape[1] == 1:
-                y_train = np.ravel(y_train)
+        if len(y_train.shape) > 1 and y_train.shape[1] == 1:
+            y_train = np.ravel(y_train)
         clf.fit(x_train, y_train)
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)
