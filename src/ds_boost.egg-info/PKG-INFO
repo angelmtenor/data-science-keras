@@ -1,3 +1,21 @@
+Metadata-Version: 2.1
+Name: ds-boost
+Version: 0.0.1
+Summary: Package for Practical & efficient Data Science in Python. Initially written for data-science-keras repo
+Home-page: ""
+Author: Angel Martinez-Tenor
+Author-email: angelmtenor@gmail.com
+License: MIT
+Keywords: practical data science,machine learning,deep learning,keras,tensorflow,pytorch,pandas,numpy,matplotlib,seaborn,scikit-learn,jupyter,python
+Platform: any
+Classifier: Development Status :: 4 - Beta
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
 # Data science projects with Keras
 
 [Angel Martinez-Tenor](https://profile.angelmtenor.com/).

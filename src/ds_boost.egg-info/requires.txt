@@ -1,0 +1,13 @@
+jupyter
+lightgbm
+matplotlib
+nltk
+numpy
+pandas
+psutil
+py-cpuinfo
+pyarrow
+scikit_learn
+seaborn
+setuptools
+tensorflow
