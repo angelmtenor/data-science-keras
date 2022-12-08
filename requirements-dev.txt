@@ -7,6 +7,7 @@ pipreqs
 pre-commit
 pylint
 snakeviz
+mypy
 # profilehooks
 # line_profiler
 # memory_profiler
