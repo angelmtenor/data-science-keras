@@ -97,8 +97,8 @@ repos:
     # entry: pylint $(git ls-files '*.py')
     language: system
     types: [python]
-    args:
-    - --max-line-length=120
+    args: [--max-line-length=120,  --disable=E1101, --disable=W0511, --disable=C0103, --disable=C0302,
+         --disable=R0912, --disable=R0913, --disable=R0914]
 #         # - --ignore-imports=yes
 #         # - -d duplicate-code
 
