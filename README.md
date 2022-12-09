@@ -1,4 +1,4 @@
-# Data science projects with Keras
+# Data science projects with Keras (No-Poetry Version)
 
 [Angel Martinez-Tenor](https://profile.angelmtenor.com/).
 
@@ -50,22 +50,22 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 ## Instructions
-*Python 3.7+ required. Conda environment with Python 3.10 suggested*
+*Python 3.8+ required. Conda environment with Python 3.10 suggested*
 
 
 1. Clone the repository using `git`:
-    ```
+    ```bash
     git clone https://github.com/angelmtenor/data-science-keras.git
     ```
 
 2. Create a virtual/conda environment (optional):
-    ```
+    ```bash
     conda create -n ds-keras python=3.10
     conda activate ds-keras
     ```
 
-3. In the folder of the cloned repository, install the ds-boost mini package developed in this repo. This package is currently based in a unique helper module (ds_boost.py) containing utils functions build on numpy, matplotlib, seaborn, scikit-learn, lightgbm and TensorFlow/Keras:
-    ```
+3. In the root folder of the cloned repository, install the ds-boost mini package developed in this repo. This package is currently based in a unique helper module (ds_boost.py) containing utils functions build on numpy, matplotlib, seaborn, scikit-learn, lightgbm and TensorFlow/Keras:
+    ```bash
     cd data-science-keras
     pip install -e .
     ```
@@ -74,9 +74,21 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
-    ```
+    ```bash
     cd data-science-keras
     jupyter notebook
     ```
+
+## Editor / Development mode
+1. Setup. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required)):
+    ```bash
+    make setup
+    ```
+2. QA (manual pre-commit):
+    ```bash
+    make qa
+    ```
+
+
 
 *Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2070 on WSL (Windows 11)*
