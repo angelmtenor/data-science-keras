@@ -22,6 +22,12 @@ import pandas as pd
 import pkg_resources
 import psutil
 import seaborn as sns
+
+# tensorflow
+# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf  # noqa: E402
+from keras.layers import Dense, Dropout  # noqa: E402
+from keras.models import Sequential  # noqa: E402
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from sklearn.base import BaseEstimator
@@ -49,12 +55,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
-
-# tensorflow
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf  # noqa: E402
-from keras.layers import Dense, Dropout  # noqa: E402
-from keras.models import Sequential  # noqa: E402
 from tensorflow import keras  # noqa: E402
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ def info_os() -> None:
     # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
 
 
-def info_software(modules: list[str] = DEFAULT_MODULES) -> None:
+def info_software(modules: tuple[str, ...] = DEFAULT_MODULES) -> None:
     """Print version of Python and Python modules using pkg_resources
         note: not all modules can be obtained with pkg_resources: e.g: pytorch, mlflow ..
     Args:
@@ -110,7 +110,7 @@ def info_hardware() -> None:
 
     # CPU INFO
     try:
-        import cpuinfo  # pip py-cpuinfo
+        import cpuinfo  # pip py-cpuinfo   # pylint: disable=import-outside-toplevel
 
         cpu = cpuinfo.get_cpu_info().get("brand_raw")
         print(f"CPU:\t{cpu}")
@@ -132,7 +132,7 @@ def info_hardware() -> None:
         # print(f"{tf.test.gpu_device_name()[1:]}")
 
 
-def info_system(hardware: bool = True, modules: list[str] = None) -> None:
+def info_system(hardware: bool = True, modules: tuple[str, ...] = None) -> None:
     """Print Complete system info:
         - Show CPU & RAM hardware=True (it can take a few seconds)
         - Show OS version.
@@ -178,14 +178,14 @@ def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
     if current_path.stem == target_path.stem:
         print(f"Already in target path {current_path}")
         return
-    else:
-        new_path = current_path
-        for _ in range(3):
-            new_path = new_path.parent
-            if new_path.stem == target_path.stem:
-                os.chdir(new_path)
-                print(f"Path changed to {new_path}")
-                return
+
+    new_path = current_path
+    for _ in range(3):
+        new_path = new_path.parent
+        if new_path.stem == target_path.stem:
+            os.chdir(new_path)
+            print(f"Path changed to {new_path}")
+            return
 
     assert False, f"{target_path} not found"
 
@@ -263,7 +263,7 @@ def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFra
 
 def remove_categories(
     df: pd.DataFrame, target: str | list = None, ratio: float = 0.01, show: bool = False, dict_categories: dict = None
-) -> tuple(pd.DataFrame, dict):
+) -> tuple[pd.DataFrame, dict]:
     """
     Remove low frequency categorical values appearing less than 'ratio' in its column of the input dataframe.
     Only non-numerical columns are evaluated.
@@ -481,6 +481,7 @@ def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: 
 
     if limit:
         return missing_ratio[missing_ratio > limit].index.tolist()
+    return None
 
 
 def is_binary(data: pd.Series) -> bool:
@@ -768,7 +769,7 @@ def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsi
 
     if not numerical_f:
         print("There are no numerical features")
-        return
+        return None
 
     copy_df = df.copy()
     for t in target:
@@ -899,8 +900,8 @@ def replace_by_dummies(
         for n in new:
             data = data.drop(n, axis=1)
         # fill missing dummies with empty values (0)
-        missing = set(dummies) - set(found_dummies)
-        for m in missing:
+        missing_dummies = set(dummies) - set(found_dummies)
+        for m in missing_dummies:
             data[m] = 0
 
     else:
@@ -913,10 +914,10 @@ def replace_by_dummies(
     return data, dummies
 
 
-def get_class_weight(input_array: np.Array | pd.Series) -> dict:
+def get_class_weight(input_array: np.ndarray | pd.Series) -> dict:
     """Return a dictionary of weights of the input array. Used for unbalanced data
     Args:
-        input_array (np.Array|pd.Series): Input array
+        input_array: Input array
     Returns:
         dict: Dictionary of weights of the input array structure: {idx: weight} (idx= 0,1,2...)
     """
@@ -929,17 +930,17 @@ def get_class_weight(input_array: np.Array | pd.Series) -> dict:
 
 
 def one_hot_output(
-    input_array: np.Array | pd.Series, input_array_2: np.Array | pd.Series = None
-) -> np.Array | tuple(np.Array, np.Array):
+    input_array: np.ndarray | pd.Series, input_array_2: np.ndarray | pd.Series = None
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
     Return the one-hot-encoded output of the input array. If a second input_array is provided, both encoded output
     are returned (usual for y_train, y_test)
     Args:
-        input_array (np.Array|pd.Series): Input array
-        input_array_2 (np.Array|pd.Series, optional): Second input array. Defaults to None.
+        input_array (np.ndarray|pd.Series): Input array
+        input_array_2 (np.ndarray|pd.Series, optional): Second input array. Defaults to None.
     Returns:
-        np.Array: One-hot-encoded output of the input array
-        (optional)  np.Array: One-hot-encoded output of the second input array if provided
+        np.ndarray: One-hot-encoded output of the input array
+        (optional)  np.ndarray: One-hot-encoded output of the second input array if provided
     """
     num_classes = len(np.unique(input_array))
     encoded_array = keras.utils.to_categorical(input_array, num_classes)
@@ -953,7 +954,7 @@ def one_hot_output(
 
 def data_split_for_ml(
     data: pd.DataFrame, target: list[str], stratify: bool = False, test_size: float = 0.2, random_state: int = 9
-) -> tuple(np.Array, np.Array, np.Array, np.Array):
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Separate the data intro training and test set. Also split them into features and target. Stratified split will use
     class labels when 'stratify=True'(classification).
@@ -964,10 +965,10 @@ def data_split_for_ml(
         test_size (float, optional): Test size. Defaults to 0.2.
         random_state (int, optional): Random state. Defaults to 9.
     Returns:
-        np.Array: x_train - train features
-        np.Array: y_train - train target
-        np.Array: x_test - test features
-        np.Array: y_test - test target
+        np.ndarray: x_train - train features
+        np.ndarray: y_train - train target
+        np.ndarray: x_test - test features
+        np.ndarray: y_test - test target
     """
 
     label_data = data[target] if stratify else None
@@ -988,7 +989,7 @@ def data_split_for_ml_with_val(
     test_size: float = 0.2,
     val_size: float = 0.2,
     random_state: int = 9,
-) -> tuple(np.Array, np.Array, np.Array, np.Array, np.Array, np.Array):
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Separate the data intro training and test set. Also split them into features and target. Stratified split will use
     class labels when 'stratify=True'(classification).
@@ -999,12 +1000,12 @@ def data_split_for_ml_with_val(
         test_size (float, optional): Test size. Defaults to 0.2.
         random_state (int, optional): Random state. Defaults to 9.
     Returns:
-        np.Array: x_train - train features
-        np.Array: y_train - train target
-        np.Array: x_val - validation features
-        np.Array: y_val - validation target
-        np.Array: x_test - test features
-        np.Array: y_test - test target
+        np.ndarray: x_train - train features
+        np.ndarray: y_train - train target
+        np.ndarray: x_val - validation features
+        np.ndarray: y_val - validation target
+        np.ndarray: x_test - test features
+        np.ndarray: y_test - test target
     """
 
     label_data = data[target] if stratify else None
@@ -1028,16 +1029,16 @@ def data_split_for_ml_with_val(
 
 
 def binary_classification_scores(
-    y_test: np.Array | pd.Series,
-    y_pred: np.Array | pd.Series,
+    y_test: np.ndarray | pd.Series,
+    y_pred: np.ndarray | pd.Series,
     return_dataframe: bool = False,
     index: str = " ",
     show: bool = True,
 ) -> tuple[float, float, float, float, float, float] | pd.DataFrame:
     """Get ML classification metrics from test & predicted arrays: log_loss, acc, precision, recall, roc_auc, & F1 score
     Args:
-        y_test (np.Array|pd.Series): Test target
-        y_pred (np.Array|pd.Series): Predicted target
+        y_test (np.ndarray|pd.Series): Test target
+        y_pred (np.ndarray|pd.Series): Predicted target
         return_dataframe (bool, optional): Return metrics in a dataframe. Defaults to False.
         index (str, optional): Index of the dataframe for visualization. Defaults to " "
         show (bool, optional): Show the dataframe. Defaults to True.
@@ -1087,16 +1088,16 @@ def binary_classification_scores(
 
 
 def regression_scores(
-    y_test: np.Array | pd.Series,
-    y_pred: np.Array | pd.Series,
+    y_test: np.ndarray | pd.Series,
+    y_pred: np.ndarray | pd.Series,
     return_dataframe: bool = False,
     index: str = " ",
     show: bool = False,
 ) -> tuple[float, float] | pd.DataFrame:
     """Get ML regression metrics from test & predicted arrays: loss & R2 Score
     Args:
-        y_test (np.Array|pd.Series): Test target
-        y_pred (np.Array|pd.Series): Predicted target
+        y_test (np.ndarray|pd.Series): Test target
+        y_pred (np.ndarray|pd.Series): Predicted target
         return_dataframe (bool, optional): Return metrics in a dataframe. Defaults to False.
         index (str, optional): Index of the dataframe for visualization. Defaults to " "
         show (bool, optional): Show the dataframe. Defaults to True.
@@ -1150,13 +1151,22 @@ def show_training(history: tf.keras.callbacks.History) -> None:
         print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
 
 
-def plot_training_metric(arg0, hist, arg2, arg3):
-    plt.subplot(arg0)
-    plt.plot(hist[arg2], label="Training")
-    if arg3 in hist:
-        plt.plot(hist[arg3], label="Validation")
+def plot_training_metric(subplot_id: int, hist: tf.keras.callbacks.History, metric_training, metric_validation):
+    """
+    Plot the evolution of a metric in the training process (Tensorflow/Keras)
+    Args:
+        subplot_id (int): Subplot id
+        hist (tf.keras.callbacks.History): History of the training process. Return of model.fit
+        metric_training (str): Training metric to plot
+        metric_validation (str): Validation metric to plot
+
+    """
+    plt.subplot(subplot_id)
+    plt.plot(hist[metric_training], label="Training")
+    if metric_validation in hist:
+        plt.plot(hist[metric_validation], label="Validation")
     plt.xlabel("epoch")
-    plt.ylabel(arg2)
+    plt.ylabel(metric_training)
     plt.legend()
 
 
@@ -1164,18 +1174,18 @@ def plot_training_metric(arg0, hist, arg2, arg3):
 
 
 def dummy_clf(
-    x_train: np.Array | pd.Series,
-    y_train: np.Array | pd.Series,
-    x_test: np.Array | pd.Series,
-    y_test: np.Array | pd.Series,
+    x_train: np.ndarray | pd.Series,
+    y_train: np.ndarray | pd.Series,
+    x_test: np.ndarray | pd.Series,
+    y_test: np.ndarray | pd.Series,
 ) -> tuple[float, float, float, float, float, float] | pd.DataFrame:
     """
     Build a dummy classifier, print the confusion matrix and return the binary classification scores
     Args:
-        x_train (np.Array|pd.Series): Training features
-        y_train (np.Array|pd.Series): Training target
-        x_test (np.Array|pd.Series): Test features
-        y_test (np.Array|pd.Series): Test target
+        x_train (np.ndarray|pd.Series): Training features
+        y_train (np.ndarray|pd.Series): Training target
+        x_test (np.ndarray|pd.Series): Test features
+        y_test (np.ndarray|pd.Series): Test target
     Returns:
         tuple[float, float, float, float, float, float]: log_loss, acc, precision, recall, roc_auc, & F1 score
         or
@@ -1417,7 +1427,7 @@ def train_nn(
     model: tf.keras.Sequential,
     x_train: np.ndarray | pd.Series,
     y_train: np.ndarray | pd.Series,
-    cw: dict[int] = None,
+    cw: dict[int, int] = None,
     epochs: int = 100,
     batch_size: int = 128,
     verbose: int = 0,
@@ -1473,19 +1483,19 @@ def train_nn(
 
 
 def ml_classification(
-    x_train: np.Array | pd.Series,
-    y_train: np.Array | pd.Series,
-    x_test: np.Array | pd.Series,
-    y_test: np.Array | pd.Series,
+    x_train: np.ndarray | pd.Series,
+    y_train: np.ndarray | pd.Series,
+    x_test: np.ndarray | pd.Series,
+    y_test: np.ndarray | pd.Series,
     cross_validation: bool = False,
     show: bool = False,
 ) -> pd.DataFrame:
     """Build, train, and test the data set with non-NN machine learning classification models.
     Args:
-        x_train (np.Array|pd.Series): Training features
-        y_train (np.Array|pd.Series): Training target
-        x_test (np.Array|pd.Series): Test features
-        y_test (np.Array|pd.Series): Test target
+        x_train (np.ndarray|pd.Series): Training features
+        y_train (np.ndarray|pd.Series): Training target
+        x_test (np.ndarray|pd.Series): Test features
+        y_test (np.ndarray|pd.Series): Test target
         cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
         show (bool, optional): Show a plot of the training process. Defaults to False.
     Returns:
@@ -1530,20 +1540,20 @@ def ml_classification(
 
 
 def ml_regression(
-    x_train: np.Array | pd.Series,
-    y_train: np.Array | pd.Series,
-    x_test: np.Array | pd.Series,
-    y_test: np.Array | pd.Series,
+    x_train: np.ndarray | pd.Series,
+    y_train: np.ndarray | pd.Series,
+    x_test: np.ndarray | pd.Series,
+    y_test: np.ndarray | pd.Series,
     cross_validation=False,
     show=False,
 ) -> pd.DataFrame:
     """
     Build, train, and test the data set with non-NN machine learning regression models.
     Args:
-        x_train (np.Array|pd.Series): Training features
-        y_train (np.Array|pd.Series): Training target
-        x_test (np.Array|pd.Series): Test features
-        y_test (np.Array|pd.Series): Test target
+        x_train (np.ndarray|pd.Series): Training features
+        y_train (np.ndarray|pd.Series): Training target
+        x_test (np.ndarray|pd.Series): Test features
+        y_test (np.ndarray|pd.Series): Test target
         cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
         show (bool, optional): Show a plot of the training process. Defaults to False.
     Returns:
