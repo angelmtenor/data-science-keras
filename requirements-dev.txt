@@ -2,12 +2,13 @@
 black
 flake8
 isort
+mypy
 nbqa
 pipreqs
 pre-commit
 pylint
+pyupgrade
 snakeviz
-mypy
 # profilehooks
 # line_profiler
 # memory_profiler
