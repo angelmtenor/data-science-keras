@@ -49,9 +49,9 @@ This repo contains a set of data science projects solved with artificial neural 
 
 
 
-## Instructions
-*Python 3.8+ required. Conda environment with Python 3.10 suggested*
+## Setup. Installation and usage
 
+*Python 3.8+ required. Conda environment with Python 3.10 suggested*
 
 1. Clone the repository using `git`:
     ```bash
@@ -79,7 +79,7 @@ This repo contains a set of data science projects solved with artificial neural 
     jupyter notebook
     ```
 
-## Editor / Development mode
+## Setup: Editor / Development mode
 1. Setup. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required)):
     ```bash
     make setup
