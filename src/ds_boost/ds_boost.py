@@ -255,7 +255,7 @@ def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFra
         df[f] = df[f].astype("category")
 
     if len(columns_to_convert) > 0:
-        log.debug("Variables changed to 'category':", columns_to_convert)
+        log.debug("Variables changed to 'category': {columns_to_convert}")
 
     return df
 
@@ -316,7 +316,7 @@ def remove_categories(
             dict_categories[f] = df[f].cat.categories
 
             if show:
-                log.debug(f, list(df[f].value_counts()))
+                log.debug(f"{list(df[f].value_counts())}")
 
     return df, dict_categories
 
@@ -1077,7 +1077,7 @@ def binary_classification_scores(
         #     log.debug('Recall: \t{:.2f}'.format(rec))
         #     log.debug('ROC AUC: \t{:.2f}'.format(roc))
         #     log.debug('F1-score: \t{:.2f}'.format(f1))
-        log.debug("Confusion matrix: \t", confusion_matrix(y_test, y_pred_b))
+        log.debug(f"Confusion matrix: \n {confusion_matrix(y_test, y_pred_b)}")
 
     if return_dataframe:
         col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
@@ -1504,7 +1504,7 @@ def ml_classification(
         GaussianNB(),
         RandomForestClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
         ExtraTreesClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
-        LGBMClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
+        LGBMClassifier(n_jobs=-1, n_estimators=100, max_depth=15, random_state=9),
     )
     names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LGBM"]
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
