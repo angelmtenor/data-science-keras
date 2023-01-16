@@ -46,12 +46,16 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
 
+from . import logger
+
 # tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf  # noqa: E402 # pylint: disable=wrong-import-position
-from keras.layers import Dense, Dropout  # noqa: E402 # pylint: disable=wrong-import-position
-from keras.models import Sequential  # noqa: E402 # pylint: disable=wrong-import-position
-from tensorflow import keras  # noqa: E402 # pylint: disable=wrong-import-position
+import tensorflow as tf  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
+from keras.layers import Dense, Dropout  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
+from keras.models import Sequential  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
+from tensorflow import keras  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
+
+log = logger.get_logger(__name__)
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
 
@@ -66,13 +70,13 @@ sns.set()  # set seaborn style
 
 
 def info_os() -> None:
-    """Print OS version"""
-    print(f"\nOS:\t{platform.platform()}")
-    # print('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
+    """log.debug OS version"""
+    log.debug(f"OS:\t{platform.platform()}")
+    # log.debug('{} {} {}'.format(platform.system(), platform.release(), platform.machine()))
 
 
 def info_software(modules: tuple[str, ...] = DEFAULT_MODULES) -> None:
-    """Print version of Python and Python modules using pkg_resources
+    """log.debug version of Python and Python modules using pkg_resources
         note: not all modules can be obtained with pkg_resources: e.g: pytorch, mlflow ..
     Args:
         modules (list[str], optional): list of python libraries. Defaults to DEFAULT_MODULES.
@@ -83,53 +87,52 @@ def info_software(modules: tuple[str, ...] = DEFAULT_MODULES) -> None:
 
     # Python Environment
     env = getattr(sys, "base_prefix", None) or getattr(sys, "real_prefix", None) or sys.prefix
-    print(f"\nENV:\t{env}")
+    log.debug(f"ENV:\t{env}")
 
     python_version = sys.version
-    print(f"\nPYTHON:\t{python_version}")
+    log.debug(f"PYTHON:\t{python_version}")
 
     if modules is None:
         modules = DEFAULT_MODULES
 
     for i in modules:
         if i in installed_packages_dict:
-            print(f"{i:<25}{installed_packages_dict.get(i):>10}")
+            log.debug(f"{i:<25}{installed_packages_dict.get(i):>10}")
         else:
-            print(f"{i:<25}: {'--NO--':>10}")
-    print()
+            log.debug(f"{i:<25}: {'--NO--':>10}")
 
 
 def info_hardware() -> None:
-    """Print CPU, RAM, and GPU info"""
+    """log.debug CPU, RAM, and GPU info"""
 
-    print("\nHARDWARE:")
+    log.debug("HARDWARE:")
 
     # CPU INFO
     try:
         import cpuinfo  # pip py-cpuinfo   # pylint: disable=import-outside-toplevel
 
         cpu = cpuinfo.get_cpu_info().get("brand_raw")
-        print(f"CPU:\t{cpu}")
+        log.debug(f"CPU:\t{cpu}")
     except ImportError:
-        print("cpuinfo not found. (pip/conda: py-cpuinfo)")
+        log.debug("cpuinfo not found. (pip/conda: py-cpuinfo)")
 
     # RAM INFO
     ram = round(psutil.virtual_memory().total / (1024.0**3))
-    print(f"RAM:\t{ram} GB")
+    log.debug(f"RAM:\t{ram} GB")
 
     # GPU INFO
     if not tf.test.gpu_device_name():
-        print("-- No GPU  --")
+        log.debug("-- No GPU  --")
     else:
         gpu_devices = tf.config.list_physical_devices("GPU")
         details = tf.config.experimental.get_device_details(gpu_devices[0])
         gpu_name = details.get("device_name", "CUDA-GPU found")
-        print(f"GPU:\t{gpu_name}")
-        # print(f"{tf.test.gpu_device_name()[1:]}")
+        log.debug(f"GPU:\t{gpu_name}")
+        # log.debug(f"{tf.test.gpu_device_name()[1:]}")
 
 
 def info_system(hardware: bool = True, modules: tuple[str, ...] = None) -> None:
-    """Print Complete system info:
+    """log.debug Complete system info:
         - Show CPU & RAM hardware=True (it can take a few seconds)
         - Show OS version.
         - Show versions of Python & Python modules
@@ -143,8 +146,8 @@ def info_system(hardware: bool = True, modules: tuple[str, ...] = None) -> None:
     info_os()
     info_software(modules=modules)
 
-    print(f"EXECUTION PATH: {Path().absolute()}")
-    print(f"EXECUTION DATE: {ctime()}")
+    log.debug(f"EXECUTION PATH: {Path().absolute()}")
+    log.debug(f"EXECUTION DATE: {ctime()}")
 
 
 def reproducible(seed: int = 0) -> None:
@@ -172,7 +175,7 @@ def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
     assert str(target_path) in str(current_path), "target_path must be part of the current_path"
 
     if current_path.stem == target_path.stem:
-        print(f"Already in target path {current_path}")
+        log.debug(f"Already in target path {current_path}")
         return
 
     new_path = current_path
@@ -180,7 +183,7 @@ def set_parent_execution_path(target_path: Path | str = EXECUTION_PATH) -> None:
         new_path = new_path.parent
         if new_path.stem == target_path.stem:
             os.chdir(new_path)
-            print(f"Path changed to {new_path}")
+            log.debug(f"Path changed to {new_path}")
             return
 
     assert False, f"{target_path} not found"
@@ -226,10 +229,10 @@ def sort_columns_by_type(df: pd.DataFrame, target: str | list = None, numerical:
     categorical_features = [col for col in categorical if col not in target]
 
     df = df[numerical_features + categorical_features + target]
-    print(f"{len(numerical_features)} numerical features: \t {numerical_features}")
-    print(f"{len(categorical_features)} categorical features: \t {categorical_features}")
+    log.debug(f"{len(numerical_features)} numerical features: \t {numerical_features}")
+    log.debug(f"{len(categorical_features)} categorical features: \t {categorical_features}")
     for t in target:
-        print(f"Target: \t\t{t} ({df[t].dtype})")
+        log.debug(f"Target: \t\t{t} ({df[t].dtype})")
     return df
 
 
@@ -252,7 +255,7 @@ def force_categorical(df: pd.DataFrame, columns: list[str] = None) -> pd.DataFra
         df[f] = df[f].astype("category")
 
     if len(columns_to_convert) > 0:
-        print("Variables changed to 'category':", columns_to_convert)
+        log.debug("Variables changed to 'category':", columns_to_convert)
 
     return df
 
@@ -287,7 +290,7 @@ def remove_categories(
     categorical_f = [c for c in categorical if c not in target]
 
     if not categorical_f:
-        print("None categorical variables found")
+        log.debug("None categorical variables found")
 
     if dict_categories:
         for f in categorical_f:
@@ -300,7 +303,7 @@ def remove_categories(
 
             count = df[f].value_counts()
             if low_freq := set(count[count < threshold].index):
-                print(f"Removing {len(low_freq)} categories from feature {f}")
+                log.debug(f"Removing {len(low_freq)} categories from feature {f}")
                 df.loc[df[f].isin(low_freq), f] = np.nan
 
             # Slow:
@@ -313,7 +316,7 @@ def remove_categories(
             dict_categories[f] = df[f].cat.categories
 
             if show:
-                print(f, list(df[f].value_counts()))
+                log.debug(f, list(df[f].value_counts()))
 
     return df, dict_categories
 
@@ -332,7 +335,7 @@ def remove_outliers(df: pd.DataFrame, sigma: float = 3) -> pd.DataFrame:
     num_df = df.select_dtypes(include=[np.number])
     # col = list(num_df)
     df[num_df.columns] = num_df[np.abs(num_df - num_df.mean()) <= (sigma * num_df.std())]
-    print(list(num_df))
+    log.debug(list(num_df))
 
     return df
 
@@ -382,7 +385,7 @@ def fill_simple(
                 df[f] = df[f].fillna(df[f].mean())
             else:
                 warnings.warn("missing_numerical must be 'mean' or 'median'")
-                print(f"Missing numerical filled with: {missing_numerical}")
+                log.debug(f"Missing numerical filled with: {missing_numerical}")
 
     # categorical variables
 
@@ -397,7 +400,7 @@ def fill_simple(
                 if missing_categorical not in df[f].cat.categories:
                     df[f] = df[f].cat.add_categories(missing_categorical)
                 df[f] = df[f].fillna(missing_categorical)
-            print(f'Missing categorical filled with label: "{missing_categorical}"')
+            log.debug(f'Missing categorical filled with label: "{missing_categorical}"')
 
     return df
 
@@ -459,7 +462,7 @@ def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: 
     m = df.isnull().sum()
     m = m[m > 0]
     if m.empty:
-        print("No missing values found")
+        log.debug("No missing values found")
         return []
 
     m = m.sort_values(ascending=True)
@@ -498,16 +501,16 @@ def info_data(df: pd.DataFrame, target=None) -> None:
     n_samples = df.shape[0]
     n_features = df.shape[1] - len(target)
 
-    print(f"Samples: \t{n_samples} \nFeatures: \t{n_features}")
+    log.debug(f"Samples: \t{n_samples}.  \t Features: \t{n_features}")
 
     if target:
         for t in target:
-            print(f"Target: \t{t}")
+            log.debug(f"Target: \t{t}")
             if is_binary(df[t]):
                 counts = df[t].squeeze().value_counts(dropna=False)
-                print(f"Binary target: \t{counts.to_dict()}")
-                print(f"Ratio \t\t{counts[0] / min(counts):.1f} : {counts[1] / min(counts):.1f}")
-                print(f"Dummy accuracy:\t{max(counts) / sum(counts):.2f}")
+                log.debug(f"Binary target: \t{counts.to_dict()}")
+                log.debug(f"Ratio \t\t{counts[0] / min(counts):.1f} : {counts[1] / min(counts):.1f}")
+                log.debug(f"Dummy accuracy:\t{max(counts) / sum(counts):.2f}")
 
 
 def get_types(df: pd.DataFrame) -> pd.DataFrame:
@@ -526,7 +529,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
     """
     if ncols <= 1:
         ncols = 5
-        print(f"Number of columns changed to {ncols}")
+        log.debug(f"Number of columns changed to {ncols}")
 
     if target is None:
         target = []
@@ -535,7 +538,7 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
     numerical_f = [n for n in numerical if n not in target]
 
     if not numerical_f:
-        print("There are no numerical features")
+        log.debug("There are no numerical features")
         return
 
     nrows = math.ceil(len(numerical_f) / ncols)
@@ -582,10 +585,10 @@ def show_target_vs_numerical(
 
     if ncols <= 1:
         ncols = 5
-        print(f"Number of columns changed to {ncols}")
+        log.debug(f"Number of columns changed to {ncols}")
 
     if not numerical_f:
-        print("There are no numerical features")
+        log.debug("There are no numerical features")
         return
 
     df = df.copy()
@@ -660,13 +663,13 @@ def show_categorical(
 
     if ncols <= 1:
         ncols = 5
-        print(f"Number of columns changed to {ncols}")
+        log.debug(f"Number of columns changed to {ncols}")
 
     numerical = list(df.select_dtypes(include=[np.number]))
     categorical_f = [col for col in df if col not in numerical and col not in target]
 
     if not categorical_f:
-        print("There are no categorical variables")
+        log.debug("There are no categorical variables")
         return
 
     nrows = math.ceil(len(categorical_f) / ncols)
@@ -706,10 +709,10 @@ def show_target_vs_categorical(df: pd.DataFrame, target: list[str], figsize: tup
 
     if ncols <= 1:
         ncols = 5
-        print(f"Number of columns changed to {ncols}")
+        log.debug(f"Number of columns changed to {ncols}")
 
     if not categorical_f:
-        print("There are no categorical variables")
+        log.debug("There are no categorical variables")
         return
 
     copy_df = df.copy()
@@ -764,7 +767,7 @@ def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsi
     numerical_f = [n for n in numerical if n not in target]
 
     if not numerical_f:
-        print("There are no numerical features")
+        log.debug("There are no numerical features")
         return None
 
     copy_df = df.copy()
@@ -921,7 +924,7 @@ def get_class_weight(input_array: np.ndarray | pd.Series) -> dict:
     input_array = np.ravel(input_array)
     weight = class_weight.compute_class_weight("balanced", classes=np.unique(input_array), y=input_array)
     weight = dict(enumerate(weight))
-    # print(weight)
+    # log.debug(weight)
     return weight
 
 
@@ -1014,9 +1017,9 @@ def data_split_for_ml_with_val(
     x_val, y_val = val.drop(target, axis=1).values, val[target].values
     x_test, y_test = test.drop(target, axis=1).values, test[target].values
 
-    print(f"train size \t X:{x_train.shape} \t Y:{y_train.shape}")
-    print(f"validation size\t X:{x_val.shape} \t Y:{y_val.shape}")
-    print(f"test size  \t X:{x_test.shape} \t Y:{y_test.shape} ")
+    log.debug(f"train size \t X:{x_train.shape} \t Y:{y_train.shape}")
+    log.debug(f"validation size\t X:{x_val.shape} \t Y:{y_val.shape}")
+    log.debug(f"test size  \t X:{x_test.shape} \t Y:{y_test.shape} ")
 
     return x_train, y_train, x_val, y_val, x_test, y_test
 
@@ -1067,14 +1070,14 @@ def binary_classification_scores(
         f1 = f1_score(y_test, y_pred_b)
 
     if show:
-        #     print('Scores:\n' + '-' * 11)
-        #     print('Log_Loss: \t{:.4f}'.format(loss))
-        #     print('Accuracy: \t{:.2f}'.format(acc))
-        #     print('Precision: \t{:.2f}'.format(pre))
-        #     print('Recall: \t{:.2f}'.format(rec))
-        #     print('ROC AUC: \t{:.2f}'.format(roc))
-        #     print('F1-score: \t{:.2f}'.format(f1))
-        print("\nConfusion matrix: \n", confusion_matrix(y_test, y_pred_b))
+        #     log.debug('Scores:' + '-' * 11)
+        #     log.debug('Log_Loss: \t{:.4f}'.format(loss))
+        #     log.debug('Accuracy: \t{:.2f}'.format(acc))
+        #     log.debug('Precision: \t{:.2f}'.format(pre))
+        #     log.debug('Recall: \t{:.2f}'.format(rec))
+        #     log.debug('ROC AUC: \t{:.2f}'.format(roc))
+        #     log.debug('F1-score: \t{:.2f}'.format(f1))
+        log.debug("Confusion matrix: \t", confusion_matrix(y_test, y_pred_b))
 
     if return_dataframe:
         col = ["Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
@@ -1106,9 +1109,9 @@ def regression_scores(
     loss = mean_squared_error(y_test, y_pred)
 
     if show:
-        print("Scores:\n" + "-" * 11)
-        print(f"Loss (mse): \t{loss:.4f}")
-        print(f"R2 Score: \t{r2:.2f}")
+        log.debug("Scores:" + "-" * 11)
+        log.debug(f"Loss (mse): \t{loss:.4f}")
+        log.debug(f"R2 Score: \t{r2:.2f}")
 
     if return_dataframe:
         col = ["Loss", "R2 Score"]
@@ -1127,7 +1130,7 @@ def show_training(history: tf.keras.callbacks.History) -> None:
     hist = history.history
 
     if "loss" not in hist:
-        print("Error: 'loss' values not found in the history")
+        log.debug("Error: 'loss' values not found in the history")
         return
 
     # plot training
@@ -1138,13 +1141,13 @@ def show_training(history: tf.keras.callbacks.History) -> None:
     plt.show()
 
     # show final results
-    print(f"\nTraining loss:  \t{hist['loss'][-1]:.4f}")
+    log.debug(f"Training loss:  \t{hist['loss'][-1]:.4f}")
     if "val_loss" in hist:
-        print(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
+        log.debug(f"Validation loss: \t {hist['val_loss'][-1]:.4f}")
     if "accuracy" in hist:
-        print(f"\nTraining accuracy: \t{hist['accuracy'][-1]:.3f}")
+        log.debug(f"Training accuracy: \t{hist['accuracy'][-1]:.3f}")
     if "val_accuracy" in hist:
-        print(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
+        log.debug(f"Validation accuracy:\t{hist['val_accuracy'][-1]:.3f}")
 
 
 def plot_training_metric(subplot_id: int, hist: tf.keras.callbacks.History, metric_training, metric_validation):
@@ -1176,7 +1179,7 @@ def dummy_clf(
     y_test: np.ndarray | pd.Series,
 ) -> tuple[float, float, float, float, float, float] | pd.DataFrame:
     """
-    Build a dummy classifier, print the confusion matrix and return the binary classification scores
+    Build a dummy classifier, log.debug the confusion matrix and return the binary classification scores
     Args:
         x_train (np.ndarray|pd.Series): Training features
         y_train (np.ndarray|pd.Series): Training target
@@ -1289,7 +1292,7 @@ def build_nn_clf(
         input_nodes (int, optional): Number of nodes of the first layer. Defaults to None ( = input_size).
         kernel_initializer (str, optional): Kernel initializer. Defaults to "glorot_uniform".
         bias_initializer (str, optional): Bias initializer. Defaults to "zeros".
-        summary (bool, optional): Print model summary. Defaults to False.
+        summary (bool, optional): log.debug model summary. Defaults to False.
     Returns:
         tf.keras.Sequential: Classifier. DNN model with softmax activation function
     """
@@ -1366,7 +1369,7 @@ def build_nn_reg(
         kernel_initialize (str, optional): Kernel initializer. Defaults to "glorot_uniform".
         bias_initializer (str, optional): Bias initializer. Defaults to "zeros".
         optimizer (str, optional): Optimizer. Defaults to "rmsprop".
-        summary (bool, optional): Print model summary. Defaults to False.
+        summary (bool, optional): log.debug model summary. Defaults to False.
     Returns:
         tf.keras.Sequential: Regressor. DNN model with linear activation function
     """
@@ -1453,7 +1456,7 @@ def train_nn(
     """
 
     if show:
-        print("Training ....")
+        log.debug("Training ....")
 
     # callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=0)]
     t0 = time()
@@ -1470,11 +1473,11 @@ def train_nn(
         callbacks=callbacks,
     )
     if show:
-        print(f"time: \t {time() - t0:.1f} s")
+        log.debug(f"time: \t {time() - t0:.1f} s")
         show_training(history)
     if path:
         model.save(path)
-        print("\nModel saved at", path)
+        log.debug(f"Model saved at {path}")
     return history
 
 
@@ -1508,7 +1511,7 @@ def ml_classification(
     results = pd.DataFrame(columns=col)
     for idx, clf in enumerate(classifiers):
         name = names[idx]
-        print(name)
+        log.debug(name)
         t0 = time()
         # Fitting the model without cross validation
         warnings.filterwarnings("ignore", message="overflow encountered in reduce")
@@ -1522,13 +1525,13 @@ def ml_classification(
             # t0 = time()
             # # Fitting the model with cross validation
             # for id_train, id_test in k_fold.split(x_train):
-            #     # print(y_train[id_train, 0].shape)
+            #     # log.debug(y_train[id_train, 0].shape)
             #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             # train_time_cv = time() - t0
             # y_pred_cv = clf_cv.predict_proba(x_test)
             # accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
-            # print("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
-            # print("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+            # log.debug("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
+            # log.debug("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
         results = pd.concat(
             [results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name])]
         )
@@ -1571,7 +1574,7 @@ def ml_regression(
 
     for idx, clf in enumerate(regressors):
         name = names[idx]
-        print(name)
+        log.debug(name)
         t0 = time()
         # Fitting the model without cross validation
         if len(y_train.shape) > 1 and y_train.shape[1] == 1:
@@ -1586,20 +1589,20 @@ def ml_regression(
             # t0 = time()
             # # Fitting the model with cross validation
             # for id_train, id_test in k_fold.split(x_train):
-            #     # print(y_train[id_train, 0].shape)
+            #     # log.debug(y_train[id_train, 0].shape)
             #     clf_cv.fit(x_train[id_train], y_train[id_train, 0]) # TODO enhance
             # train_time_cv = time() - t0
             # y_pred_cv = clf_cv.predict(x_test)
             # r2_cv = r2_score(y_test, y_pred_cv[:,1])
 
-            # print("Test R2-Score CV:\t {:.3f}".format(r2_cv))
-            # print( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+            # log.debug("Test R2-Score CV:\t {:.3f}".format(r2_cv))
+            # log.debug( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
         results = pd.concat([results, pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name])])
         if show:
-            print("-" * 20)
-            print(f"Training Time:  \t {train_time:.1f} s")
-            print(f"Test loss:  \t\t {loss:.4f}")
-            print(f"Test R2-score:  \t {r2:.3f}\n")
+            log.debug("-" * 20)
+            log.debug(f"Training Time:  \t {train_time:.1f} s")
+            log.debug(f"Test loss:  \t\t {loss:.4f}")
+            log.debug(f"Test R2-score:  \t {r2:.3f}")
     return results.sort_values("Test loss").round(2)
 
 
@@ -1618,7 +1621,7 @@ def feature_importance(
     n = len(features)
     if n < top:
         top = n
-    # print("\n Top contributing features:\n", "-" * 26)
+    # log.debug(" Top contributing features:", "-" * 5)
     importance = pd.DataFrame(data={"Importance": model.feature_importances_}, index=features)
     importance = importance.sort_values("Importance", ascending=False).round(2).head(top)
     if plot:

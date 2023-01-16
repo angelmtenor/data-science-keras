@@ -1,6 +1,7 @@
-""" Read version from installed package and import all modules """
+""" Python Package init file """
+# read version from installed package
 from importlib.metadata import version
 
-__version__ = version(__name__)
+__version__ = version("ds_boost")
 
 from .ds_boost import *  # noqa

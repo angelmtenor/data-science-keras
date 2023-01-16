@@ -1,10 +1,15 @@
-# Data science projects with Keras (No-Poetry Version)
+# Data science projects with Keras (Poetry Version)
+
+This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). It is based on a set of use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/) & [Kaggle](https://www.kaggle.com/)
+
+The repo also introduces a minimal package **ds_boost** initally implemented as a helper for this repo
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)<br>
 
 [Angel Martinez-Tenor](https://profile.angelmtenor.com/)
 
 **Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist**
 
-This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). It is based on a set of use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/) & [Kaggle](https://www.kaggle.com/)
 
 [Github repo](https://github.com/angelmtenor/data-science-keras)
 <br>
@@ -47,31 +52,25 @@ This repo contains a set of data science projects solved with artificial neural 
 - [Network](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/network.ipynb)  Predicts missing salaries and new email connections from a company's email network
 
 
-
-
-## Setup. Installation and usage
-
+## Setup & Usage
 *Python 3.8+ required. Conda environment with Python 3.10 suggested*
 
 1. Clone the repository using `git`:
+
     ```bash
     git clone https://github.com/angelmtenor/data-science-keras.git
     ```
 
-2. Create a virtual/conda environment (optional):
+2. Enter to the root path of the repo and use or create a new conda environment for development:
+
+```bash
+$ conda create -n dev python=3.10 -y && conda activate dev
+```
+
+3. Install the minimal package developed as a helper for this repo:
     ```bash
-    conda create -n ds-keras python=3.10
-    conda activate ds-keras
+    pip install dist/ds_boost-0.1.0-py3-none-any.whl
     ```
-
-3. In the root folder of the cloned repository, install the ds-boost mini package developed in this repo. This package is currently based in a unique helper module (ds_boost.py) containing utils functions build on numpy, matplotlib, seaborn, scikit-learn, lightgbm and TensorFlow/Keras:
-    ```bash
-    cd data-science-keras
-    pip install -e .
-    ```
-
-    To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt).
-
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
     ```bash
@@ -79,16 +78,41 @@ This repo contains a set of data science projects solved with artificial neural 
     jupyter notebook
     ```
 
-## Setup: Editor / Development mode
-1. Setup. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
-    ```bash
-    make setup
-    ```
-2. QA (manual pre-commit):
-    ```bash
-    make qa
-    ```
+## Development Mode
+In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
+```bash
+make setup
+```
+
+To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt).
+
+QA (manual pre-commit):
+```bash
+make qa
+```
+
+###  Development Tools Required:
+
+**A Container/Machine with Conda, Git and Poetry as closely as defined in `.devcontainer/Dockerfile`:**
+
+- This Dockerfile contains a non-root user so the same configuration can be applied to a WSL Ubuntu Machine and any Debian/Ubuntu CLoud Machine (Vertex AI workbench, Azure VM ...)
+- In case of having an Ubuntu/Debian machine with non-root user (e.g.: Ubuntu in WSL, Vertex AI VM ...), just install the tools from  *non-root user (no sudo)** section of `.devcontainer/Dockerfile`  (sudo apt-get install \<software\> may be required)
+- A pre-configured Cloud VM usually has Git and Conda pre-installed, those steps can be skipped
+- The development container defined in `.devcontainer/Dockerfile` can be directly used for a fast setup (Docker required).  With Visual Studio Code, just open the root folder of this repo, press `F1` and select the option **Dev Containers: Open Workspace in Container**. The container will open the same workspace after the Docker Image is built.
 
 
+## Usage
 
-*Tested on both, pure Ubuntu 22 with no GPU and Ubuntu 22 with RTX 2070 on WSL (Windows 11)*
+- TODO (explain the usage of the package)
+
+## Contributing
+
+Check out the contributing guidelines
+
+## License
+
+`ds_boost` was created by Angel Martinez-Tenor. It is licensed under the terms of the MIT license.
+
+## Credits
+
+`ds_boost` was created from a Data Science Template developed by Angel Martinez-Tenor. The template was built upon `py-pkgs-cookiecutter` [template] (https://github.com/py-pkgs/py-pkgs-cookiecutter)
