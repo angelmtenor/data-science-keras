@@ -5,8 +5,10 @@ setup:
 	pip install -r requirements-dev.txt
 	pip install -e .
 
+
 qa:
 	@echo "Running QA"
+	mypy --install-types --non-interactive
 	pre-commit run --all-files
 
 clean:
