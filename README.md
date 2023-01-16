@@ -58,7 +58,7 @@ A **non-poetry version** of this repo is available in the branch `no-poetry`
 
 
 ## Setup & Usage
-*Python 3.8+ required. Conda environment with Python 3.10 suggested*
+*Python 3.10+ required*
 
 1. Clone the repository using `git`:
 

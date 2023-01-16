@@ -24,13 +24,13 @@ pandas = ">=1.5.0"
 pyarrow = ">=9.0.0"
 notebook = ">=6.5.2"
 jupyter = "^1.0.0"
-tensorflow = {version = "^2.11.0", python = ">=3.10,<3.11"}
-psutil = "^5.9.4"
-py-cpuinfo = "^9.0.0"
-matplotlib = "^3.6.3"
-seaborn = "^0.12.2"
-scikit-learn = "^1.2.0"
-lightgbm = "^3.3.4"
+tensorflow = {version = ">=2.11.0", python = ">=3.10,<3.11"}
+psutil = ">=5.9.4"
+py-cpuinfo = ">=9.0.0"
+matplotlib = ">=3.6.3"
+seaborn = ">=0.12.2"
+scikit-learn = ">=1.2.0"
+lightgbm = ">=3.3.4"
 
 [tool.poetry.extras]
 # Advanced: recommended for large Building Blocks only
@@ -40,16 +40,16 @@ lightgbm = "^3.3.4"
 [tool.poetry.group.dev.dependencies]
 # Edition Only Packages:  poetry add <package> --group dev (to remove: poetry remove <package>)
 # They won't be on the final package (pip install <my-package>), but will be installed when developing the package
-pytest-cov = "^4.0.0"
-pre-commit = "^2.21.0"
-mypy = "^0.991"
-flake8 = "^6.0.0"
-pylint = "^2.15.10"
-isort = "^5.11.4"
-black = "^22.12.0"
-pyupgrade = "^3.3.1"
-snakeviz = "^2.1.1"
-jupyter-contrib-nbextensions = "^0.7.0"
+pytest-cov = ">=4.0.0"
+pre-commit = ">=2.21.0"
+mypy = ">=0.991"
+flake8 = ">=6.0.0"
+pylint = ">=2.15.10"
+isort = ">=5.11.4"
+black = ">=22.12.0"
+pyupgrade = ">=3.3.1"
+snakeviz = ">=2.1.1"
+jupyter-contrib-nbextensions = ">=0.7.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
