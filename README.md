@@ -1,6 +1,6 @@
 # Data science projects with Keras (No-Poetry Version)
 
-[Angel Martinez-Tenor](https://profile.angelmtenor.com/).
+[Angel Martinez-Tenor](https://profile.angelmtenor.com/)
 
 **Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist**
 
@@ -80,7 +80,7 @@ This repo contains a set of data science projects solved with artificial neural 
     ```
 
 ## Setup: Editor / Development mode
-1. Setup. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required)):
+1. Setup. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
     ```bash
     make setup
     ```
