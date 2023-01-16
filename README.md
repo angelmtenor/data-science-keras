@@ -1,18 +1,23 @@
 # Data science projects with Keras (Poetry Version)
 
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)<br>
+
+Author: [Angel Martinez-Tenor](https://profile.angelmtenor.com/)
+
+Repository: [Github link](https://github.com/angelmtenor/data-science-keras)
+
+
 This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). It is based on a set of use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/) & [Kaggle](https://www.kaggle.com/)
 
 The repo also introduces a minimal package **ds_boost** initally implemented as a helper for this repo
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)<br>
-
-[Angel Martinez-Tenor](https://profile.angelmtenor.com/)
-
-**Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist**
 
 
-[Github repo](https://github.com/angelmtenor/data-science-keras)
-<br>
+
+Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist
+
+
+A **non-poetry version** of this repo is available in the branch `no-poetry`
 
 ## Scenarios
 ### Classification models
@@ -100,10 +105,6 @@ make qa
 - A pre-configured Cloud VM usually has Git and Conda pre-installed, those steps can be skipped
 - The development container defined in `.devcontainer/Dockerfile` can be directly used for a fast setup (Docker required).  With Visual Studio Code, just open the root folder of this repo, press `F1` and select the option **Dev Containers: Open Workspace in Container**. The container will open the same workspace after the Docker Image is built.
 
-
-## Usage
-
-- TODO (explain the usage of the package)
 
 ## Contributing
 
