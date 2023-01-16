@@ -22,23 +22,13 @@ import pandas as pd
 import pkg_resources
 import psutil
 import seaborn as sns
-
-# tensorflow
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-import tensorflow as tf  # noqa: E402
-from keras.layers import Dense, Dropout  # noqa: E402
-from keras.models import Sequential  # noqa: E402
 from lightgbm import LGBMClassifier, LGBMRegressor
 from pandas.tseries.holiday import USFederalHolidayCalendar as calendar
 from sklearn.base import BaseEstimator
 
 # scikit learn
 from sklearn.dummy import DummyClassifier
-from sklearn.ensemble import (  # AdaBoostClassifier,; AdaBoostRegressor,
-    ExtraTreesClassifier,
-    RandomForestClassifier,
-    RandomForestRegressor,
-)
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import (
     accuracy_score,
@@ -55,7 +45,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
-from tensorflow import keras  # noqa: E402
+
+# tensorflow
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import tensorflow as tf  # noqa: E402 # pylint: disable=wrong-import-position
+from keras.layers import Dense, Dropout  # noqa: E402 # pylint: disable=wrong-import-position
+from keras.models import Sequential  # noqa: E402 # pylint: disable=wrong-import-position
+from tensorflow import keras  # noqa: E402 # pylint: disable=wrong-import-position
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
 
