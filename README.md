@@ -66,15 +66,15 @@ A **non-poetry version** of this repo is available in the branch `no-poetry`
     git clone https://github.com/angelmtenor/data-science-keras.git
     ```
 
-2. Enter to the root path of the repo and use or create a new conda environment for development:
+2. Enter to the root path of the repo and use or create a new conda environment:
 
 ```bash
 $ conda create -n dev python=3.10 -y && conda activate dev
 ```
 
-3. Install the minimal package developed as a helper for this repo:
+3. Install the package developed as a helper for this repo:
     ```bash
-    pip install dist/ds_boost-0.1.0-py3-none-any.whl
+    pip install ds_boost
     ```
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
