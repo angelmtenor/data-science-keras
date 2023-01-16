@@ -74,7 +74,7 @@ $ conda create -n dev python=3.10 -y && conda activate dev
 
 3. Install the package developed as a helper for this repo:
     ```bash
-    pip install ds_boost
+    pip install ds-boost
     ```
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
