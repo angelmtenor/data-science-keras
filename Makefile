@@ -4,8 +4,8 @@ setup:
 
 qa:
 	@echo "Running QA"
-	pre-commit run --all-files
-	mypy --install-types --non-interactive
+	- mypy --install-types --non-interactive
+	- pre-commit run --all-files
 
 test:
 	pytest --cov=src
