@@ -300,7 +300,6 @@ def remove_categories(
         dict_categories = {}
 
         for f in categorical_f:
-
             count = df[f].value_counts()
             if low_freq := set(count[count < threshold].index):
                 log.debug(f"Removing {len(low_freq)} categories from feature {f}")
@@ -390,7 +389,6 @@ def fill_simple(
     # categorical variables
 
     if include_categorical:
-
         if missing_categorical == "mode":
             modes = df[categorical_f].mode()
             for idx, f in enumerate(df[categorical_f]):
@@ -544,13 +542,11 @@ def show_numerical(df, target=None, kde=False, sharey=False, figsize=(17, 2), nc
     nrows = math.ceil(len(numerical_f) / ncols)
 
     for row in range(nrows):
-
         if row == nrows - 1 and len(numerical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             sns.histplot(df[numerical_f[-1]].dropna(), kde=kde)
 
         else:  # standard case
-
             if row == nrows - 1 and len(numerical_f) % ncols != 0:
                 ncols = len(numerical_f) % ncols  # adjust size of last row
 
@@ -600,9 +596,7 @@ def show_target_vs_numerical(
     nrows = math.ceil(len(numerical_f) / ncols)
 
     for t in target:  # in case of several targets several plots will be shown
-
         for row in range(nrows):
-
             if row == nrows - 1 and len(numerical_f) % ncols == 1:  # case 1 only plot in last row
                 plt.subplots(ncols=1, figsize=figsize)
 
@@ -618,7 +612,6 @@ def show_target_vs_numerical(
                 )
 
             else:
-
                 if row == nrows - 1 and len(numerical_f) % ncols != 0:
                     ncols = len(numerical_f) % ncols  # adjust size of last row
 
@@ -674,14 +667,12 @@ def show_categorical(
 
     nrows = math.ceil(len(categorical_f) / ncols)
     for row in range(nrows):
-
         if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             # so = sorted({v for v in df[nrows-1].values if str(v) != 'nan'})
             sns.countplot(x=df[categorical_f[-1]].dropna())
 
         else:  # standard case
-
             if row == nrows - 1 and len(categorical_f) % ncols != 0:
                 ncols = len(categorical_f) % ncols  # adjust size of last row
 
@@ -724,23 +715,19 @@ def show_target_vs_categorical(df: pd.DataFrame, target: list[str], figsize: tup
     nrows = math.ceil(len(categorical_f) / ncols)
 
     for t in target:  # in case of several targets several plots will be shown
-
         for row in range(nrows):
-
             if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
                 plt.subplots(ncols=1, figsize=figsize)
                 # so = sorted({v for v in copy_df[f].values if str(v) != 'nan'})
                 axs = sns.barplot(data=copy_df, x=categorical_f, y=t)  # TODO: fix this
 
             else:
-
                 if row == nrows - 1 and len(categorical_f) % ncols != 0:
                     ncols = len(categorical_f) % ncols  # adjust size of last row
 
                 _, ax = plt.subplots(ncols=ncols, sharey=True, figsize=figsize)
 
                 for idx, f in enumerate(categorical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
-
                     so = sorted({v for v in copy_df[f].values if str(v) != "nan"})
 
                     axs = sns.barplot(data=copy_df, x=f, y=t, ax=ax[idx], order=so)
@@ -838,7 +825,6 @@ def scale(data: pd.DataFrame, scale_param: dict = None, method: str = "std") -> 
                 data.loc[:, f] = (data[f] - scale_param[f][0]) / scale_param[f][1]
 
         elif method == "minmax":
-
             if create_scale:
                 min_value, max_value = data[f].min(), data[f].max()
                 data[f] = (data[f].values - min_value) / (max_value - min_value)
@@ -848,7 +834,6 @@ def scale(data: pd.DataFrame, scale_param: dict = None, method: str = "std") -> 
                 data.loc[:, f] = (data[f].values - min_value) / (max_value - min_value)
 
         elif method == "maxabs":
-
             if create_scale:
                 min_value, max_value = data[f].min(), data[f].max()
                 data[f] = 2 * (data[f].values - min_value) / (max_value - min_value) - 1
