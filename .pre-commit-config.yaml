@@ -111,7 +111,7 @@ repos:
 # --- JUPYTER NOTEBOOKS ONLY ---
 
 - repo: https://github.com/nbQA-dev/nbQA
-  rev: 1.5.3
+  rev: 1.6.3
   hooks:
 
     - id: nbqa-black
