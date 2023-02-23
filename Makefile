@@ -8,12 +8,13 @@ update::
 	pre-commit autoupdate
 
 qa::
-	@echo "Running QA"
+	@echo "Running complete QA"
 	- mypy --install-types --non-interactive
 	- pre-commit run --all-files
 
 qa_fast::
-	SKIP=pylint pre-commit run --all-files
+	@echo "Running fast QA (skip: mypy, pylint & interrogate)"
+	SKIP=mypy,pylint,interrogate pre-commit run --all-files
 
 
 test::
