@@ -43,6 +43,8 @@ USER $USERNAME
 #   - Remove RUN: e.g.: RUN mkdir .....   -> mkdir ....
 #   - Replace ENV by export: e.g.: ENV PATH="$HOME/.local/bin:$PATH"   -> export PATH="$HOME/.local/bin:$PATH"
 # Note: Restating the shell to apply changes is sometimes required.
+# To install poetry in an ubuntu-based machine, use the instructions of the post referenced bellow(Poetry Manual install)
+
 
 SHELL ["/usr/bin/bash", "-c"]
 ENV SHELL /usr/bin/bash
@@ -62,6 +64,8 @@ RUN mkdir -p ~/miniconda3 && \
 # RUN git config --global --add safe.directory '*'
 
 # Poetry
+# Manual install:
+# https://www.digitalocean.com/community/tutorials/how-to-install-poetry-to-manage-python-dependencies-on-ubuntu-22-04
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="$HOME/.local/bin:$PATH"
 # RUN source ~/.bashrc
