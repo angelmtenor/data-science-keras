@@ -1,6 +1,9 @@
 setup::
 	@echo "Installing Environment"
 	poetry install --all-extras
+	- git config --global init.defaultBranch main
+	- git init && git add .
+	- pre-commit run --all-files
 
 update::
 	@echo "Updating Environment"
@@ -23,3 +26,4 @@ test::
 clean::
 	@if [ -s .\\.git\\hooks ]; then rmdir .\\.git\\hooks /q /s; fi
 	@if [ -s poetry.lock ]; then rm poetry.lock; fi
+	rm -rf .pytest_cache
