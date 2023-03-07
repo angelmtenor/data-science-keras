@@ -15,6 +15,8 @@ Message Structure:
 - test: adding tests, refactoring test; no production code change
 - setup or chore: updating build tasks, package manager configs, etc; no production code change
 - data: adding or updating data files (csv, parquet ...)
+- release: adding or updating a release (pip package...)
+
 
 ## Subject
 Subjects should be no greater than 50 characters, should begin with a capital letter and do not end with a period. Use an imperative tone to describe what a commit does, rather than what it did. For example, use change; not changed or changes.

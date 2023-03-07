@@ -1,5 +1,5 @@
 # Pre-commit settings / QA
-# Angel Martinez-Tenor. 2022
+# Angel Martinez-Tenor. 2022-2023
 
 # Instructions: https://pre-commit.com/
 # Manual QA: 'pre-commit run --all-files'
