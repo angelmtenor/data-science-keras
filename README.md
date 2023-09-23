@@ -1,23 +1,12 @@
-# Data science projects with Keras (Poetry Version)
+# Data Science Projects with Keras
 
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)<br>
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-Author: [Angel Martinez-Tenor](https://profile.angelmtenor.com/)
+This repository contains a collection of data science projects that utilize artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). The projects are based on use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/), and [Kaggle](https://www.kaggle.com/).
 
-Repository: [Github link](https://github.com/angelmtenor/data-science-keras)
+The repository also introduces a minimal package called **ds_boost**, initially implemented as a helper for this repository.
 
-
-This repo contains a set of data science projects solved with artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). It is based on a set of use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/) & [Kaggle](https://www.kaggle.com/)
-
-The repo also introduces a minimal package **ds_boost** initally implemented as a helper for this repo
-
-
-
-
-Disclaimer: This notebooks-based repo was developed in early 2018. Since July 2022, I'm updating it using the best practices I've learned implementing solutions in production environment my experience as a lead data scientist
-
-
-A **non-poetry version** of this repo is available in the branch `no-poetry`
+This repository was initially developed in early 2018 and has since been updated with the best practices I've learned as a lead data scientist implementing solutions in a production environment. However, please note that this repository is being superseded by a new one that will contain LLM-based generative AI and containerized solutions. The new repository is currently in a private repository and will be published in the future. The new repository will be more class-oriented and will include smart ML-based models with explainability, confidence intervals, and generative AI-augmented dashboards.
 
 ## Scenarios
 ### Classification models
