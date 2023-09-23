@@ -7,6 +7,7 @@ The repository also introduces a minimal package called **ds_boost**, initially 
 
 The repository is currently being used to update Python versions and packages (such as TensorFlow) and test the effects on older code. As a result, changes may be needed in the functions to update the implementations.
 
+
 This repository was initially developed in early 2018 and has since been updated with the best practices I've learned as a lead data scientist implementing solutions in a production environment. However, please note that this repository is being superseded by a new one that will contain LLM-based generative AI and containerized solutions. The new repository is currently in a private repository and will be published in the future. The new repository will be more class-oriented and will include smart ML-based models with explainability, confidence intervals, and generative AI-augmented dashboards.
 ## Scenarios
 ### Classification models
@@ -49,6 +50,16 @@ This repository was initially developed in early 2018 and has since been updated
 ## Setup & Usage
 *Python 3.11+ required*
 
+### Basic Usage
+1. Install the package developed as a helper for this repo:
+```bash
+pip install ds-boost
+```
+2. Download and Open the desired [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
+
+
+## Development Mode
+
 1. Clone the repository using `git`:
 
 ```bash
@@ -61,29 +72,13 @@ git clone https://github.com/angelmtenor/data-science-keras.git
 $ conda create -n dev python=3.11 -y && conda activate dev
 ```
 
-3. Install the package developed as a helper for this repo:
-```bash
-pip install ds-boost
-```
-
-4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
-```bash
-cd data-science-keras
-jupyter notebook
-```
-
-## Development Mode
-In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
+3. In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
 ```bash
 make setup
 ```
 
 To install tensorflow with GPU support, follow the instructions of this guide: [Install TensorFlow GPU](https://www.tensorflow.org/install/pip#install_cuda_with_apt).
 
-QA (manual pre-commit):
-```bash
-make qa
-```
 
 ###  Development Tools Required:
 
@@ -97,7 +92,10 @@ make qa
 
 ## Contributing
 
-Check out the contributing guidelines
+Check out the contributing guidelines. Here we encourage a simple manual execution of the pre-commit hooks before pushing any changes to the repository.
+```bash
+make qa
+```
 
 ## License
 
