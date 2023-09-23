@@ -1,13 +1,13 @@
 # Data Science Projects with Keras
-
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 This repository contains a collection of data science projects that utilize artificial neural networks implemented in [Keras](https://github.com/keras-team/keras/). The projects are based on use cases from [Udacity](https://www.udacity.com/), [Coursera](https://www.coursera.org/), and [Kaggle](https://www.kaggle.com/).
 
 The repository also introduces a minimal package called **ds_boost**, initially implemented as a helper for this repository.
 
-This repository was initially developed in early 2018 and has since been updated with the best practices I've learned as a lead data scientist implementing solutions in a production environment. However, please note that this repository is being superseded by a new one that will contain LLM-based generative AI and containerized solutions. The new repository is currently in a private repository and will be published in the future. The new repository will be more class-oriented and will include smart ML-based models with explainability, confidence intervals, and generative AI-augmented dashboards.
+The repository is currently being used to update Python versions and packages (such as TensorFlow) and test the effects on older code. As a result, changes may be needed in the functions to update the implementations.
 
+This repository was initially developed in early 2018 and has since been updated with the best practices I've learned as a lead data scientist implementing solutions in a production environment. However, please note that this repository is being superseded by a new one that will contain LLM-based generative AI and containerized solutions. The new repository is currently in a private repository and will be published in the future. The new repository will be more class-oriented and will include smart ML-based models with explainability, confidence intervals, and generative AI-augmented dashboards.
 ## Scenarios
 ### Classification models
 
@@ -47,30 +47,30 @@ This repository was initially developed in early 2018 and has since been updated
 
 
 ## Setup & Usage
-*Python 3.10+ required*
+*Python 3.11+ required*
 
 1. Clone the repository using `git`:
 
-    ```bash
-    git clone https://github.com/angelmtenor/data-science-keras.git
-    ```
+```bash
+git clone https://github.com/angelmtenor/data-science-keras.git
+```
 
 2. Enter to the root path of the repo and use or create a new conda environment:
 
 ```bash
-$ conda create -n dev python=3.10 -y && conda activate dev
+$ conda create -n dev python=3.11 -y && conda activate dev
 ```
 
 3. Install the package developed as a helper for this repo:
-    ```bash
-    pip install ds-boost
-    ```
+```bash
+pip install ds-boost
+```
 
 4. Open the desired project/s with [Jupyter Notebook](http://jupyter.readthedocs.io/en/latest/install.html)
-    ```bash
-    cd data-science-keras
-    jupyter notebook
-    ```
+```bash
+cd data-science-keras
+jupyter notebook
+```
 
 ## Development Mode
 In the root folder of the cloned repository, install all the required dev packages and the ds-boost mini package (**Make** required):
