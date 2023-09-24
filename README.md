@@ -9,6 +9,9 @@ The repository is currently being used to update Python versions and packages (s
 
 
 This repository was initially developed in early 2018 and has since been updated with the best practices I've learned as a lead data scientist implementing solutions in a production environment. However, please note that this repository is being superseded by a new one that will contain LLM-based generative AI and containerized solutions. The new repository is currently in a private repository and will be published in the future. The new repository will be more class-oriented and will include smart ML-based models with explainability, confidence intervals, and generative AI-augmented dashboards.
+
+**Status September 2023**: Currently updating the notebooks to Python 3.11, Pandas 2.1.1 and TensorFlow 2.13.0. The current pip package and most scenarios are still under development.
+
 ## Scenarios
 ### Classification models
 
