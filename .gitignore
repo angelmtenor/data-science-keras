@@ -101,6 +101,7 @@ dmypy.json
 *.h5
 *.bin
 *.log
+*.keras
 
 # Custom Develpment files
 notebooks_old/

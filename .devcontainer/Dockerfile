@@ -77,7 +77,7 @@ RUN source ~/.bashrc
 # Create a Customized conda dev environment with cookiecutter and ipykernel  (last step to avoid env conflicts):
 #  Do not use ENV PATH=~/miniconda3/bin:$PATH for conda before another block of commands
 ENV PATH=~/miniconda3/bin:$PATH
-RUN conda update --all -y && conda create -n dev python=3.10 -y && conda init bash && \
+RUN conda update --all -y && conda create -n dev python=3.11 -y && conda init bash && \
   echo "conda activate dev" >> ~/.bashrc && source activate dev && \
   conda install -y -c conda-forge 'cookiecutter>=2' ipykernel
 

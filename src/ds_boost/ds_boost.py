@@ -42,6 +42,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.model_selection import train_test_split
+from sklearn.multioutput import MultiOutputClassifier, MultiOutputRegressor
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.utils import class_weight
@@ -56,6 +57,10 @@ from keras.models import Sequential  # noqa: E402 # pylint: disable=wrong-import
 from tensorflow import keras  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
 
 log = logger.get_logger(__name__)
+
+# Remove Warnings with seaborn <=0.12.2 (obsolete)
+warnings.filterwarnings("ignore", "is_categorical_dtype", module="seaborn")
+warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
 
 # SETUP ----------------------------------------------------------------------------------------------------------------
 
@@ -443,7 +448,9 @@ def expand_date(timeseries: pd.Series) -> pd.DataFrame:
 # DATA EXPLORATION ----------------------------------------------------------------------------------------------------
 
 
-def missing(df: pd.DataFrame, limit: float = None, figsize: tuple = None, plot: bool = True) -> None | list:
+def missing(
+    df: pd.DataFrame, limit: float = None, figsize: tuple[float, float] = None, plot: bool = True
+) -> None | list:
     """
     Display the ratio of missing values (NaN) for each column of df. Only columns with missing values are shown
     If limit (limit ratio) is provided, return the column names exceeding the ratio (too much missing data)
@@ -670,7 +677,9 @@ def show_categorical(
         if row == nrows - 1 and len(categorical_f) % ncols == 1:  # case 1 only plot in last row
             plt.subplots(ncols=1, figsize=figsize)
             # so = sorted({v for v in df[nrows-1].values if str(v) != 'nan'})
-            sns.countplot(x=df[categorical_f[-1]].dropna())
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
+                sns.countplot(x=df[categorical_f[-1]].dropna())
 
         else:  # standard case
             if row == nrows - 1 and len(categorical_f) % ncols != 0:
@@ -680,7 +689,9 @@ def show_categorical(
 
             for idx, n in enumerate(categorical_f[row * ncols : row * ncols + ncols]):  # noqa: E203
                 so = sorted({v for v in df[n].values if str(v) != "nan"})
-                axs = sns.countplot(x=df[n].dropna(), ax=ax[idx], order=so)
+                with warnings.catch_warnings():
+                    warnings.filterwarnings("ignore", category=FutureWarning, module="seaborn")
+                    axs = sns.countplot(x=df[n].dropna(), ax=ax[idx], order=so)
                 if idx != 0:
                     axs.set(ylabel="")
 
@@ -752,7 +763,6 @@ def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsi
 
     numerical = list(df.select_dtypes(include=[np.number]))
     numerical_f = [n for n in numerical if n not in target]
-
     if not numerical_f:
         log.debug("There are no numerical features")
         return None
@@ -761,6 +771,8 @@ def correlation(df: pd.DataFrame, target: list[str], threshold: float = 0, figsi
     for t in target:
         if t not in numerical:
             copy_df[t] = copy_df[t].astype(np.float16)
+
+    copy_df = copy_df[numerical_f + target]
 
     corr = copy_df.corr().loc[numerical_f, target].fillna(0).sort_values(target, ascending=False).round(2)
 
@@ -1407,6 +1419,22 @@ def build_nn_reg(
     return model
 
 
+def convert_to_tensors(arrays, dtype=tf.float32) -> list[tf.Tensor]:
+    """Convert a list of arrays to tensors
+    Args:
+        arrays (list[np.ndarray]): List of arrays
+        dtype (tf.dtype, optional): Tensorflow data type. Defaults to tf.float32.
+    Returns:
+        list[tf.Tensor]: List of tensors
+    """
+
+    tensors = []
+    for arr in arrays:
+        tensor = tf.convert_to_tensor(arr, dtype=dtype)
+        tensors.append(tensor)
+    return tensors
+
+
 def train_nn(
     model: tf.keras.Sequential,
     x_train: np.ndarray | pd.Series,
@@ -1417,7 +1445,7 @@ def train_nn(
     verbose: int = 0,
     callbacks: keras.callbacks.EarlyStopping = None,
     validation_split: float = 0.2,
-    validation_data: tuple = None,
+    validation_data: tuple | list = None,
     path: Path | str = None,
     show: bool = True,
 ) -> tf.keras.callbacks.History:
@@ -1445,6 +1473,10 @@ def train_nn(
 
     # callbacks = [keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=0)]
     t0 = time()
+
+    x_train, y_train = convert_to_tensors([x_train, y_train])  # pylint: disable=unbalanced-tuple-unpacking
+    if validation_data is not None:
+        validation_data = convert_to_tensors(validation_data)
 
     history = model.fit(
         x_train,
@@ -1485,13 +1517,29 @@ def ml_classification(
     Returns:
         pd.DataFrame: Results of the classification models
     """
-    classifiers = (
+    classifiers = [
         GaussianNB(),
         RandomForestClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
         ExtraTreesClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
-        LGBMClassifier(n_jobs=-1, n_estimators=100, max_depth=15, random_state=9),
+    ]
+    lightgbm = LGBMClassifier(
+        n_jobs=-1,
+        n_estimators=50,
+        max_depth=7,
+        num_leaves=50,
+        random_state=9,
+        force_row_wise=True,
+        verbose=-1,
+        silent=True,
     )
-    names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LGBM"]
+    if y_train.shape[1] == 1:
+        classifiers.append(lightgbm)
+    else:
+        classifiers.append(MultiOutputClassifier(lightgbm))
+
+    names = ["Linear", "KNeighbors", "Random Forest", "LightGBM"]
+
+    names = ["Naive Bayes", "Random Forest", "Extremely Randomized Trees", "LightGBM"]
     col = ["Time (s)", "Loss", "Accuracy", "Precision", "Recall", "ROC-AUC", "F1-score"]
     results = pd.DataFrame(columns=col)
     for idx, clf in enumerate(classifiers):
@@ -1548,11 +1596,22 @@ def ml_regression(
         KNeighborsRegressor(n_neighbors=10),
         RandomForestRegressor(n_jobs=-1, max_depth=17, n_estimators=50, random_state=9),
     ]
-    names = ["Linear", "KNeighbors", "Random Forest"]
-
+    lightgbm = LGBMRegressor(
+        n_jobs=-1,
+        n_estimators=50,
+        max_depth=7,
+        num_leaves=50,
+        random_state=9,
+        force_row_wise=True,
+        verbose=-1,
+        silent=True,
+    )
     if y_train.shape[1] == 1:
-        regressors.append(LGBMRegressor(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9))
-        names.append("LGBM")
+        regressors.append(lightgbm)
+    else:
+        regressors.append(MultiOutputRegressor(lightgbm))
+
+    names = ["Linear", "KNeighbors", "Random Forest", "LightGBM"]
 
     col = ["Time (s)", "Test loss", "Test R2 score"]
     results = pd.DataFrame(columns=col)
@@ -1582,6 +1641,10 @@ def ml_regression(
 
             # log.debug("Test R2-Score CV:\t {:.3f}".format(r2_cv))
             # log.debug( "Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+
+        # Exclude empty or all-NA columns from the DataFrame (needed for concat)
+        results = results.loc[:, results.notna().any()]
+
         results = pd.concat([results, pd.DataFrame([[train_time, loss, r2]], columns=col, index=[name])])
         if show:
             log.debug("-" * 20)
@@ -1592,7 +1655,7 @@ def ml_regression(
 
 
 def feature_importance(
-    features: list, model: BaseEstimator | LGBMClassifier | LGBMRegressor, top: int = 10, plot: bool = True
+    features: list, model: BaseEstimator | LGBMClassifier | LGBMRegressor, top: int = 10, plot: bool = True, title=None
 ) -> pd.DataFrame:
     """Return a dataframe with the most relevant features from a trained tree-based model
     Args:
@@ -1611,6 +1674,6 @@ def feature_importance(
     importance = importance.sort_values("Importance", ascending=False).round(2).head(top)
     if plot:
         figsize = (8, top // 2 + 1)
-        importance.plot.barh(figsize=figsize)
+        importance.plot.barh(figsize=figsize, title=title)
         plt.gca().invert_yaxis()
     return importance
