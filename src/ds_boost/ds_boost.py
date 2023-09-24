@@ -1532,7 +1532,11 @@ def ml_classification(
         verbose=-1,
         silent=True,
     )
-    if y_train.shape[1] == 1:
+
+    if y_train.ndim == 1:
+        classifiers.append(lightgbm)
+    elif len(y_train.shape) > 1 and y_train.shape[1] == 1:
+        y_train = np.ravel(y_train)
         classifiers.append(lightgbm)
     else:
         classifiers.append(MultiOutputClassifier(lightgbm))
@@ -1565,6 +1569,7 @@ def ml_classification(
             # accuracy_cv = accuracy_score(y_test, y_pred_cv[:,1])
             # log.debug("Test Accuracy CV:\t {:.3f}".format(accuracy_cv))
             # log.debug("Training Time CV: \t {:.1f} ms".format(train_time_cv * 1000))
+        results = results.loc[:, results.notna().any()]
         results = pd.concat(
             [results, pd.DataFrame([[train_time, loss, acc, pre, rec, roc, f1]], columns=col, index=[name])]
         )
@@ -1599,14 +1604,17 @@ def ml_regression(
     lightgbm = LGBMRegressor(
         n_jobs=-1,
         n_estimators=50,
-        max_depth=7,
+        max_depth=17,
         num_leaves=50,
         random_state=9,
         force_row_wise=True,
         verbose=-1,
         silent=True,
     )
-    if y_train.shape[1] == 1:
+    if y_train.ndim == 1:
+        regressors.append(lightgbm)
+    elif len(y_train.shape) > 1 and y_train.shape[1] == 1:
+        y_train = np.ravel(y_train)
         regressors.append(lightgbm)
     else:
         regressors.append(MultiOutputRegressor(lightgbm))
@@ -1621,8 +1629,7 @@ def ml_regression(
         log.debug(name)
         t0 = time()
         # Fitting the model without cross validation
-        if len(y_train.shape) > 1 and y_train.shape[1] == 1:
-            y_train = np.ravel(y_train)
+
         clf.fit(x_train, y_train)
         train_time = np.around(time() - t0, 1)
         y_pred = clf.predict(x_test)

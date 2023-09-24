@@ -12,7 +12,7 @@ This repository was initially developed in early 2018 and has since been updated
 ## Scenarios
 ### Classification models
 
-- [Enron Scandal](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/enron_scandal.ipynb) Identifies Enron employees who may have committed fraud
+- [Enron Scandal](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/enron_scandal.ipynb) Identifies Enron employees who may have committed fraud *
 
 - [Property Maintenance Fines](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/property_maintenance_fines.ipynb) Predicts the probability of a set of blight tickets to be paid on time
 
@@ -27,9 +27,9 @@ This repository was initially developed in early 2018 and has since been updated
 
 ### Regression models
 
-- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/bike_rental.ipynb) Predicts daily bike rental ridership
+- [Bike Rental](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/bike_rental.ipynb) Predicts daily bike rental ridership *
 
-- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/house_prices.ipynb) Predicts house sales prices from Ames Housing database
+- [House Prices](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/house_prices.ipynb) Predicts house sales prices from Ames Housing database *
 
 - [Simple tickets](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/simple_tickets.ipynb)  Predicts the number of tickets requested by different clients
 
@@ -46,6 +46,7 @@ This repository was initially developed in early 2018 and has since been updated
 
 - [Network](https://github.com/angelmtenor/data-science-keras/blob/master/notebooks/network.ipynb)  Predicts missing salaries and new email connections from a company's email network
 
+\* *tested OK with Python 3.11, Pandas 2.1.1 and TensorFlow 2.13.0. The rest of the notebooks are being updated to the latest versions of Python and packages.*
 
 ## Setup & Usage
 *Python 3.11+ required*
