@@ -5,6 +5,7 @@ TODO: Update with newer functions from personal private repositories (2018-2022)
 TODO: Update with best practices 2022 (ethics & green code)
 TODO: Separate in different modules
 """
+
 from __future__ import annotations
 
 import math

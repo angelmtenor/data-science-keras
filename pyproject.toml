@@ -33,6 +33,7 @@ lightgbm = ">=3.3.4"
 jupyter = ">=1.0.0"
 ipython = ">=8.10"
 jupyter-contrib-nbextensions = ">=0.7.0"
+Pillow = ">=10.2.0"
 
 
 [tool.poetry.extras]
