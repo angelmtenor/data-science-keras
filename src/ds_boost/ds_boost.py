@@ -53,9 +53,16 @@ from . import logger
 # tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import tensorflow as tf  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
-from keras.layers import Dense, Dropout  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
-from keras.models import Sequential  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
-from tensorflow import keras  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order
+from keras.layers import (  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order, import-error
+    Dense,
+    Dropout,
+)
+from keras.models import (  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order, import-error
+    Sequential,
+)
+from tensorflow import (  # noqa: E402 # pylint: disable=wrong-import-position, wrong-import-order, no-name-in-module
+    keras,
+)
 
 log = logger.get_logger(__name__)
 
@@ -1494,6 +1501,11 @@ def train_nn(
         log.debug(f"time: \t {time() - t0:.1f} s")
         show_training(history)
     if path:
+        # generate a the route of the path (folders)
+        if isinstance(path, str):
+            path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
         model.save(path)
         log.debug(f"Model saved at {path}")
     return history
@@ -1506,6 +1518,7 @@ def ml_classification(
     y_test: np.ndarray | pd.Series,
     cross_validation: bool = False,
     show: bool = False,
+    n_jobs: int = 10,
 ) -> pd.DataFrame:
     """Build, train, and test the data set with non-NN machine learning classification models.
     Args:
@@ -1515,16 +1528,17 @@ def ml_classification(
         y_test (np.ndarray|pd.Series): Test target
         cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
         show (bool, optional): Show a plot of the training process. Defaults to False.
+        n_jobs (int, optional): Number of jobs. Defaults to 10.
     Returns:
         pd.DataFrame: Results of the classification models
     """
     classifiers = [
         GaussianNB(),
-        RandomForestClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
-        ExtraTreesClassifier(n_jobs=-1, n_estimators=50, max_depth=17, random_state=9),
+        RandomForestClassifier(n_jobs=n_jobs, n_estimators=50, max_depth=17, random_state=9),
+        ExtraTreesClassifier(n_jobs=n_jobs, n_estimators=50, max_depth=17, random_state=9),
     ]
     lightgbm = LGBMClassifier(
-        n_jobs=-1,
+        n_jobs=n_jobs,
         n_estimators=50,
         max_depth=7,
         num_leaves=50,
@@ -1584,6 +1598,7 @@ def ml_regression(
     y_test: np.ndarray | pd.Series,
     cross_validation=False,
     show=False,
+    n_jobs=10,
 ) -> pd.DataFrame:
     """
     Build, train, and test the data set with non-NN machine learning regression models.
@@ -1594,16 +1609,17 @@ def ml_regression(
         y_test (np.ndarray|pd.Series): Test target
         cross_validation (bool, optional): Cross validation. Defaults to False. # TODO re-implement with best practices
         show (bool, optional): Show a plot of the training process. Defaults to False.
+        n_jobs (int, optional): Number of jobs. Defaults to 10.
     Returns:
         pd.DataFrame: Results of the regression models
     """
     regressors = [
         LinearRegression(),
         KNeighborsRegressor(n_neighbors=10),
-        RandomForestRegressor(n_jobs=-1, max_depth=17, n_estimators=50, random_state=9),
+        RandomForestRegressor(n_jobs=n_jobs, max_depth=17, n_estimators=50, random_state=9),
     ]
     lightgbm = LGBMRegressor(
-        n_jobs=-1,
+        n_jobs=n_jobs,
         n_estimators=50,
         max_depth=17,
         num_leaves=50,
@@ -1674,10 +1690,7 @@ def feature_importance(
     Returns:
         pd.DataFrame: Dataframe with the most relevant features
     """
-    n = len(features)
-    if n < top:
-        top = n
-    # log.debug(" Top contributing features:", "-" * 5)
+    top = min(top, len(features))
     importance = pd.DataFrame(data={"Importance": model.feature_importances_}, index=features)
     importance = importance.sort_values("Importance", ascending=False).round(2).head(top)
     if plot:
