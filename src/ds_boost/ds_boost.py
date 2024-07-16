@@ -1545,7 +1545,6 @@ def ml_classification(
         random_state=9,
         force_row_wise=True,
         verbose=-1,
-        silent=True,
     )
 
     if y_train.ndim == 1:
@@ -1626,7 +1625,6 @@ def ml_regression(
         random_state=9,
         force_row_wise=True,
         verbose=-1,
-        silent=True,
     )
     if y_train.ndim == 1:
         regressors.append(lightgbm)
